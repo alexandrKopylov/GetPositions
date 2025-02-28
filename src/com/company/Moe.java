@@ -9,17 +9,30 @@ import java.util.*;
 public class Moe {
     public static void main(String[] args) {
 
-String strokaWithGradeSteeel = "10233PDH2.3-3700-PB-001-1.1-KMD1-Lp-1019";
-String strokaWithNamePozMinLenght = "PDH2.3-3700-1.1-KMD1-Lp-1019";
 
-       // System.out.println(ss.contains(tt));
-
-String threeChar = strokaWithNamePozMinLenght.substring(0, 3);
-int index = strokaWithGradeSteeel.indexOf(threeChar);
-String cod = strokaWithGradeSteeel.substring(0,index);
+      int i = 0;
+        System.out.println(++i + ++i  +  ++i  +  i ++);
+                       //     1    2       3       3
 
 
-        System.out.println(cod);
+//String name = "Lp103";
+//int index = 0;
+//        for (int i = 0; i < name.length(); i++) {
+//           char ch = name.charAt(i);
+//            if (Character.isDigit(ch)){
+//                index=i;
+//                break;
+//            }
+//        }
+//        String start = name.substring(0,index);
+//        String end = name.substring(index);
+//        String res = start + "-" + end;
+//        System.out.println(res);
+
+
+
+
+
 
 //        HashMap<String, String> map = new HashMap<>();
 //        map.put("111","2222");

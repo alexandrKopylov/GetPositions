@@ -13,7 +13,11 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
+import java.time.LocalDateTime;
 import java.time.Year;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -317,6 +321,18 @@ public class Util {
                             result++;
                         }
                     }
+
+                    if (!isFound) {
+                        search = inv + ".p"  + inv + "."  + poz + "L.dxf";
+                        cod = fileNameAndCod.get(search);
+                        if (!(cod == null)) {
+                            isFound = true;
+                            copyFileInDXF(new File(serverBazaDXF + inv + "\\" + cod + "_" + search), ".p" + poz);
+                            result++;
+                        }
+                    }
+
+
                     if (!isFound) {
                         search = inv + ".m" + poz.substring(1) + "L.dxf";
                         cod = fileNameAndCod.get(search);
@@ -413,7 +429,7 @@ public class Util {
         for (String zakazPlusPoz : zakazPlusPozSet) {
             inv = delListOnInv.get(zakazPlusPoz);
             poz = zakazPlusPoz.split("_")[1];
-            if (!checkPoz.add( poz)) {
+            if (!checkPoz.add(poz)) {
                 identicalPozAndInv.add(poz);
             }
         }
@@ -438,7 +454,7 @@ public class Util {
 
 
             Path pathFolderZakaz = null;
-            pathFolderZakaz = searchInCash(fileNotFaundOnZakaz.get(strZakaz), strZakaz, zak);
+            // pathFolderZakaz = searchInCash(fileNotFaundOnZakaz.get(strZakaz), strZakaz, zak);
 
             if (pathFolderZakaz == null) {
 
@@ -496,36 +512,77 @@ public class Util {
                 Path pathFilePoz = null;
                 String nameFilePoz = null;
 
+
                 //  определяем папку для кеша
                 String pozStr = listPoz.get(0).split("_")[0];
-                Optional<Path> pozPath = Files.walk(pathFolderZakaz, 4, FileVisitOption.FOLLOW_LINKS)
+                String finalPozStr = pozStr;
+                List<Path> pozPathsList = Files.walk(pathFolderZakaz, 4, FileVisitOption.FOLLOW_LINKS)
                         .filter(Files::isRegularFile)
                         .filter(x -> x.toFile().getName().endsWith(".dxf"))
-                        .filter(x -> x.toFile().getName().contains(pozStr))                             //equalsIgnoreCase(pozStr + ".dxf"))
-                        // .collect(Collectors.toList());
-                        .findFirst();
-                if (pozPath.isPresent()) {
-                    pathFilePoz = pozPath.get();
+                        .filter(x -> x.toFile().getName().contains(finalPozStr))                             //equalsIgnoreCase(pozStr + ".dxf"))
+                        .collect(Collectors.toList());
+
+
+                boolean pozModify = false;
+                String search = null;
+
+                if (pozPathsList.size() == 0) {
+                    search = moifyPozForSearch(pozStr);
+
+                    String finalSearch = search;
+                    pozPathsList = Files.walk(pathFolderZakaz, 4, FileVisitOption.FOLLOW_LINKS)
+                            .filter(Files::isRegularFile)
+                            .filter(x -> x.toFile().getName().endsWith(".dxf"))
+                            .filter(x -> x.toFile().getName().contains(finalSearch))                             //equalsIgnoreCase(pozStr + ".dxf"))
+                            .collect(Collectors.toList());
+                    if (pozPathsList.size() >= 1) {
+                        pozModify = true;
+                    }
+                }
+                if (pozModify) {
+                    pozStr = moifyPozForSearch(pozStr);
+                }
+
+                if (pozPathsList.size() >= 1) {
+                    pathFilePoz = checkExactMatch(pozStr, pozPathsList);
                     pathFolderPoz = pathFilePoz.getParent();
                     boolean isLastCharIsDigit = Character.isDigit(pathFolderPoz.toString().charAt(pathFolderPoz.toString().length() - 1));
                     boolean isInvInListNoCash = ChekIsInvInListNoCash();
-                    if (!isLastCharIsDigit && !isInvInListNoCash) {
-                        writer.write(pathFolderPoz + "\n");
-                        writer.close();
-                    }
+//                    if (!isLastCharIsDigit && !isInvInListNoCash) {
+//                        writer.write(pathFolderPoz + "\n");
+//                        writer.close();
+//                    }
 
 
                     fastMethod(pathFolderPoz, listPoz, strZakaz, zak);
 
 
                     if (listPoz.size() != 0) {
+                        METKA:
                         for (File file : pathFolderPoz.toFile().listFiles()) {
                             Iterator<String> it = listPoz.iterator();
                             while (it.hasNext()) {
                                 razbiraemNaChasti(zak, it);
-                                if (conteins(file.getName().replace(".dxf", ""), poz)) {
-                                    copyFileToDxfFolder(delListOnInv, strZakaz, file, it, zak);
-                                    break;
+
+                                if (pozModify) {
+                                    String sss = moifyPozForSearch(poz);
+                                    if (conteins(file.getName().replace(".dxf", ""), sss)) {
+                                        copyFileToDxfFolder(delListOnInv, strZakaz, file, it, zak);
+                                        if (listPoz.size() != 0) {
+                                            break;
+                                        } else {
+                                            break METKA;
+                                        }
+                                    }
+                                } else {
+                                    if (conteins(file.getName().replace(".dxf", ""), poz)) {
+                                        copyFileToDxfFolder(delListOnInv, strZakaz, file, it, zak);
+                                        if (listPoz.size() != 0) {
+                                            break;
+                                        } else {
+                                            break METKA;
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -550,25 +607,38 @@ public class Util {
 
                         if (pathFolderPoz == null) {
                             String finalCodPoz = codPoz;
-                            pozPath = Files.walk(pathFolderZakaz, 4, FileVisitOption.FOLLOW_LINKS)
+
+                            //  pozPathsList
+                            /*  List<Path>*/
+                            pozPathsList = Files.walk(pathFolderZakaz, 4, FileVisitOption.FOLLOW_LINKS)
                                     .filter(Files::isRegularFile)
                                     .filter(x -> x.toFile().getName().endsWith(".dxf"))
                                     .filter(x -> x.toFile().getName().contains(finalCodPoz))                             //equalsIgnoreCase(pozStr + ".dxf"))
-                                    // .collect(Collectors.toList());
-                                    .findFirst();
-                            if (pozPath.isPresent()) {
-                                pathFilePoz = pozPath.get();
+                                    .collect(Collectors.toList());
+                            //.findFirst();
+
+                            if (pozPathsList.size() >= 1) {
+
+
+                                pathFilePoz = checkExactMatch(codPoz, pozPathsList);
+                                // pathFilePoz =  pozPathsList.get();
+
+
                                 pathFolderPoz = pathFilePoz.getParent();
                                 // nameFilePoz = pathFilePoz.toFile().getName();
 
-                                boolean isLastCharIsDigit = Character.isDigit(pathFolderPoz.toString().charAt(pathFolderPoz.toString().length() - 1));
-                                if (!isLastCharIsDigit) {
-                                    writer.write(pathFolderPoz + "\n");
-                                    writer.close();
-                                }
+//                                boolean isLastCharIsDigit = Character.isDigit(pathFolderPoz.toString().charAt(pathFolderPoz.toString().length() - 1));
+//                                if (!isLastCharIsDigit) {
+//                                    writer.write(pathFolderPoz + "\n");
+//                                    writer.close();
+//                                }
                             }
                         }
                         File file = new File(pathFolderPoz.toString() + "\\" + codPoz + ".dxf");
+                        if (!file.exists()) {
+                            textArea.append(" нет файла " + poz + " = " + codPoz + " в папкe " + pathFolderPoz + "\n");
+                            continue;
+                        }
                         copyFileToDxfFolder(delListOnInv, strZakaz, file, it, zak);
                         mapParsingPDF.remove(poz, codPoz);
                     }
@@ -577,11 +647,105 @@ public class Util {
         }      // setZakaz
     }
 
+    private String moifyPozForSearch(String poz) {
+        String firstChar = poz.substring(0, 1);
+        if (firstChar.equalsIgnoreCase("M") || firstChar.equalsIgnoreCase("М")) {
+            String ostatok = poz.substring(1);
+            String stroka = firstChar + "-" + ostatok;
+            return stroka;
+        }
+        return poz;
+    }
+
+    private Path checkExactMatch(String pozStr, List<Path> pozPathsList) {
+        List<Path> result = new ArrayList<>();
+
+        if (pozPathsList.size() == 1) {
+            result = pozPathsList;
+
+        } else {
+            for (Path path : pozPathsList) {
+                String pathStr = path.toString();
+                if (pathStr.contains("round") || pathStr.contains("clean")) {
+                    continue;
+                }
+                int index = pathStr.indexOf(pozStr);
+                boolean isDigitBeforePozStr = Character.isDigit(pathStr.charAt(index - 1));
+                index += pozStr.length();
+                boolean isDigitAfterPozStr = Character.isDigit(pathStr.charAt(index));
+                if (isDigitBeforePozStr || isDigitAfterPozStr) {
+                    continue;
+                } else {
+                    result.add(path);
+                }
+            }
+        }
+
+        if (result.size() == 1) {
+            return result.get(0);
+        } else if (result.size() > 1) {
+
+
+            // Path path = null;
+
+
+            Path path = result.get(0);
+            for (Path tmpPath : result) {
+                try {
+                    if (((FileTime) Files.getAttribute(tmpPath, "creationTime")).compareTo(((FileTime) Files.getAttribute(path, "creationTime"))) > 0) {
+                        path = tmpPath;
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            textArea.append("find several (" + result.size() + ") files " + pozStr + " in  zakaz  " + zakaz + "\n");
+
+            // result.stream().forEach(x -> textArea.append("\t" + x + "\n"));  // textArea.append("\t\t" + value + "\n");
+            for (Path pathVivod : result) {
+                textArea.append("\t" + pathVivod + "__");
+                FileTime ft = null;
+                try {
+                    ft = (FileTime) Files.getAttribute(pathVivod, "creationTime");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                textArea.append(formatDateTime(ft) + "\n");
+            }
+
+            FileTime fileTime = null;
+            try {
+                fileTime = (FileTime) Files.getAttribute(path, "creationTime");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            textArea.append("\t\t take from folder   " + formatDateTime(fileTime) + "\n");
+            return path;
+
+
+        } else {
+            return null;
+        }
+    }
+
+
+    public static String formatDateTime(FileTime fileTime) {
+
+        LocalDateTime localDateTime = fileTime
+                .toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime();
+
+        return localDateTime.format(
+                DateTimeFormatter.ofPattern("dd-MM-yyyy  HH:mm"));
+    }
+
+
     private boolean ChekIsInvInListNoCash() throws IOException {
         boolean result = false;
         List<String> listPath = Files.readAllLines(Paths.get(fileCashPath));
         for (String str : listPath) {
-            if (str.trim().equals("--" + inv + "--")) {
+            if (str.trim().equals("--" + zakaz + "--")) {
                 result = true;
             }
         }
@@ -851,13 +1015,19 @@ public class Util {
 
         List<String> listPathFolder = Files.readAllLines(Paths.get(fileCashPath));
 
-        List<String> listFindPath = new ArrayList<>();
+        //  List<String> listFindPath = new ArrayList<>();
 
-        for (String str : listPathFolder) {
-            if (check(str, strZakaz)) {
-                listFindPath.add(str);
-            }
-        }
+        List<String> listFindPath = listPathFolder.stream()
+                .filter(x -> check(x, strZakaz))
+                .collect(Collectors.toList());
+
+//        for (String str : listPathFolder) {
+//            if (check(str, strZakaz)) {
+//                listFindPath.add(str);
+//            }
+//        }
+
+
 //        if (listFindPath.size() == 0) {
 //            boolean isLastCharIsDigit = Character.isDigit(strZakaz.charAt(strZakaz.length() - 1));
 //            if (!isLastCharIsDigit) {
@@ -990,6 +1160,15 @@ public class Util {
         boolean res = false;
         boolean contein = str.contains(poz);
         if (!contein) {
+            String firstChar = poz.substring(0);
+            if (firstChar.equalsIgnoreCase("M") || firstChar.equalsIgnoreCase("М")) {
+                String ostatok = poz.substring(1, poz.length() - 1);
+                String search = firstChar + "-" + ostatok;
+                if (str.contains(search)) {
+                    return true;
+                }
+            }
+
             return false;
         }
         int lengthPoz = poz.length();
@@ -1072,8 +1251,6 @@ public class Util {
         }
         addToFileORD(fileInFolderDXF.getName());
         if (!inv.equals("-")) {
-
-
             prepareMark(stringAbsolutPathToFileInDXF);                                            //  устанавливаем маркировку
         }
     }
@@ -1089,10 +1266,7 @@ public class Util {
         name = name.replace(".dxf", ".dft");
         String path = strKK + "\\" + name;
         String tolshina = gabaritCSV.split("x")[0];
-        // String result = String.format("\"-\"       \"\\\\nts2dc\\Users\\OGT\\BAZA\\Autonest\\%s\"       %s       %s       @M=0       @T=%s " + System.lineSeparator(), path, kolvoPoz, kolvoPoz, tolshina);
-        // String result = String.format("\"-\"       \"\\\\nts2dc\\Users\\OGT\\BAZA\\Autonest\\%s\"       %s       %s" + System.lineSeparator(), path, kolvoPoz, kolvoPoz);
         String result = String.format("\"-\"       \"\\\\NTS2DC\\Users\\OGT\\BAZA\\Autonest\\%s\"       %s       1       @M=0       @T=%s       @PartDirection=15       @DueDate=1733425200" + System.lineSeparator(), path, kolvoPoz, tolshina);
-
         FileWriter fileORD = new FileWriter("c:\\Users\\alexx.STALMOST\\Desktop\\_DXF\\fileORD.Ord", StandardCharsets.UTF_16LE, true);
         fileORD.write(result);
         fileORD.close();
@@ -1103,11 +1277,11 @@ public class Util {
 
     ///todo  prepareMark  общий
     private void prepareMark(String stringAbsolutPathToFileInDXF) {
+        printPozShapka();
         String stroka = null;
         stroka = readFileInString(stringAbsolutPathToFileInDXF);
         stroka = stroka.replace(" ", "");
         hasSpaces = stroka.contains(" ");
-        //hasTableLayer = stroka.contains()
 
         String[] masStrok = breakStringOnThreeParts(stroka);
         breakMidlePartOnEntityes(masStrok[1]);
@@ -1151,6 +1325,14 @@ public class Util {
         }
     }
 
+    private void printPozShapka() {
+        System.out.println("#".repeat(300));
+        System.out.println("#".repeat(300));
+        System.out.println("#####################################     " + poz + "       ######################################");
+        System.out.println("#".repeat(300));
+        System.out.println("#".repeat(300));
+    }
+
     private void opredelyaemSposobMark(double[] gabaritPoz) {
 
         double Xmin = gabaritPoz[0];
@@ -1168,46 +1350,46 @@ public class Util {
 
         boolean markirovkaStay = false;
 
-    int height = 20;
-    boolean flag = true;
-    Rectangle ramkaMark;
-    while (height > 10 && flag) {
-        ramkaMark = defineGabaritRamkiMark(height, TypeMark.HORIZONTAL);
-
-        if (dlinnaPoz > ramkaMark.getDlinna() && shirinaPoz > ramkaMark.getShirina()) {
-            markirovkaStay = findPlaceForMark(gabaritPoz, markaStolbom, ramkaMark, height, TypeMark.HORIZONTAL);
-        }
-        if (markirovkaStay) {
-            flag = false;
-        } else {
-            ramkaMark = defineGabaritRamkiMark(height, TypeMark.VERTICAL);
-            if (dlinnaPoz > ramkaMark.getDlinna() && shirinaPoz > ramkaMark.getShirina()) {
-                markirovkaStay = findPlaceForMark(gabaritPoz, markaStolbom, ramkaMark, height, TypeMark.VERTICAL);
-            }
-            if (markirovkaStay) {
-                flag = false;
-            }
-        }
-        height--;
-    }
-
-    if (!markirovkaStay) {
-
-        height = 20;
-        flag = true;
-
+        int height = 20;
+        boolean flag = true;
+        Rectangle ramkaMark;
         while (height > 10 && flag) {
-            ramkaMark = defineGabaritRamkiMark(height, TypeMark.ONLY_POZ);
+            ramkaMark = defineGabaritRamkiMark(height, TypeMark.HORIZONTAL);
 
             if (dlinnaPoz > ramkaMark.getDlinna() && shirinaPoz > ramkaMark.getShirina()) {
-                markirovkaStay = findPlaceForMark(gabaritPoz, markaStolbom, ramkaMark, height, TypeMark.ONLY_POZ);
+                markirovkaStay = findPlaceForMark(gabaritPoz, markaStolbom, ramkaMark, height, TypeMark.HORIZONTAL);
             }
             if (markirovkaStay) {
                 flag = false;
+            } else {
+                ramkaMark = defineGabaritRamkiMark(height, TypeMark.VERTICAL);
+                if (dlinnaPoz > ramkaMark.getDlinna() && shirinaPoz > ramkaMark.getShirina()) {
+                    markirovkaStay = findPlaceForMark(gabaritPoz, markaStolbom, ramkaMark, height, TypeMark.VERTICAL);
+                }
+                if (markirovkaStay) {
+                    flag = false;
+                }
             }
             height--;
         }
-    }
+
+        if (!markirovkaStay) {
+
+            height = 20;
+            flag = true;
+
+            while (height > 10 && flag) {
+                ramkaMark = defineGabaritRamkiMark(height, TypeMark.ONLY_POZ);
+
+                if (dlinnaPoz > ramkaMark.getDlinna() && shirinaPoz > ramkaMark.getShirina()) {
+                    markirovkaStay = findPlaceForMark(gabaritPoz, markaStolbom, ramkaMark, height, TypeMark.ONLY_POZ);
+                }
+                if (markirovkaStay) {
+                    flag = false;
+                }
+                height--;
+            }
+        }
 
         if (!markirovkaStay) {
             // System.out.println(zakaz + " " + poz + " маркировка  НЕ ПОСТАВЛЕНА  ");
@@ -1639,9 +1821,9 @@ public class Util {
             if (lenght != endPoly) {
                 char simvol = stringEntities.charAt(endPoly);
                 ///  смотрим  символ
-                String test = stringEntities.substring(endPoly - 10, endPoly + 10);
-                System.out.println("Simvol =" + simvol + "  poz = " + poz);
-                System.out.println("Text = " + test);
+                // String test = stringEntities.substring(endPoly - 10, endPoly + 10);
+                // System.out.println("Simvol =" + simvol + "  poz = " + poz);
+                // System.out.println("Text = " + test);
                 if (simvol == '5') {
                     int endPoly2 = stringEntities.indexOf("\r\n8\r\n", endPoly + 1) + 5;
                     endPoly = stringEntities.indexOf("\r\n", endPoly2) + 2;
@@ -1746,12 +1928,21 @@ public class Util {
             stringEntities = stringEntities.replace(newEnt, "");
         }
 
-        //stringEntities = null;
-
-
-        // }
-
+        vivodNaConsoleEntityies();
     }
+
+    private void vivodNaConsoleEntityies() {
+
+        // vivod  entityies  v konsole
+        System.out.println();
+        for (String str : entityies) {
+
+            String sss = str.replace("\r\n", " ");
+            System.out.println(sss);
+        }
+        System.out.println();
+    }
+
 
     public List<String> modifyPolylineInCircle(/*List<String> entityies, List<Point2D> listPoint*/) {
 
@@ -1859,25 +2050,25 @@ public class Util {
             double Ymax = listPointInsidePoz.get(0).getY();
 
             for (Point2D point2D : listPointInsidePoz) {
-                    if (point2D.getX() < Xmin) {
-                        Xmin = point2D.getX();
-                    }
-                    if (point2D.getX() > Xmax) {
-                        Xmax = point2D.getX();
-                    }
-                    if (point2D.getY() > Ymax) {
-                        Ymax = point2D.getY();
-                    }
-                    if (point2D.getY() < Ymin) {
-                        Ymin = point2D.getY();
-                    }
+                if (point2D.getX() < Xmin) {
+                    Xmin = point2D.getX();
+                }
+                if (point2D.getX() > Xmax) {
+                    Xmax = point2D.getX();
+                }
+                if (point2D.getY() > Ymax) {
+                    Ymax = point2D.getY();
+                }
+                if (point2D.getY() < Ymin) {
+                    Ymin = point2D.getY();
+                }
             }
             double[] res = new double[4];
             res[0] = Xmin;
             res[1] = Xmax;
             res[2] = Ymin;
             res[3] = Ymax;
-            return  res;
+            return res;
         }
 
 
@@ -1977,31 +2168,31 @@ public class Util {
 //                }
 //            }
 //        } else {
-            for (String ent : entityies) {
-                if (ent.contains("\r\nCIRCLE\r\n")) {
-                    int beginX = ent.indexOf("\r\n10\r\n");
-                    int beginY = ent.indexOf("\r\n20\r\n", beginX);
-                    String strX = ent.substring(beginX, beginY).replace("\r\n10\r\n", "");
-                    if (ent.contains("\r\n30\r\n")) {
-                        int beginZ = ent.indexOf("\r\n30\r\n", beginY);
-                        String strY = ent.substring(beginY, beginZ).replace("\r\n20\r\n", "");
-                        int beginRadius = ent.indexOf("\r\n40\r\n", beginZ);
-                        int endRadius = ent.length();
-                        String strRadius = ent.substring(beginRadius, endRadius).replace("\r\n40\r\n", "");
-                        circleTo5Points(Double.parseDouble(strX), Double.parseDouble(strY), Double.parseDouble(strRadius));
-                    } else {
-                        int beginZ = ent.indexOf("\r\n40\r\n", beginY);
-                        String strY = ent.substring(beginY, beginZ).replace("\r\n20\r\n", "");
-                        int endRadius = ent.length();
-                        String strRadius = ent.substring(beginZ, endRadius).replace("\r\n40\r\n", "");
-                        circleTo5Points(Double.parseDouble(strX), Double.parseDouble(strY), Double.parseDouble(strRadius));
-                    }
-
+        for (String ent : entityies) {
+            if (ent.contains("\r\nCIRCLE\r\n")) {
+                int beginX = ent.indexOf("\r\n10\r\n");
+                int beginY = ent.indexOf("\r\n20\r\n", beginX);
+                String strX = ent.substring(beginX, beginY).replace("\r\n10\r\n", "");
+                if (ent.contains("\r\n30\r\n")) {
+                    int beginZ = ent.indexOf("\r\n30\r\n", beginY);
+                    String strY = ent.substring(beginY, beginZ).replace("\r\n20\r\n", "");
+                    int beginRadius = ent.indexOf("\r\n40\r\n", beginZ);
+                    int endRadius = ent.length();
+                    String strRadius = ent.substring(beginRadius, endRadius).replace("\r\n40\r\n", "");
+                    circleTo5Points(Double.parseDouble(strX), Double.parseDouble(strY), Double.parseDouble(strRadius));
+                } else {
+                    int beginZ = ent.indexOf("\r\n40\r\n", beginY);
+                    String strY = ent.substring(beginY, beginZ).replace("\r\n20\r\n", "");
+                    int endRadius = ent.length();
+                    String strRadius = ent.substring(beginZ, endRadius).replace("\r\n40\r\n", "");
+                    circleTo5Points(Double.parseDouble(strX), Double.parseDouble(strY), Double.parseDouble(strRadius));
                 }
+
             }
         }
+    }
 
-   // }
+    // }
 
     public boolean findPlaceForMark(double[] gabaritPoz, boolean markaStolbom, Rectangle ramkaMark, int height, TypeMark typeMark) {
 
@@ -2116,12 +2307,19 @@ public class Util {
 
                 XminRamka = (int) (Xcntr - ramkaMark.getDlinna() / 2);
                 XmaxRamka = (int) (Xcntr + ramkaMark.getDlinna() / 2);
-                // YminRamka = (int) (Ycntr - ramkaMark.getShirina() / 2);
-                //  YmaxRamka = (int) (Ycntr + ramkaMark.getShirina() / 2);
-                YminRamka = (int) Ymin;
-                YmaxRamka = YminRamka + (int) ramkaMark.getShirina();
+                 YminRamka = (int) (Ycntr - ramkaMark.getShirina() / 2);
+                  YmaxRamka = (int) (Ycntr + ramkaMark.getShirina() / 2);
 
-                findPlace = ramkaGoUp(gabaritPoz, ramkaMark, height, typeMark, Ymax, XminRamka, XmaxRamka, YminRamka, YmaxRamka, shiftCoordinateY);
+
+                findPlace = checkMarkInCentrPozition(gabaritPoz, height, typeMark, XminRamka, XmaxRamka, ramkaMark, YminRamka, YmaxRamka, shiftCoordinateY);
+
+
+                if (!findPlace) {
+                    YminRamka = (int) Ymin;
+                    YmaxRamka = YminRamka + (int) ramkaMark.getShirina();
+
+                    findPlace = ramkaGoUp(gabaritPoz, ramkaMark, height, typeMark, Ymax, XminRamka, XmaxRamka, YminRamka, YmaxRamka, shiftCoordinateY);
+                }
                 if (!findPlace) {
                     findPlace = ramkaGoLeft(gabaritPoz, ramkaMark, height, typeMark, Xmin, XminRamka, XmaxRamka, YminRamka, YmaxRamka, shiftCoordinateX);
                 }
@@ -2133,13 +2331,17 @@ public class Util {
 
                 XminRamka = (int) (Xcntr - ramkaMark.getDlinna() / 2);
                 XmaxRamka = (int) (Xcntr + ramkaMark.getDlinna() / 2);
-                // YminRamka = (int) (Ycntr - ramkaMark.getShirina() / 2);
-                //  YmaxRamka = (int) (Ycntr + ramkaMark.getShirina() / 2);
+                YminRamka = (int) (Ycntr - ramkaMark.getShirina() / 2);
+                YmaxRamka = (int) (Ycntr + ramkaMark.getShirina() / 2);
 
-                YmaxRamka = (int) Ymax;
-                YminRamka = YmaxRamka - (int) ramkaMark.getShirina();
 
-                findPlace = ramkaGoDown(gabaritPoz, ramkaMark, height, typeMark, Ymax, XminRamka, XmaxRamka, YminRamka, YmaxRamka, shiftCoordinateY);
+                findPlace = checkMarkInCentrPozition(gabaritPoz, height, typeMark, XminRamka, XmaxRamka, ramkaMark, YminRamka, YmaxRamka, shiftCoordinateY);
+
+                if (!findPlace) {
+                    YmaxRamka = (int) Ymax;
+                    YminRamka = YmaxRamka - (int) ramkaMark.getShirina();
+                    findPlace = ramkaGoDown(gabaritPoz, ramkaMark, height, typeMark, Ymax, XminRamka, XmaxRamka, YminRamka, YmaxRamka, shiftCoordinateY);
+                }
                 if (!findPlace) {
                     findPlace = ramkaGoLeft(gabaritPoz, ramkaMark, height, typeMark, Xmin, XminRamka, XmaxRamka, YminRamka, YmaxRamka, shiftCoordinateX);
                 }
@@ -2152,6 +2354,22 @@ public class Util {
 
         lenghtDownLines = 0;
         lenghtUpLines = 0;
+        return findPlace;
+    }
+
+    private boolean checkMarkInCentrPozition(double[] gabaritPoz, int height, TypeMark typeMark, int xminRamka, int xmaxRamka, Rectangle ramkaMark, int yminRamka, int ymaxRamka, int shiftCoordinateY) {
+        boolean findPlace = false;
+        boolean tochkaVRamke = false;
+        for (Point2D pnt : listPointInsidePoz) {
+            if (pnt.getX() > xminRamka && pnt.getX() < xmaxRamka && pnt.getY() > yminRamka && pnt.getY() < ymaxRamka) {
+                tochkaVRamke = true;
+                break;
+            }
+        }
+        if (!tochkaVRamke) {
+            maxBoundRamka(xminRamka, yminRamka, xmaxRamka, ymaxRamka, gabaritPoz, shiftCoordinateY * 3, ramkaMark, height, typeMark);
+            findPlace = true;
+        }
         return findPlace;
     }
 
@@ -2515,7 +2733,8 @@ public class Util {
 
 
         double pointBeginTextX = pointCentrXnewRamki - lenghtPoz / 2;
-        double pointBeginTextY = pointCentrYnewRamki + 5;
+       // double pointBeginTextY = pointCentrYnewRamki + 5;
+        double pointBeginTextY = pointCentrYnewRamki   + (heightRanki/2) - height;
         String newText = "  0\n" +
                 "TEXT\n" +
                 "  5\n" +
@@ -2544,7 +2763,7 @@ public class Util {
 
         lenghtPoz = getLenghtStr(zakaz) * 10;
         pointBeginTextX = pointCentrXnewRamki - lenghtPoz / 2;
-        pointBeginTextY = pointCentrYnewRamki - 10;
+        pointBeginTextY =  pointBeginTextY - 15;
         String newTextZakaz = "  0\n" +
                 "TEXT\n" +
                 "  5\n" +
@@ -2575,7 +2794,7 @@ public class Util {
         lenghtPoz = getLenghtStr(gradeSteel) * 10;
 
         pointBeginTextX = pointCentrXnewRamki - lenghtPoz / 2;
-        pointBeginTextY = pointCentrYnewRamki - 25;
+        pointBeginTextY = pointBeginTextY - 15;
         String newTextSteelGrade = "  0\n" +
                 "TEXT\n" +
                 "  5\n" +
@@ -2887,6 +3106,8 @@ public class Util {
         for (String str : listPoz) {
             if (str.equals("\t\t\t\t\t")
                     || str.equals("\t\t\t\t")
+                    || str.equals("\r\n")
+                    || str.equals("\n")
                     || str.equals("")
                     || str.equals("Инв.\tОбозначение\tКол.Т\tКол.Н\tГабариты\t")
                     || str.equals("Инв.\tОбозначение\tКол.Т\tКол.Н\tГабариты")) {

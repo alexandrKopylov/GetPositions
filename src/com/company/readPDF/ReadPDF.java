@@ -71,14 +71,15 @@ public class ReadPDF {
 
             String strokaWithGradeSteeel = null;
 
-          //  for (String str : lines) {
+            //  smotrim stroki gde est'  stroka GradeSteeel  and   save in string
             for (int i = 0; i < lines.length; i++) {
                 if (isLineFound(lines[i])) {
                     strokaWithGradeSteeel = lines[i];
                     break;
                 }
             }
-           textAreaPDF.append("\nstrokaWithGradeSteeel   ===   " + strokaWithGradeSteeel);
+            textAreaPDF.append("\nstrokaWithGradeSteeel   ===   " + strokaWithGradeSteeel);
+
 
             String namePoz = null;
             for (String str : listNamePozicii) {
@@ -88,12 +89,28 @@ public class ReadPDF {
                 }
             }
 
+            String pozModify = null;   // poz nahoditsya v spiske  csv
+            boolean delDefis = false;
+            String strrr = null;
+            if (namePoz == null) {
+                for (String str : listNamePozicii) {
+                    strrr = deleteDefis(str);
+                    if (strokaWithGradeSteeel.contains(strrr)) {
+                        namePoz = strrr;
+                        delDefis = true;
+                         pozModify = str;
+                        break;
+                    }
+                }
+            }
+
+
             if (namePoz == null) {
                 Metka:
                 for (String str : lines) {
                     for (String strPoz : listNamePozicii) {
                         if (str.contains(strPoz)) {
-                           namePoz = strPoz;
+                            namePoz = strPoz;
                             break Metka;
                         }
                     }
@@ -110,26 +127,64 @@ public class ReadPDF {
                     }
                 }
             }
+            textAreaPDF.append("\nstrokaWithNamePozMinLenght   ===   " + strokaWithNamePozMinLenght);
+
+
             String cod = null;
             if (strokaWithGradeSteeel.contains(strokaWithNamePozMinLenght)) {
                 cod = strokaWithGradeSteeel.replace(strokaWithNamePozMinLenght, "").split(" ")[0];
             } else {
                 String threeChar = strokaWithNamePozMinLenght.substring(0, 3);
                 int index = strokaWithGradeSteeel.indexOf(threeChar);
-                cod = strokaWithGradeSteeel.substring(0, index);
+
+                if(index == -1){
+                    cod = strokaWithGradeSteeel.replace(namePoz, "").split(" ")[0];
+                } else{
+                    cod = strokaWithGradeSteeel.substring(0, index);
+                }
             }
             textAreaPDF.append("\nCOD  ===  " + cod);
-            if(cod != null  ||  cod != "") {
-                map.put(namePoz, cod);
-            }
-            textAreaPDF.append("\n" + "=".repeat(100));
 
-        } catch ( Exception e) {
+            if (cod != null || cod != "") {
+                if (delDefis) {
+                    map.put(pozModify, cod);
+                } else {
+                    map.put(namePoz, cod);
+                }
+            }
+            textAreaPDF.append("\n" + "=".repeat(300));
+
+        } catch (Exception e) {
             e.printStackTrace();
-          //  textArea.append(System.lineSeparator());
+            //  textArea.append(System.lineSeparator());
             textAreaPDF.append("\n" + stringPath + "  не парсится \n");
         }
 
+    }
+
+    private String insertDefis(String namePoz, String pozModify) {
+        // defis vstavlyaem mejdu bukvami i ciframi
+//        int index = 0;
+//        for (int i = 0; i < namePoz.length(); i++) {
+//            char ch = namePoz.charAt(i);
+//            if (Character.isDigit(ch)){
+//                index=i;
+//                break;
+//            }
+//        }
+
+        int index = pozModify.charAt('-');
+
+        String start = namePoz.substring(0,index);
+        String end = namePoz.substring(index);
+        String res = start + "-" + end;
+
+
+        return null;
+    }
+
+    private String deleteDefis(String str) {
+        return str.replace("-", "");
     }
 
     public void serchInTextAndAddToMap(String[] lines, Map<String, String> map, String stringPath) {
