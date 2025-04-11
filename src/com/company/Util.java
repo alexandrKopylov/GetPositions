@@ -57,7 +57,7 @@ public class Util {
     private MultiValueHashMap<String, String> fileNotFaundOnZakaz = new MultiValueHashMap<>();
 
     private Map<String, String> delListOnInv = new HashMap<>();
-    private List<String> identicalPozAndInv = new ArrayList<>();
+    private Set<String> identicalPozAndInv = new HashSet<>();
     FileWriter fileORD = new FileWriter("c:\\Users\\alexx.STALMOST\\Desktop\\_DXF\\fileORD.Ord", StandardCharsets.UTF_16LE, true);
     Set<String> listPozNeNashel = new TreeSet<>();
 
@@ -67,6 +67,7 @@ public class Util {
 
 
     public Util() throws IOException {
+        //&&
     }
 
 
@@ -126,7 +127,7 @@ public class Util {
             ex.printStackTrace();
         }
         if (map.countOfValue() != 0) {
-            readPDF(listNamePozicii, textAreaPDF);
+            readPDF(listNamePozicii  /*, textAreaPDF*/);
         }
         return map;
     }
@@ -194,12 +195,12 @@ public class Util {
             ex.printStackTrace();
         }
 
-        readPDF(listNamePozicii, textAreaPDF);
+        readPDF(listNamePozicii   /* ,textAreaPDF*/);
 
         return map;
     }
 
-    private void readPDF(List<String> listNamePozicii, JTextArea textAreaPDF) throws IOException {
+    private void readPDF(List<String> listNamePozicii   /*, JTextArea textAreaPDF*/) throws IOException {
 
         ReadPDF readPDF = new ReadPDF();
         List<String> listPDF = readPDF.searchPDF(pathToFolderPDF);
@@ -323,7 +324,7 @@ public class Util {
                     }
 
                     if (!isFound) {
-                        search = inv + ".p"  + inv + "."  + poz + "L.dxf";
+                        search = inv + ".p" + inv + "." + poz + "L.dxf";
                         cod = fileNameAndCod.get(search);
                         if (!(cod == null)) {
                             isFound = true;
@@ -358,7 +359,7 @@ public class Util {
                     // fileNotFaundOnInv.put(inv, poz + "_" + zakaz + "_" + gabaritCSV + "_" + kolvoPoz);
 
                     //  todo мапа  fileNotFaundOnInv
-                    //   что  будет если одна и таже позиция с одним инвентарным,  но разные заказы
+
 
                     delListOnInv.put(zakaz + "_" + poz, inv + "_" + gabaritCSV);
 
@@ -408,32 +409,32 @@ public class Util {
         // проверяем есть ли позиции с одинаковыми inv и  poz
         // если да то дабавляем ее в    identicalPozAndInv
 
-        checkIdentical();
+        //  checkIdentical();
 
         FileWriter writer = new FileWriter(fileCashPath, true);
         searchPozFromZakaz(fileNotFaundOnZakaz, writer, delListOnInv, "заказ");
 
     }
 
-    private void checkIdentical() {
-
-
-        /* проверяет позмции с одинаковым инвентарным
-        и с одиновым позиция но с разным заказом
-
-                 */
-        Set<String> checkPoz = new HashSet<>();
-        String inv;
-        String poz;
-        Set<String> zakazPlusPozSet = delListOnInv.keySet();
-        for (String zakazPlusPoz : zakazPlusPozSet) {
-            inv = delListOnInv.get(zakazPlusPoz);
-            poz = zakazPlusPoz.split("_")[1];
-            if (!checkPoz.add(poz)) {
-                identicalPozAndInv.add(poz);
-            }
-        }
-    }
+//    private void checkIdentical() {
+//
+//
+//        /* проверяет позмции с одинаковым инвентарным
+//        и с одиновым позиция но с разным заказом
+//
+//                 */
+//        Set<String> checkPoz = new HashSet<>();
+//        String inv;
+//        String poz;
+//        Set<String> zakazPlusPozSet = delListOnInv.keySet();
+//        for (String zakazPlusPoz : zakazPlusPozSet) {
+//            inv = delListOnInv.get(zakazPlusPoz);
+//            poz = zakazPlusPoz.split("_")[1];
+//            if (!checkPoz.add(poz)) {
+//                identicalPozAndInv.add(poz);
+//            }
+//        }
+//    }
 
 
     /// todo searchPozFromZakaz
@@ -452,10 +453,9 @@ public class Util {
                 inv = strZakaz;
             }
 
+            Map<String, Path> zakazPathMap = searchInCash();
 
-            Path pathFolderZakaz = null;
-            // pathFolderZakaz = searchInCash(fileNotFaundOnZakaz.get(strZakaz), strZakaz, zak);
-
+            Path pathFolderZakaz = zakazPathMap.get(strZakaz);
             if (pathFolderZakaz == null) {
 
                 String finalStrInvOrZakaz = strZakaz;
@@ -463,6 +463,18 @@ public class Util {
                         .filter(Files::isDirectory)
                         .filter(x -> x.toFile().getName().contains(finalStrInvOrZakaz))
                         .collect(Collectors.toList());
+
+
+                if (streamPath.size() == 0 && !Character.isDigit(strZakaz.charAt(strZakaz.length() - 1))) {
+                    // RUS - >  LAT
+                    String strZakazLeterChange = strZakaz.replace('А', 'A').replace('В', 'B').replace('С', 'C').replace('Е', 'E');
+
+                    streamPath = Files.walk(pathMosin, 2, FileVisitOption.FOLLOW_LINKS)
+                            .filter(Files::isDirectory)
+                            .filter(x -> x.toFile().getName().contains(strZakazLeterChange))
+                            .collect(Collectors.toList());
+                }
+
 
                 if (streamPath.size() > 1) {
                     int dlinnaStokiZakaz = strZakaz.length();
@@ -489,6 +501,36 @@ public class Util {
                             pathFolderZakaz = streamPath.get(0);
                         }
                         if (streamPath.size() == 0) {
+
+                            streamPath = Files.walk(pathMosin, 2, FileVisitOption.FOLLOW_LINKS)
+                                    .filter(Files::isDirectory)
+                                    .filter(x -> x.toFile().getName().contains(inv))
+                                    .collect(Collectors.toList());
+
+                            if (streamPath.size() > 0) {
+                                pathFolderZakaz = streamPath.get(0);
+                            } else {
+
+                                textArea.append("\nнет папки с  заказом " + strZakaz + "  у мосина");
+                                List<String> vivod = fileNotFaundOnZakaz.get(strZakaz);
+                                for (String sss : vivod) {
+                                    textArea.append("\n\t" + ++countNeNashel + " ) " + sss.split("_")[0] + "    не нашел  \n");
+                                }
+                                continue;
+                            }
+
+
+                        }
+                    } else {
+                        streamPath = Files.walk(pathMosin, 2, FileVisitOption.FOLLOW_LINKS)
+                                .filter(Files::isDirectory)
+                                .filter(x -> x.toFile().getName().contains(inv))
+                                .collect(Collectors.toList());
+
+                        if (streamPath.size() > 0) {
+                            pathFolderZakaz = streamPath.get(0);
+                        } else {
+
                             textArea.append("\nнет папки с  заказом " + strZakaz + "  у мосина");
                             List<String> vivod = fileNotFaundOnZakaz.get(strZakaz);
                             for (String sss : vivod) {
@@ -496,158 +538,188 @@ public class Util {
                             }
                             continue;
                         }
-                    } else {
-                        textArea.append("\nнет папки с  заказом " + strZakaz + "  у мосина");
-                        List<String> vivod = fileNotFaundOnZakaz.get(strZakaz);
-                        for (String sss : vivod) {
-                            textArea.append("\n\t" + ++countNeNashel + " ) " + sss.split("_")[0] + "    не нашел  \n");
-                        }
-                        continue;
                     }
                 }
+            }
+
+            List<String> listPoz = fileNotFaundOnZakaz.get(strZakaz);
+            Path pathFolderPoz = null;
+            Path pathFilePoz = null;
+            String nameFilePoz = null;
 
 
-                List<String> listPoz = fileNotFaundOnZakaz.get(strZakaz);
-                Path pathFolderPoz = null;
-                Path pathFilePoz = null;
-                String nameFilePoz = null;
+            //  определяем папку для кеша
+            String pozStr = listPoz.get(0).split("_")[0];
+            String finalPozStr = pozStr;
+            List<Path> pozPathsList = Files.walk(pathFolderZakaz, 4, FileVisitOption.FOLLOW_LINKS)
+                    .filter(Files::isRegularFile)
+                    .filter(x -> x.toFile().getName().endsWith(".dxf"))
+                    .filter(x -> x.toFile().getName().contains(finalPozStr))                             //equalsIgnoreCase(pozStr + ".dxf"))
+                    .collect(Collectors.toList());
 
 
-                //  определяем папку для кеша
-                String pozStr = listPoz.get(0).split("_")[0];
-                String finalPozStr = pozStr;
-                List<Path> pozPathsList = Files.walk(pathFolderZakaz, 4, FileVisitOption.FOLLOW_LINKS)
+            boolean pozModify = false;                                              //  delete first char 'M'
+            String search = null;
+
+            if (pozPathsList.size() == 0) {
+                search = modifyPozForSearch(pozStr);
+
+                String finalSearch = search;
+                pozPathsList = Files.walk(pathFolderZakaz, 4, FileVisitOption.FOLLOW_LINKS)
                         .filter(Files::isRegularFile)
                         .filter(x -> x.toFile().getName().endsWith(".dxf"))
-                        .filter(x -> x.toFile().getName().contains(finalPozStr))                             //equalsIgnoreCase(pozStr + ".dxf"))
+                        .filter(x -> x.toFile().getName().contains(finalSearch))                             //equalsIgnoreCase(pozStr + ".dxf"))
+                        .collect(Collectors.toList());
+                if (pozPathsList.size() >= 1) {
+                    pozModify = true;
+                }
+            }
+            if (pozModify) {
+                pozStr = modifyPozForSearch(pozStr);
+            }
+
+            boolean pozModify2 = false;                                                  //  change point(.) on  underscore(_)
+
+            if (pozPathsList.size() == 0) {
+                search = pozStr;
+                search = search.replace(".", "_");
+
+                String finalSearch1 = search;
+                pozPathsList = Files.walk(pathFolderZakaz, 4, FileVisitOption.FOLLOW_LINKS)
+                        .filter(Files::isRegularFile)
+                        .filter(x -> x.toFile().getName().endsWith(".dxf"))
+                        .filter(x -> x.toFile().getName().contains(finalSearch1))                             //equalsIgnoreCase(pozStr + ".dxf"))
                         .collect(Collectors.toList());
 
-
-                boolean pozModify = false;
-                String search = null;
-
-                if (pozPathsList.size() == 0) {
-                    search = moifyPozForSearch(pozStr);
-
-                    String finalSearch = search;
-                    pozPathsList = Files.walk(pathFolderZakaz, 4, FileVisitOption.FOLLOW_LINKS)
-                            .filter(Files::isRegularFile)
-                            .filter(x -> x.toFile().getName().endsWith(".dxf"))
-                            .filter(x -> x.toFile().getName().contains(finalSearch))                             //equalsIgnoreCase(pozStr + ".dxf"))
-                            .collect(Collectors.toList());
-                    if (pozPathsList.size() >= 1) {
-                        pozModify = true;
-                    }
-                }
-                if (pozModify) {
-                    pozStr = moifyPozForSearch(pozStr);
-                }
-
                 if (pozPathsList.size() >= 1) {
-                    pathFilePoz = checkExactMatch(pozStr, pozPathsList);
-                    pathFolderPoz = pathFilePoz.getParent();
-                    boolean isLastCharIsDigit = Character.isDigit(pathFolderPoz.toString().charAt(pathFolderPoz.toString().length() - 1));
-                    boolean isInvInListNoCash = ChekIsInvInListNoCash();
+                    pozModify2 = true;
+                }
+            }
+            if (pozModify2) {
+                pozStr = pozStr.replace(".", "_");
+            }
+
+
+            if (pozPathsList.size() >= 1) {
+                pathFilePoz = checkExactMatch(pozStr, pozPathsList);
+                pathFolderPoz = pathFilePoz.getParent();
+                boolean isLastCharIsDigit = Character.isDigit(pathFolderPoz.toString().charAt(pathFolderPoz.toString().length() - 1));
+                //   boolean isInvInListNoCash = ChekIsInvInListNoCash();
 //                    if (!isLastCharIsDigit && !isInvInListNoCash) {
 //                        writer.write(pathFolderPoz + "\n");
 //                        writer.close();
 //                    }
 
 
-                    fastMethod(pathFolderPoz, listPoz, strZakaz, zak);
+                fastMethod(pathFolderPoz, listPoz, strZakaz, zak);
 
 
-                    if (listPoz.size() != 0) {
-                        METKA:
-                        for (File file : pathFolderPoz.toFile().listFiles()) {
-                            Iterator<String> it = listPoz.iterator();
-                            while (it.hasNext()) {
-                                razbiraemNaChasti(zak, it);
+                if (listPoz.size() != 0) {
+                    METKA:
+                    for (File file : pathFolderPoz.toFile().listFiles()) {
+                        Iterator<String> it = listPoz.iterator();
+                        while (it.hasNext()) {
+                            razbiraemNaChasti(zak, it);
 
-                                if (pozModify) {
-                                    String sss = moifyPozForSearch(poz);
-                                    if (conteins(file.getName().replace(".dxf", ""), sss)) {
-                                        copyFileToDxfFolder(delListOnInv, strZakaz, file, it, zak);
-                                        if (listPoz.size() != 0) {
-                                            break;
-                                        } else {
-                                            break METKA;
-                                        }
+                            if (pozModify2) {
+
+                                String sss = poz.replace(".", "_");
+                                if (conteins(file.getName().replace(".dxf", ""), sss)) {
+                                    copyFileToDxfFolder(delListOnInv, strZakaz, file, it, zak);
+                                    if (listPoz.size() != 0) {
+                                        break;
+                                    } else {
+                                        break METKA;
                                     }
-                                } else {
-                                    if (conteins(file.getName().replace(".dxf", ""), poz)) {
-                                        copyFileToDxfFolder(delListOnInv, strZakaz, file, it, zak);
-                                        if (listPoz.size() != 0) {
-                                            break;
-                                        } else {
-                                            break METKA;
-                                        }
+                                }
+
+
+                            } else if (pozModify) {
+                                String sss = modifyPozForSearch(poz);
+                                if (conteins(file.getName().replace(".dxf", ""), sss)) {
+                                    copyFileToDxfFolder(delListOnInv, strZakaz, file, it, zak);
+                                    if (listPoz.size() != 0) {
+                                        break;
+                                    } else {
+                                        break METKA;
+                                    }
+                                }
+                            } else {
+                                if (conteins(file.getName().replace(".dxf", ""), poz)) {
+                                    copyFileToDxfFolder(delListOnInv, strZakaz, file, it, zak);
+                                    if (listPoz.size() != 0) {
+                                        break;
+                                    } else {
+                                        break METKA;
                                     }
                                 }
                             }
                         }
-                        if (listPoz.size() != 0) {
-                            for (String str : listPoz) {
-                                str = str.split("_")[0];
-                                listPozNeNashel.add(str);
-                            }
-                        }
-
                     }
-                } else {
-                    String codPoz = null;
-                    Iterator<String> it = listPoz.iterator();
-                    while (it.hasNext()) {
-                        razbiraemNaChasti(zak, it);
-                        codPoz = mapParsingPDF.get(poz);
-                        if (codPoz == null) {
-                            textArea.append(" нет файла " + poz + " = " + codPoz + " в папкe " + pathFolderPoz + "\n");
-                            continue;
+                    if (listPoz.size() != 0) {
+                        for (String str : listPoz) {
+                            str = str.split("_")[0];
+                            listPozNeNashel.add(str);
                         }
+                    }
 
-                        if (pathFolderPoz == null) {
-                            String finalCodPoz = codPoz;
-
-                            //  pozPathsList
-                            /*  List<Path>*/
-                            pozPathsList = Files.walk(pathFolderZakaz, 4, FileVisitOption.FOLLOW_LINKS)
-                                    .filter(Files::isRegularFile)
-                                    .filter(x -> x.toFile().getName().endsWith(".dxf"))
-                                    .filter(x -> x.toFile().getName().contains(finalCodPoz))                             //equalsIgnoreCase(pozStr + ".dxf"))
-                                    .collect(Collectors.toList());
-                            //.findFirst();
-
-                            if (pozPathsList.size() >= 1) {
+                }
+            } else {
 
 
-                                pathFilePoz = checkExactMatch(codPoz, pozPathsList);
-                                // pathFilePoz =  pozPathsList.get();
+                String codPoz = null;
+                Iterator<String> it = listPoz.iterator();
+                while (it.hasNext()) {
+                    razbiraemNaChasti(zak, it);
+                    codPoz = mapParsingPDF.get(poz);
+                    if (codPoz == null) {
+                        textArea.append(" нет файла " + poz + " = " + codPoz + " в папкe " + pathFolderPoz + "\n");
+                        continue;
+                    }
+
+                    if (pathFolderPoz == null) {
+                        String finalCodPoz = codPoz;
+
+                        //  pozPathsList
+                        /*  List<Path>*/
+                        pozPathsList = Files.walk(pathFolderZakaz, 4, FileVisitOption.FOLLOW_LINKS)
+                                .filter(Files::isRegularFile)
+                                .filter(x -> x.toFile().getName().endsWith(".dxf"))
+                                .filter(x -> x.toFile().getName().contains(finalCodPoz))                             //equalsIgnoreCase(pozStr + ".dxf"))
+                                .collect(Collectors.toList());
+                        //.findFirst();
+
+                        if (pozPathsList.size() >= 1) {
 
 
-                                pathFolderPoz = pathFilePoz.getParent();
-                                // nameFilePoz = pathFilePoz.toFile().getName();
+                            pathFilePoz = checkExactMatch(codPoz, pozPathsList);
+                            // pathFilePoz =  pozPathsList.get();
+
+
+                            pathFolderPoz = pathFilePoz.getParent();
+                            // nameFilePoz = pathFilePoz.toFile().getName();
 
 //                                boolean isLastCharIsDigit = Character.isDigit(pathFolderPoz.toString().charAt(pathFolderPoz.toString().length() - 1));
 //                                if (!isLastCharIsDigit) {
 //                                    writer.write(pathFolderPoz + "\n");
 //                                    writer.close();
 //                                }
-                            }
                         }
-                        File file = new File(pathFolderPoz.toString() + "\\" + codPoz + ".dxf");
-                        if (!file.exists()) {
-                            textArea.append(" нет файла " + poz + " = " + codPoz + " в папкe " + pathFolderPoz + "\n");
-                            continue;
-                        }
-                        copyFileToDxfFolder(delListOnInv, strZakaz, file, it, zak);
-                        mapParsingPDF.remove(poz, codPoz);
                     }
+                    File file = new File(pathFolderPoz.toString() + "\\" + codPoz + ".dxf");
+                    if (!file.exists()) {
+                        textArea.append(" нет файла " + poz + " = " + codPoz + " в папкe " + pathFolderPoz + "\n");
+                        continue;
+                    }
+                    copyFileToDxfFolder(delListOnInv, strZakaz, file, it, zak);
+                    mapParsingPDF.remove(poz, codPoz);
                 }
-            }     // esli papka s zakazom ne sushestvuet
+            }
+            // }     // esli papka s zakazom ne sushestvuet
         }      // setZakaz
     }
 
-    private String moifyPozForSearch(String poz) {
+    private String modifyPozForSearch(String poz) {
         String firstChar = poz.substring(0, 1);
         if (firstChar.equalsIgnoreCase("M") || firstChar.equalsIgnoreCase("М")) {
             String ostatok = poz.substring(1);
@@ -680,7 +752,23 @@ public class Util {
                 }
             }
         }
-
+        if (result.size() == 0) {
+            for (Path path : pozPathsList) {
+                String pathStr = path.toString();
+//                if (pathStr.contains("round") || pathStr.contains("clean")) {
+//                    continue;
+//                }
+                int index = pathStr.indexOf(pozStr);
+                boolean isDigitBeforePozStr = Character.isDigit(pathStr.charAt(index - 1));
+                index += pozStr.length();
+                boolean isDigitAfterPozStr = Character.isDigit(pathStr.charAt(index));
+                if (isDigitBeforePozStr || isDigitAfterPozStr) {
+                    continue;
+                } else {
+                    result.add(path);
+                }
+            }
+        }
         if (result.size() == 1) {
             return result.get(0);
         } else if (result.size() > 1) {
@@ -756,10 +844,12 @@ public class Util {
     ///todo copyFileToDxfFolder  ищем у мосина
     private void copyFileToDxfFolder(Map<String, String> delListOnInv, String strInvOrZakaz, File file, Iterator<String> it, String zakOrInv) throws IOException {
         File fileInFolderDXF;
-        if (identicalPozAndInv.contains(poz)) {
-            fileInFolderDXF = new File(pathDXF + poz + "_" + strInvOrZakaz + ".dxf");
-        } else {
+
+
+        if (identicalPozAndInv.add(poz)) {
             fileInFolderDXF = new File(pathDXF + poz + ".dxf");
+        } else {
+            fileInFolderDXF = new File(pathDXF + poz + "_" + zakaz + ".dxf");
         }
 
         if (!fileInFolderDXF.exists()) {
@@ -1009,79 +1099,14 @@ public class Util {
 //        }
 //    }
 
-    private Path searchInCash(List<String> listPoz, String strZakaz, String zak) throws IOException {
-        Path path = null;
-        String strPath = null;
-
+    private Map<String, Path> searchInCash() throws IOException {
         List<String> listPathFolder = Files.readAllLines(Paths.get(fileCashPath));
-
-        //  List<String> listFindPath = new ArrayList<>();
-
-        List<String> listFindPath = listPathFolder.stream()
-                .filter(x -> check(x, strZakaz))
-                .collect(Collectors.toList());
-
-//        for (String str : listPathFolder) {
-//            if (check(str, strZakaz)) {
-//                listFindPath.add(str);
-//            }
-//        }
-
-
-//        if (listFindPath.size() == 0) {
-//            boolean isLastCharIsDigit = Character.isDigit(strZakaz.charAt(strZakaz.length() - 1));
-//            if (!isLastCharIsDigit) {
-//                String InvOrZakazWithoutLastSimvol = strZakaz.substring(0, strZakaz.length() - 1);
-//                for (String str : listPathFolder) {
-//                    if (check(str, InvOrZakazWithoutLastSimvol)) {
-//                        listFindPath.add(str);
-//                    }
-//                }
-//            }
-//        }
-
-        if (listFindPath.size() > 1) {
-            textArea.append("\nнашел пути > 1 на заказ " + strZakaz + " файле cashPath\n");
-        } else if (listFindPath.size() == 1) {
-            //  String strPath = optPath.get();
-            strPath = listFindPath.get(0);
-            if (strPath.indexOf("\\\\nts2dc") == 0) {
-                path = Path.of(strPath);
-            } else {
-                strPath = strPath.replace("--" + inv, "");
-                path = Path.of(strPath);
-
-                if (strPath.indexOf("--") == 0) {
-                    strPath = strPath.replace("--" + zakaz, "");
-                    path = Path.of(strPath);
-                }
-            }
-
-            fastMethod(path, listPoz, strZakaz, zak);
-
-            if (listPoz.size() != 0) {
-                File folder = path.toFile();
-
-                for (File file : folder.listFiles()) {
-                    Iterator<String> it = listPoz.iterator();
-                    while (it.hasNext()) {
-                        razbiraemNaChasti(zak, it);
-                        if (conteins(file.getName().replace(".dxf", ""), poz)) {
-                            copyFileToDxfFolder(delListOnInv, strZakaz, file, it, zak);
-                            break;
-                        }
-                    }
-                }
-                if (listPoz.size() != 0) {
-                    for (String str : listPoz) {
-                        str = str.split("_")[0];
-                        listPozNeNashel.add(str);
-                    }
-                }
-            }
-        }
-        return path;
+        Map<String, Path> listFindPath = listPathFolder.stream()
+                .map(x -> x.split("="))
+                .collect(Collectors.toMap(x -> x[0], x -> Path.of(x[1])));
+        return listFindPath;
     }
+
 
     private boolean check(String line, String strInvOrZakaz) {
         boolean res = false;
@@ -1146,6 +1171,11 @@ public class Util {
                         }
 
                         File pathFilePoz = new File(path + "\\" + codPoz + ".dxf");
+                        if (!pathFilePoz.exists()) {
+                            // textArea.append("позиция (" + poz + ") = " + codPoz + " не найдена\n");
+                            continue;
+                        }
+
                         copyFileToDxfFolder(delListOnInv, strInvOrZakaz, pathFilePoz, it, zakOrInv);
                         mapParsingPDF.remove(keyMap, codPoz);
                         break;
@@ -1447,10 +1477,13 @@ public class Util {
 
         double dX = Math.abs(dlinnaPoz - dlinnaСSV);
         double dY = Math.abs(shirinaPoz - shirinaCSV);
-        // textArea.append( zakaz +"_" + poz + "    (" + deltaY + " ; " + deltaX + " )                        (" + dY + " ; " + dX + " )\n");
+        // textArea.append( zakaz +"_" + poz + "    (" + deltaY + " ; " + deltaX + " )                        (" + dY + " ; " + dX + " )\n")
 
-
-        textArea.append(++countNashel + " )         " + zakaz + " _ " + poz + "     (" + dY + " ; " + dX + " )\n");
+        if (dY == 0 && dX == 0) {
+            textArea.append(++countNashel + " )         " + zakaz + " _ " + poz + "\n");
+        } else {
+            textArea.append(++countNashel + " )         " + zakaz + " _ " + poz + "     (" + dY + " ; " + dX + " )\n");
+        }
 
         panel.revalidate();
 
@@ -1855,9 +1888,19 @@ public class Util {
                         double y = (double) Math.round(Double.parseDouble(strY));
                         masVertex[i] = masVertex[i].replace(strX, String.valueOf(x));
                         masVertex[i] = masVertex[i].replace(strY, String.valueOf(y));
+                    } else if (masVertex[i].contains("\r\n42\r\n")) {
+
+                        int beginZ = masVertex[i].indexOf("\r\n42\r\n", beginY);
+                        String strY = masVertex[i].substring(beginY, beginZ);
+                        strY = strY.replace("\r\n20\r\n", "").trim();
+                        double y = (double) Math.round(Double.parseDouble(strY));
+                        masVertex[i] = masVertex[i].replace(strX, String.valueOf(x));
+                        masVertex[i] = masVertex[i].replace(strY, String.valueOf(y));
+
                     } else {
                         int beginZ = masVertex[i].indexOf("\r\n0\r\n", beginY);
-                        String strY = masVertex[i].substring(beginY, beginZ).replace("\r\n20\r\n", "").trim();
+                        String strY = masVertex[i].substring(beginY, beginZ);
+                        strY = strY.replace("\r\n20\r\n", "").trim();
                         double y = (double) Math.round(Double.parseDouble(strY));
                         masVertex[i] = masVertex[i].replace(strX, String.valueOf(x));
                         masVertex[i] = masVertex[i].replace(strY, String.valueOf(y));
@@ -2307,8 +2350,8 @@ public class Util {
 
                 XminRamka = (int) (Xcntr - ramkaMark.getDlinna() / 2);
                 XmaxRamka = (int) (Xcntr + ramkaMark.getDlinna() / 2);
-                 YminRamka = (int) (Ycntr - ramkaMark.getShirina() / 2);
-                  YmaxRamka = (int) (Ycntr + ramkaMark.getShirina() / 2);
+                YminRamka = (int) (Ycntr - ramkaMark.getShirina() / 2);
+                YmaxRamka = (int) (Ycntr + ramkaMark.getShirina() / 2);
 
 
                 findPlace = checkMarkInCentrPozition(gabaritPoz, height, typeMark, XminRamka, XmaxRamka, ramkaMark, YminRamka, YmaxRamka, shiftCoordinateY);
@@ -2733,8 +2776,8 @@ public class Util {
 
 
         double pointBeginTextX = pointCentrXnewRamki - lenghtPoz / 2;
-       // double pointBeginTextY = pointCentrYnewRamki + 5;
-        double pointBeginTextY = pointCentrYnewRamki   + (heightRanki/2) - height;
+        // double pointBeginTextY = pointCentrYnewRamki + 5;
+        double pointBeginTextY = pointCentrYnewRamki + (heightRanki / 2) - height;
         String newText = "  0\n" +
                 "TEXT\n" +
                 "  5\n" +
@@ -2763,7 +2806,7 @@ public class Util {
 
         lenghtPoz = getLenghtStr(zakaz) * 10;
         pointBeginTextX = pointCentrXnewRamki - lenghtPoz / 2;
-        pointBeginTextY =  pointBeginTextY - 15;
+        pointBeginTextY = pointBeginTextY - 15;
         String newTextZakaz = "  0\n" +
                 "TEXT\n" +
                 "  5\n" +
@@ -2856,15 +2899,14 @@ public class Util {
             Character simvolACAD = stroka.charAt(i);
 
             switch (simvolACAD) {
-
                 case 'A':
-
                 case 'B':
                 case 'C':
                 case 'D':
                 case 'd':
                 case 'E':
                 case 'F':
+                case 'f':
                 case 'G':
                 case 'H':
                     dlinnnna += 1;
@@ -2885,6 +2927,7 @@ public class Util {
                 case 'S':
                 case 'T':
                 case 'U':
+                case 'v':
                     dlinnnna += 1;
                     break;
                 case 'V':
@@ -2894,6 +2937,8 @@ public class Util {
                 case 'X':
                 case 'Y':
                 case 'Z':
+                case 'z':
+
                     dlinnnna += 1;
                     break;
                 case '1':
@@ -2918,6 +2963,7 @@ public class Util {
                 // RUS
                 case 'А':
                 case 'Б':
+                case 'б':
                 case 'В':
                 case 'в':
                 case 'Г':
@@ -3023,6 +3069,7 @@ public class Util {
                     dlinnnna += 0.5;
                     break;
                 case '_':
+
                 case '=':
                 case '*':
                 case ' ':
@@ -3090,7 +3137,7 @@ public class Util {
                     dlinnnna += 0.388;
                     break;
                 default:
-                    dlinnnna += 0.1;
+                    dlinnnna += 1;
                     break;
 
             }
