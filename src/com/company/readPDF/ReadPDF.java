@@ -144,7 +144,7 @@ public class ReadPDF {
                 }
             }
             textAreaPDF.append("\nCOD  ===  " + cod);
-///
+///,,,
             if (cod != null || cod != "") {
                 if (delDefis) {
                     map.put(pozModify, cod);
