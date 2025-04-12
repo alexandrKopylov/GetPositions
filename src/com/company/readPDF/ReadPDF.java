@@ -144,6 +144,7 @@ public class ReadPDF {
                 }
             }
 
+
             textAreaPDF.append("\nCOD  ===  " + cod);
 ///,,,щщщ
             if (cod != null || cod != "") {
