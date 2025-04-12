@@ -90,7 +90,7 @@ public class ReadPDF {
             }
 
             String pozModify = null;   // poz nahoditsya v spiske  csv
-            boolean delDefis = false;
+            boolean delDefis = false ;
             String strrr = null;
             if (namePoz == null) {
                 for (String str : listNamePozicii) {
@@ -144,7 +144,7 @@ public class ReadPDF {
                 }
             }
             textAreaPDF.append("\nCOD  ===  " + cod);
-
+///
             if (cod != null || cod != "") {
                 if (delDefis) {
                     map.put(pozModify, cod);
