@@ -143,6 +143,7 @@ public class ReadPDF {
                     cod = strokaWithGradeSteeel.substring(0, index);
                 }
             }
+
             textAreaPDF.append("\nCOD  ===  " + cod);
 ///,,,щщщ
             if (cod != null || cod != "") {
