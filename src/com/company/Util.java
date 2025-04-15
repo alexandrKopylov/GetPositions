@@ -21,6 +21,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.company.Main.identicalPozAndInv;
+
 public class Util {
     private String pathDXF;
     private String serverBazaDXF = "z:\\DXF\\";
@@ -57,7 +59,7 @@ public class Util {
     private MultiValueHashMap<String, String> fileNotFaundOnZakaz = new MultiValueHashMap<>();
 
     private Map<String, String> delListOnInv = new HashMap<>();
-    private Set<String> identicalPozAndInv = new HashSet<>();
+   // private Set<String> identicalPozAndInv = new HashSet<>();
     FileWriter fileORD = new FileWriter("c:\\Users\\alexx.STALMOST\\Desktop\\_DXF\\fileORD.Ord", StandardCharsets.UTF_16LE, true);
     Set<String> listPozNeNashel = new TreeSet<>();
 
@@ -845,7 +847,7 @@ public class Util {
     private void copyFileToDxfFolder(Map<String, String> delListOnInv, String strInvOrZakaz, File file, Iterator<String> it, String zakOrInv) throws IOException {
         File fileInFolderDXF;
 
-
+//
         if (identicalPozAndInv.add(poz)) {
             fileInFolderDXF = new File(pathDXF + poz + ".dxf");
         } else {

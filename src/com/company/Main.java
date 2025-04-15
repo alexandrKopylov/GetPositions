@@ -37,6 +37,7 @@ public class Main {
     static String[] elements = {"  толщина  ", "1", "2", "2.5", "3", "4", "5", "6", "8", "10", "12", "14", "16", "18", "20", "22", "25","28", "30"};
     static String[] elementsMarkGrade = {" марка стали ", "С235", "С245", "С255", "С345", "С355", "С390", "С440", "10Х2", "10Х3", "15Х2", "15Х3", "09Г2С", "Ст3"};
     private static List<String> listPoziciiPlusPodkroi;
+    static Set<String> identicalPozAndInv = new HashSet<>();
 
 
     public static void main(String[] args) {
@@ -223,7 +224,7 @@ public class Main {
                         int countSuccess = 0;
                         Set<String> lisPozNeNashel = new HashSet<>();
 
-                        lisPozNeNashel = util.getListPoz(map, pathDXF, textArea, gradeSteel, panel, textKK, textAreaPDF);
+                        lisPozNeNashel = util.getListPoz(map, pathDXF, textArea, gradeSteel, panel, textKK, textAreaPDF   );
 
                         int neNashlos = lisPozNeNashel.size();
 
