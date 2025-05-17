@@ -21,7 +21,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.company.Main.identicalPozAndInv;
+import static com.company.Main.*;
 
 public class Util {
     private String pathDXF;
@@ -59,7 +59,7 @@ public class Util {
     private MultiValueHashMap<String, String> fileNotFaundOnZakaz = new MultiValueHashMap<>();
 
     private Map<String, String> delListOnInv = new HashMap<>();
-   // private Set<String> identicalPozAndInv = new HashSet<>();
+    // private Set<String> identicalPozAndInv = new HashSet<>();
     FileWriter fileORD = new FileWriter("c:\\Users\\alexx.STALMOST\\Desktop\\_DXF\\fileORD.Ord", StandardCharsets.UTF_16LE, true);
     Set<String> listPozNeNashel = new TreeSet<>();
 
@@ -74,6 +74,29 @@ public class Util {
 
 
     public MultiValueHashMap<String, String> readCSVPlusPodkroi(File file, String thikness, JTextArea textArea, List<String> listPoziciiPlusPodkroi, JTextArea textAreaPDF) throws IOException {
+        boolean flag = true;
+        if (!textFieldKK.getText().equals("KK") && flag) {
+
+            String pathKK = "\\\\NTS2DC\\Users\\OGT\\BAZA\\Autonest\\";
+            File fileKK = new File(pathKK+textFieldKK.getText().replace("/","_"));
+               if(fileKK.exists()){
+                   List<String> listFile = new ArrayList<>();
+                  File[] masFileKK =  fileKK.listFiles();
+                  for (File f: masFileKK){
+                      if(f.getName().endsWith(".dft")) {
+                          listFile.add(f.getName().replace(".dft", ".dxf"));
+                      }
+                  }
+                   listPoziciiPlusPodkroi.addAll(listFile);
+                   identicalPozAndInv.addAll(listFile);
+
+               }  else{
+                   new RuntimeException("KK not exist");
+               }
+
+
+            flag = false;
+        }
 
         this.textAreaPDF = textAreaPDF;
         MultiValueHashMap<String, String> map = new MultiValueHashMap<>();
@@ -129,7 +152,7 @@ public class Util {
             ex.printStackTrace();
         }
         if (map.countOfValue() != 0) {
-            readPDF(listNamePozicii  /*, textAreaPDF*/);
+            readPDF(listNamePozicii, textAreaPDF);
         }
         return map;
     }
@@ -197,12 +220,17 @@ public class Util {
             ex.printStackTrace();
         }
 
-        readPDF(listNamePozicii   /* ,textAreaPDF*/);
+
+        //   todo    readPDF
+        readPDF(listNamePozicii, textAreaPDF);
 
         return map;
     }
 
-    private void readPDF(List<String> listNamePozicii   /*, JTextArea textAreaPDF*/) throws IOException {
+    private void readPDF(List<String> listNamePozicii, JTextArea textAreaPDF) throws IOException {
+
+        boolean fff = checkbox.isSelected();
+
 
         ReadPDF readPDF = new ReadPDF();
         List<String> listPDF = readPDF.searchPDF(pathToFolderPDF);
@@ -226,6 +254,8 @@ public class Util {
 //      1518913_1917-22-КМД1-DP3.4.mД-34046L.dxf          serv
 //       1917-22-КМД1-DP34.mД-34046L.dxf                 search3
 
+
+    //   todo    getListPoz
     public Set<String> getListPoz(MultiValueHashMap<String, String> mapa, String pathDXF, JTextArea textArea, String gradeSteel, JPanel panel, String textKK, JTextArea textAreaPDF) throws IOException {
         this.textArea = textArea;
         this.gradeSteel = gradeSteel;
@@ -366,8 +396,6 @@ public class Util {
                     delListOnInv.put(zakaz + "_" + poz, inv + "_" + gabaritCSV);
 
 
-                    // TODO
-                    // подумать  где обнулять  мапы
                 }
             }
             fileNameAndCod.clear();
@@ -545,6 +573,8 @@ public class Util {
             }
 
             List<String> listPoz = fileNotFaundOnZakaz.get(strZakaz);
+            Collections.sort(listPoz);
+
             Path pathFolderPoz = null;
             Path pathFilePoz = null;
             String nameFilePoz = null;
@@ -1258,16 +1288,30 @@ public class Util {
         return listPathPDF;
     }
 
+
+    // todo   copyFileInDXF  файлы из АРМа
     private void copyFileInDXF(File file, String srokaSearch) throws IOException {
         String stringAbsolutPathToFileInDXF = "";
 
 
         if (!inv.equals("-")) {
-            if (countCharInString(srokaSearch, '.') == 1) {
-                stringAbsolutPathToFileInDXF = pathDXF + inv.replace(".", "") + srokaSearch.replace(".", "") + "L" + "_" + zakaz + ".dxf";
+
+            if (checkbox.isSelected()) {
+
+                if (identicalPozAndInv.add(poz)) {
+                    stringAbsolutPathToFileInDXF = pathDXF + poz + ".dxf";
+                } else {
+                    stringAbsolutPathToFileInDXF = pathDXF + poz + "_" + zakaz + ".dxf";
+                }
             } else {
-                stringAbsolutPathToFileInDXF = pathDXF + inv.replace(".", "") + srokaSearch.substring(1) + "L" + "_" + zakaz + ".dxf";
+
+                if (countCharInString(srokaSearch, '.') == 1) {
+                    stringAbsolutPathToFileInDXF = pathDXF + inv.replace(".", "") + srokaSearch.replace(".", "") + "L" + "_" + zakaz.replace("/", "-") + ".dxf";
+                } else {
+                    stringAbsolutPathToFileInDXF = pathDXF + inv.replace(".", "") + srokaSearch.substring(1) + "L" + "_" + zakaz.replace("/", "-") + ".dxf";
+                }
             }
+
         } else {
             stringAbsolutPathToFileInDXF = pathDXF + srokaSearch + "L.dxf";
         }
@@ -1321,7 +1365,14 @@ public class Util {
         double[] gabaritPoz = getGabaritPosition();
         checkGabarit(gabaritPoz);
 
-        if (!searchPozFromMosin) {
+        if (searchPozFromMosin) {      //  if (!searchPozFromMosin) {
+            /* этот блок  не используется
+             * т к маркировка  ставится на позиию
+             * как будто  она без  дефолтной маркировки
+             *
+             * маркировка ставится методом    opredelyaemSposobMark(gabaritPoz);
+             *
+             * */
 
             int handler = 0;
             handler = getPropertyDefaultMark();
@@ -1935,7 +1986,12 @@ public class Util {
 
             int endTEXT2 = stringEntities.indexOf("\r\n", endTEXT) + 2;
             String newEnt = stringEntities.substring(beginTEXT, endTEXT2);
-            entityies.add(newEnt);
+
+
+            //  дефолтную маркировку  не  сохраняем  а  просто удаляем
+            //  маркировка ставится методом    opredelyaemSposobMark(gabaritPoz);
+
+            // entityies.add(newEnt);
             stringEntities = stringEntities.replace(newEnt, "");
         }
 
