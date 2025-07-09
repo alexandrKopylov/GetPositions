@@ -57,6 +57,8 @@ public class Util {
     private List<String> entityies = new LinkedList<>();
     private List<Point2D> listPointInsidePoz = new LinkedList<>();
     private MultiValueHashMap<String, String> fileNotFaundOnZakaz = new MultiValueHashMap<>();
+    private List<List<Point2D>> listKontur;
+
 
     private Map<String, String> delListOnInv = new HashMap<>();
     // private Set<String> identicalPozAndInv = new HashSet<>();
@@ -78,21 +80,21 @@ public class Util {
         if (!textFieldKK.getText().equals("KK") && flag) {
 
             String pathKK = "\\\\NTS2DC\\Users\\OGT\\BAZA\\Autonest\\";
-            File fileKK = new File(pathKK+textFieldKK.getText().replace("/","_"));
-               if(fileKK.exists()){
-                   List<String> listFile = new ArrayList<>();
-                  File[] masFileKK =  fileKK.listFiles();
-                  for (File f: masFileKK){
-                      if(f.getName().endsWith(".dft")) {
-                          listFile.add(f.getName().replace(".dft", ".dxf"));
-                      }
-                  }
-                   listPoziciiPlusPodkroi.addAll(listFile);
-                   identicalPozAndInv.addAll(listFile);
+            File fileKK = new File(pathKK + textFieldKK.getText().replace("/", "_"));
+            if (fileKK.exists()) {
+                List<String> listFile = new ArrayList<>();
+                File[] masFileKK = fileKK.listFiles();
+                for (File f : masFileKK) {
+                    if (f.getName().endsWith(".dft")) {
+                        listFile.add(f.getName().replace(".dft", ".dxf"));
+                    }
+                }
+                listPoziciiPlusPodkroi.addAll(listFile);
+                identicalPozAndInv.addAll(listFile);
 
-               }  else{
-                   new RuntimeException("KK not exist");
-               }
+            } else {
+                new RuntimeException("KK not exist");
+            }
 
 
             flag = false;
@@ -109,6 +111,7 @@ public class Util {
             String poz = "";
             String tolshina;
 
+            Set<String> storeTolshins = new  TreeSet<String>();
 
             while ((line = br.readLine()) != null) {
                 if (line.equals("\t\t\t\t\t")
@@ -128,15 +131,22 @@ public class Util {
                 inv = mas[0];                         //.replace(".", "");                 //удаляем точку в инвентарном
 
                 // poz = mas[1];
+                tolshina = mas[4].split("x")[0];
+
+
+
 
                 if (thikness.equals("")) {             // нечего не ввели
                     map.put(inv, line);
+                    storeTolshins.add(tolshina);
+
                     textArea.append(line + "\n");
                     if (mas[1].contains("_")) {
                         listNamePozicii.add(mas[1].split("_")[0]);
+
                     }
                 } else {
-                    tolshina = mas[4].split("x")[0];
+
                     if (thikness.equals(tolshina)) {
                         map.put(inv, line);
                         textArea.append(line + "\n");
@@ -147,7 +157,17 @@ public class Util {
                         }
                     }
                 }
+
+
+              }
+
+            if(  storeTolshins.size() > 1) {
+
+                JOptionPane.showMessageDialog(null, "в работе разные толщины");
+
             }
+
+
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -229,7 +249,7 @@ public class Util {
 
     private void readPDF(List<String> listNamePozicii, JTextArea textAreaPDF) throws IOException {
 
-        boolean fff = checkbox.isSelected();
+        //  boolean fff = checkbox.isSelected();
 
 
         ReadPDF readPDF = new ReadPDF();
@@ -281,6 +301,9 @@ public class Util {
         fileORD.close();
 
         textAreaPDF.append("\n");
+        textAreaPDF.append("\n");
+        textAreaPDF.append("\n");
+
         textAreaPDF.append("********************* Parsing PDF *************************\n");
         mapParsingPDF.forEach((key, value) -> textAreaPDF.append(key + " = " + value + "\n"));
         textAreaPDF.append("mapParsingPDF.size() = " + mapParsingPDF.size() + "\n");
@@ -479,8 +502,11 @@ public class Util {
         for (String strZakaz : setZakaz) {
             if (zak.equals("заказ")) {
                 zakaz = strZakaz;
-            } else {
-                inv = strZakaz;
+
+                inv = fileNotFaundOnZakaz.get(zakaz).get(0).split("_")[1];
+
+
+                // inv = strZakaz;
             }
 
             Map<String, Path> zakazPathMap = searchInCash();
@@ -586,6 +612,7 @@ public class Util {
             List<Path> pozPathsList = Files.walk(pathFolderZakaz, 4, FileVisitOption.FOLLOW_LINKS)
                     .filter(Files::isRegularFile)
                     .filter(x -> x.toFile().getName().endsWith(".dxf"))
+                    .filter(x -> !x.toFile().getPath().contains("round"))
                     .filter(x -> x.toFile().getName().contains(finalPozStr))                             //equalsIgnoreCase(pozStr + ".dxf"))
                     .collect(Collectors.toList());
 
@@ -633,9 +660,9 @@ public class Util {
 
 
             if (pozPathsList.size() >= 1) {
-                pathFilePoz = checkExactMatch(pozStr, pozPathsList);
-                pathFolderPoz = pathFilePoz.getParent();
-                boolean isLastCharIsDigit = Character.isDigit(pathFolderPoz.toString().charAt(pathFolderPoz.toString().length() - 1));
+    //            pathFilePoz = checkExactMatch(pozStr, pozPathsList);
+                pathFolderPoz =  pozPathsList.get(0).getParent();                    //pathFilePoz.getParent();
+ //               boolean isLastCharIsDigit = Character.isDigit(pathFolderPoz.toString().charAt(pathFolderPoz.toString().length() - 1));
                 //   boolean isInvInListNoCash = ChekIsInvInListNoCash();
 //                    if (!isLastCharIsDigit && !isInvInListNoCash) {
 //                        writer.write(pathFolderPoz + "\n");
@@ -705,7 +732,7 @@ public class Util {
                     razbiraemNaChasti(zak, it);
                     codPoz = mapParsingPDF.get(poz);
                     if (codPoz == null) {
-                        textArea.append(" нет файла " + poz + " = " + codPoz + " в папкe " + pathFolderPoz + "\n");
+                        textArea.append(" нет файла " + poz + " = " + codPoz + " в папкe " + pathFolderPoz + " посмотри во вкладку parsingPDF \n");
                         continue;
                     }
 
@@ -1365,48 +1392,48 @@ public class Util {
         double[] gabaritPoz = getGabaritPosition();
         checkGabarit(gabaritPoz);
 
-        if (searchPozFromMosin) {      //  if (!searchPozFromMosin) {
-            /* этот блок  не используется
-             * т к маркировка  ставится на позиию
-             * как будто  она без  дефолтной маркировки
-             *
-             * маркировка ставится методом    opredelyaemSposobMark(gabaritPoz);
-             *
-             * */
+//        if (searchPozFromMosin) {      //  if (!searchPozFromMosin) {
+//            /* этот блок  не используется
+//             * т к маркировка  ставится на позиию
+//             * как будто  она без  дефолтной маркировки
+//             *
+//             * маркировка ставится методом    opredelyaemSposobMark(gabaritPoz);
+//             *
+//             * */
+//
+//            int handler = 0;
+//            handler = getPropertyDefaultMark();
+//            if (handler != -1) {
+//                char lastCharInString = markDefault.charAt(markDefault.length() - 1);
+//                if (lastCharInString == ';') {
+//                    setMarkOnlyPoz(gabaritPoz, handler);
+//                } else if (lastCharInString == '_') {
+//                    setMarkHorizon(gabaritPoz, handler);
+//                } else {
+//                    setMarkVertical(gabaritPoz, handler);
+//                }
+//                List<String> listCircle = new LinkedList<>();         //  заглушка для метода
+//                try {
+//                    fileSave(new File(stringAbsolutPathToFileInDXF), masStrok, listCircle);
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            } else {
+//                textArea.append(poz + " нет default маркировки\n");
+//            }
+//        } else {
 
-            int handler = 0;
-            handler = getPropertyDefaultMark();
-            if (handler != -1) {
-                char lastCharInString = markDefault.charAt(markDefault.length() - 1);
-                if (lastCharInString == ';') {
-                    setMarkOnlyPoz(gabaritPoz, handler);
-                } else if (lastCharInString == '_') {
-                    setMarkHorizon(gabaritPoz, handler);
-                } else {
-                    setMarkVertical(gabaritPoz, handler);
-                }
-                List<String> listCircle = new LinkedList<>();         //  заглушка для метода
-                try {
-                    fileSave(new File(stringAbsolutPathToFileInDXF), masStrok, listCircle);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                textArea.append(poz + " нет default маркировки\n");
-            }
-        } else {
+        opredelyaemSposobMark(gabaritPoz);
 
-            opredelyaemSposobMark(gabaritPoz);
-
-            List<String> listCircle = new LinkedList<>();         //  заглушка для метода
-            try {
-                fileSave(new File(stringAbsolutPathToFileInDXF), masStrok, listCircle);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
+        List<String> listCircle = new LinkedList<>();         //  заглушка для метода
+        try {
+            fileSave(new File(stringAbsolutPathToFileInDXF), masStrok, listCircle);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+
     }
+    //  }
 
     private void printPozShapka() {
         System.out.println("#".repeat(300));
@@ -1506,41 +1533,52 @@ public class Util {
 
 
     private void checkGabarit(double[] gabaritPoz) {
-        int shirinaCSV = Integer.parseInt(gabaritCSV.split("x")[1]);
-        int dlinnaСSV = Integer.parseInt(gabaritCSV.split("x")[2]);
-        if (shirinaCSV > dlinnaСSV) {
-            int tmp = shirinaCSV;
-            shirinaCSV = dlinnaСSV;
-            dlinnaСSV = tmp;
-        }
-        double Xmin = gabaritPoz[0];
-        double Xmax = gabaritPoz[1];
-        double Ymin = gabaritPoz[2];
-        double Ymax = gabaritPoz[3];
+        int shirinaCSV;
+        int dlinnaСSV;
 
-        double shirinaPoz = Math.abs(Ymax - Ymin);
-        double dlinnaPoz = Math.abs(Xmax - Xmin);
-        if (shirinaPoz > dlinnaPoz) {
-            double tmp = shirinaPoz;
-            shirinaPoz = dlinnaPoz;
-            dlinnaPoz = tmp;
-        }
-        int deltaX = Math.abs((int) (dlinnaPoz - dlinnaСSV));
-        int deltaY = Math.abs((int) (shirinaPoz - shirinaCSV));
-
-        double dX = Math.abs(dlinnaPoz - dlinnaСSV);
-        double dY = Math.abs(shirinaPoz - shirinaCSV);
-        // textArea.append( zakaz +"_" + poz + "    (" + deltaY + " ; " + deltaX + " )                        (" + dY + " ; " + dX + " )\n")
-
-        if (dY == 0 && dX == 0) {
-            textArea.append(++countNashel + " )         " + zakaz + " _ " + poz + "\n");
+        long count = gabaritCSV.chars().filter(ch -> ch == 'x').count();
+        if (count == 1) {
+            shirinaCSV = Integer.parseInt(gabaritCSV.split("x")[0]);
+           // dlinnaСSV = shirinaCSV;
+            textArea.append(++countNashel + " )         " + zakaz + " _ " + poz + "     ( круг D = " + shirinaCSV + " )\n");
         } else {
-            textArea.append(++countNashel + " )         " + zakaz + " _ " + poz + "     (" + dY + " ; " + dX + " )\n");
+
+            shirinaCSV = Integer.parseInt(gabaritCSV.split("x")[1]);
+            dlinnaСSV = Integer.parseInt(gabaritCSV.split("x")[2]);
+
+            if (shirinaCSV > dlinnaСSV) {
+                int tmp = shirinaCSV;
+                shirinaCSV = dlinnaСSV;
+                dlinnaСSV = tmp;
+            }
+            double Xmin = gabaritPoz[0];
+            double Xmax = gabaritPoz[1];
+            double Ymin = gabaritPoz[2];
+            double Ymax = gabaritPoz[3];
+
+            double shirinaPoz = Math.abs(Ymax - Ymin);
+            double dlinnaPoz = Math.abs(Xmax - Xmin);
+            if (shirinaPoz > dlinnaPoz) {
+                double tmp = shirinaPoz;
+                shirinaPoz = dlinnaPoz;
+                dlinnaPoz = tmp;
+            }
+            int deltaX = Math.abs((int) (dlinnaPoz - dlinnaСSV));
+            int deltaY = Math.abs((int) (shirinaPoz - shirinaCSV));
+
+            double dX = Math.abs(dlinnaPoz - dlinnaСSV);
+            double dY = Math.abs(shirinaPoz - shirinaCSV);
+            // textArea.append( zakaz +"_" + poz + "    (" + deltaY + " ; " + deltaX + " )                        (" + dY + " ; " + dX + " )\n")
+
+            if (dY == 0 && dX == 0) {
+                textArea.append(++countNashel + " )         " + zakaz + " _ " + poz + "\n");
+            } else {
+                textArea.append(++countNashel + " )         " + zakaz + " _ " + poz + "     (" + dY + " ; " + dX + " )\n");
+            }
+
+            panel.revalidate();
+
         }
-
-        panel.revalidate();
-
-
     }
 
     private void setMarkVertical(double[] gabaritPoz, int handler) {
@@ -2108,11 +2146,12 @@ public class Util {
         return listCircle;
     }
 
+    //  todo   getGabaritPosition()
     public double[] getGabaritPosition() {
 
         int breakLinesLenght = 10;                                        //  переменая говорит на какие отрезки будем разбивать линию
 
-        List<List<Point2D>> listKontur = new LinkedList<>();
+        listKontur = new LinkedList<>();
 
         for (String poly : entityies) {
             if (poly.contains("0\r\nPOLYLINE\r\n")) {
@@ -2232,6 +2271,8 @@ public class Util {
                 getLenghtDownAndUpLines(Ymin, Ymax, pointBeginLine, endLine);
             }
         }
+
+
         getPointsFromCircle();
         return res;
     }
@@ -2363,9 +2404,19 @@ public class Util {
                     YminRamka = YminRamka + shiftCoordinateY;
                     YmaxRamka = YmaxRamka + shiftCoordinateY;
                 } else {
-                    findPlace = true;
-                    maxBoundRamka(XminRamka, YminRamka, XmaxRamka, YmaxRamka, gabaritPoz, shiftCoordinateY * 3, ramkaMark, height, typeMark);
-                    flag = false;
+
+
+                    boolean checkOutMark = checkOutOfBoundMark(new Point2D(XminRamka + (XmaxRamka - XminRamka) / 2, YmaxRamka),
+                            new Point2D(XminRamka + (XmaxRamka - XminRamka) / 2, gabaritPoz[2] - 10));
+                    if (!checkOutMark) {
+
+                        findPlace = true;
+                        maxBoundRamka(XminRamka, YminRamka, XmaxRamka, YmaxRamka, gabaritPoz, shiftCoordinateY * 3, ramkaMark, height, typeMark);
+                        flag = false;
+                    } else {
+                        flag = false;
+                    }
+
                 }
             }
 
@@ -2497,9 +2548,20 @@ public class Util {
                 xminRamka = xminRamka + shiftCoordinateX;
                 xmaxRamka = xmaxRamka + shiftCoordinateX;
             } else {
-                findPlace = true;
-                maxBoundRamka(xminRamka, yminRamka, xmaxRamka, ymaxRamka, gabaritPoz, shiftCoordinateX * 3, ramkaMark, height, typeMark);
-                flag = false;
+
+                boolean checkOutMark = checkOutOfBoundMark(new Point2D(xminRamka + (xmaxRamka - xminRamka) / 2, ymaxRamka),
+                        new Point2D(xminRamka + (xmaxRamka - xminRamka) / 2, gabaritPoz[2] - 10));
+                if (!checkOutMark) {
+
+
+                    findPlace = true;
+                    maxBoundRamka(xminRamka, yminRamka, xmaxRamka, ymaxRamka, gabaritPoz, shiftCoordinateX * 3, ramkaMark, height, typeMark);
+                    flag = false;
+                } else {
+                    flag = false;
+                }
+
+
             }
         }
         return findPlace;
@@ -2526,9 +2588,20 @@ public class Util {
                 xminRamka = xminRamka - shiftCoordinateX;
                 xmaxRamka = xmaxRamka - shiftCoordinateX;
             } else {
-                findPlace = true;
-                maxBoundRamka(xminRamka, yminRamka, xmaxRamka, ymaxRamka, gabaritPoz, shiftCoordinateX * 3, ramkaMark, height, typeMark);
-                flag = false;
+
+
+                boolean checkOutMark = checkOutOfBoundMark(new Point2D(xminRamka + (xmaxRamka - xminRamka) / 2, ymaxRamka),
+                        new Point2D(xminRamka + (xmaxRamka - xminRamka) / 2, gabaritPoz[2] - 10));
+                if (!checkOutMark) {
+
+                    findPlace = true;
+                    maxBoundRamka(xminRamka, yminRamka, xmaxRamka, ymaxRamka, gabaritPoz, shiftCoordinateX * 3, ramkaMark, height, typeMark);
+                    flag = false;
+                } else {
+                    flag = false;
+                }
+
+
             }
         }
         return findPlace;
@@ -2555,9 +2628,16 @@ public class Util {
                 yminRamka = yminRamka - shiftCoordinateY;
                 ymaxRamka = ymaxRamka - shiftCoordinateY;
             } else {
-                findPlace = true;
-                maxBoundRamka(xminRamka, yminRamka, xmaxRamka, ymaxRamka, gabaritPoz, shiftCoordinateY * 3, ramkaMark, height, typeMark);
-                flag = false;
+
+                boolean checkOutMark = checkOutOfBoundMark(new Point2D(xminRamka + (xmaxRamka - xminRamka) / 2, ymaxRamka),
+                        new Point2D(xminRamka + (xmaxRamka - xminRamka) / 2, gabaritPoz[2] - 10));
+                if (!checkOutMark) {
+                    findPlace = true;
+                    maxBoundRamka(xminRamka, yminRamka, xmaxRamka, ymaxRamka, gabaritPoz, shiftCoordinateY * 3, ramkaMark, height, typeMark);
+                    flag = false;
+                } else {
+                    flag = false;
+                }
             }
         }
         return findPlace;
@@ -2566,8 +2646,7 @@ public class Util {
     private boolean ramkaGoUp(double[] gabaritPoz, Rectangle ramkaMark, int height, TypeMark typeMark, double ymax, int xminRamka, int xmaxRamka, int yminRamka, int ymaxRamka, int shiftCoordinateY) {
         // рамка пошла вверх
         boolean findPlace = false;
-        boolean flag;
-        flag = true;
+        boolean flag = true;
         while (flag) {
             boolean tochkaVRamke = false;
             if (ymaxRamka < ymax) {
@@ -2585,12 +2664,112 @@ public class Util {
                 yminRamka = yminRamka + shiftCoordinateY;
                 ymaxRamka = ymaxRamka + shiftCoordinateY;
             } else {
-                findPlace = true;
-                maxBoundRamka(xminRamka, yminRamka, xmaxRamka, ymaxRamka, gabaritPoz, shiftCoordinateY * 3, ramkaMark, height, typeMark);
-                flag = false;
+
+                boolean checkOutMark = checkOutOfBoundMark(new Point2D(xminRamka + (xmaxRamka - xminRamka) / 2, ymaxRamka),
+                        new Point2D(xminRamka + (xmaxRamka - xminRamka) / 2, gabaritPoz[2] - 10));
+                if (!checkOutMark) {
+                    findPlace = true;
+                    maxBoundRamka(xminRamka, yminRamka, xmaxRamka, ymaxRamka, gabaritPoz, shiftCoordinateY * 3, ramkaMark, height, typeMark);
+                    flag = false;
+                } else {
+                    flag = false;
+                }
+
             }
         }
         return findPlace;
+    }
+
+
+    /**
+     * проверка на то что  маркировка не вышли за границы позиции
+     * из центра маркировки проводим линию до мин габарита детали  -10    double Ymin = gabaritPoz[2];
+     * еcли линия пересекает контур не четное колво раз ->  маркировка внутри котура
+     * если четное ->  выход за граниу
+     *
+     * @param centrMark точка центра маркировки
+     * @param pointDown точка  мин габарита детали
+     * @return bollean  маркировка вышла или нет
+     */
+    private boolean checkOutOfBoundMark(Point2D centrMark, Point2D pointDown) {
+        int countIntersection = 0;
+        for (List<Point2D> pointsKonturList : listKontur) {
+            Point2D pointBeginLine = pointsKonturList.get(0);
+            for (int i = 1; i < pointsKonturList.size(); i++) {
+                Point2D pointEndLine = pointsKonturList.get(i);
+                if (hasIntesection(pointBeginLine, pointEndLine, centrMark, pointDown)) {
+                    countIntersection++;
+                }
+                pointBeginLine = pointEndLine;
+            }
+
+            // линия между конечной и нулевой точками в списке point2DList
+            pointBeginLine = pointsKonturList.get(pointsKonturList.size() - 1);
+            Point2D pointEndLine = pointsKonturList.get(0);
+
+
+            if (hasIntesection(pointBeginLine, pointEndLine, centrMark, pointDown)) {
+                countIntersection++;
+            }
+        }
+        if (countIntersection % 2 == 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private boolean hasIntesection(Point2D start, Point2D end, Point2D markUp, Point2D markDown) {
+
+        if ((start.getX() < markUp.getX() && end.getX() < markUp.getX()) ||
+                (start.getX() > markUp.getX() && end.getX() > markUp.getX())) {
+            return false;
+        }
+
+        if (start.getY() > markUp.getY() && end.getY() > markUp.getY()) {
+            return false;
+        }
+
+
+        //   На самом деле точку пересечения не нужно находить. Достаточно проверить, что каждый отрезок пересекает прямую, проходящую через второй. А для этого нужно проверить, что концы отрезка лежат в разных полуплоскостях относительно прямой, т.е. подставить концы отрезка в уравнение прямой и проверить, чтобы знаки были различные.
+        //
+
+// первый отрезок
+        double x1 = start.getX();
+        double y1 = start.getY();
+        double x2 = end.getX();
+        double y2 = end.getY();
+
+// второй отрезок
+        double x3 = markUp.getX();
+        double y3 = markUp.getY();
+        double x4 = markDown.getX();
+        double y4 = markDown.getY();
+
+        //  double x1, y1, x2, y2; // первый отрезок
+        //  double x3, y3, x4, y4; // второй отрезок
+
+        double A1 = y2 - y1;
+        double B1 = x1 - x2;
+        double C1 = -A1 * x1 - B1 * y1;
+
+        double A2 = y4 - y3;
+        double B2 = x3 - x4;
+        double C2 = -A2 * x3 - B2 * y3;
+
+        double f1 = A1 * x3 + B1 * y3 + C1;
+        double f2 = A1 * x4 + B1 * y4 + C1;
+        double f3 = A2 * x1 + B2 * y1 + C2;
+        double f4 = A2 * x2 + B2 * y2 + C2;
+
+
+        boolean intersect = (f1 * f2 < 0 && f3 * f4 < 0); // строгое пересечение
+
+        if (intersect) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private void maxBoundRamka(int XminRamka, int YminRamka, int XmaxRamka, int YmaxRamka, double[] res,

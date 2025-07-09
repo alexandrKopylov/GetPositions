@@ -96,7 +96,7 @@ public class Main {
         panelTextFields.add(pustishka3);
 
 
-        JButton buttonStart = new JButton("START");
+       // JButton buttonStart = new JButton("START");
        // panelTextFields.add(buttonStart);
 
 
@@ -247,64 +247,64 @@ public class Main {
             }
         });
 
-//
-//        buttonStart.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent actionEvent) {
-//                if (actionEvent.getSource() == buttonStart) {
-//                    try {
-//                        clearFolderDXF();
-//
-//
-//                        String thiknes = (String) cbThickness.getSelectedItem();
-//                        if (thiknes.equals("  толщина  ")) {
-//                            thiknes = "";
-//                        }
-//
-//                        String gradeSteel = (String) cbMetalGrade.getSelectedItem();
-//                        if (gradeSteel.equals(" марка стали ")) {
-//                            gradeSteel = "09Г2С";
-//                        }
-//
-//                        String textKK = textFieldKK.getText();
-//
-//
-//                        Util util = new Util();
-//                        listPoziciiPlusPodkroi = util.getListPozFromCSV(fileCSV);
-//
-//                        textArea.setText("");
-//                        MultiValueHashMap<String, String> map = null;
-//
-//                        map = util.readCSV(fileCSV, thiknes, textArea, textAreaPDF);
-//
-//                        int countTotalPoz = map.countOfValue();
-//                        textArea.append("-".repeat(300) + "\n");
-//                        textArea.append("количество позиций в CSV файле : " + countTotalPoz + "\n");
-//                        textArea.append("\n");
-//
-//                        int countSuccess = 0;
-//                        Set<String> lisPozNeNashel = new HashSet<>();
-//
-//                        lisPozNeNashel = util.getListPoz(map, pathDXF, textArea, gradeSteel, panel, textKK, textAreaPDF);
-//
-//                        int neNashlos = lisPozNeNashel.size();
-//
-//
-//                        textArea.append("      нашлось файлов : " + (countTotalPoz - neNashlos) + "\n");
-//                        textArea.append("НЕ нашлось файлов : " + neNashlos + "\n");
-//
-//                        int count = 0;
-//                        for (String str : lisPozNeNashel) {
-//                            textArea.append(++count + " ) " + str + "\n");
-//                        }
-//
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            }
-//        });
+        /*
+        buttonStart.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                if (actionEvent.getSource() == buttonStart) {
+                    try {
+                        clearFolderDXF();
 
+
+                        String thiknes = (String) cbThickness.getSelectedItem();
+                        if (thiknes.equals("  толщина  ")) {
+                            thiknes = "";
+                        }
+
+                        String gradeSteel = (String) cbMetalGrade.getSelectedItem();
+                        if (gradeSteel.equals(" марка стали ")) {
+                            gradeSteel = "09Г2С";
+                        }
+
+                        String textKK = textFieldKK.getText();
+
+
+                        Util util = new Util();
+                        listPoziciiPlusPodkroi = util.getListPozFromCSV(fileCSV);
+
+                        textArea.setText("");
+                        MultiValueHashMap<String, String> map = null;
+
+                        map = util.readCSV(fileCSV, thiknes, textArea, textAreaPDF);
+
+                        int countTotalPoz = map.countOfValue();
+                        textArea.append("-".repeat(300) + "\n");
+                        textArea.append("количество позиций в CSV файле : " + countTotalPoz + "\n");
+                        textArea.append("\n");
+
+                        int countSuccess = 0;
+                        Set<String> lisPozNeNashel = new HashSet<>();
+
+                        lisPozNeNashel = util.getListPoz(map, pathDXF, textArea, gradeSteel, panel, textKK, textAreaPDF);
+
+                        int neNashlos = lisPozNeNashel.size();
+
+
+                        textArea.append("      нашлось файлов : " + (countTotalPoz - neNashlos) + "\n");
+                        textArea.append("НЕ нашлось файлов : " + neNashlos + "\n");
+
+                        int count = 0;
+                        for (String str : lisPozNeNashel) {
+                            textArea.append(++count + " ) " + str + "\n");
+                        }
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+*/
 
 //
 //        Util util = new Util();

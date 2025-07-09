@@ -20,6 +20,26 @@ public class ReadPDF {
 
 
     private List<String> fileNotFound = new ArrayList<>();
+    private List<String> material = new ArrayList<>();
+
+    public ReadPDF() {
+        material.add("С345");
+        material.add("C345");
+        material.add("C355");
+        material.add("C245");
+        material.add("C255");
+        material.add("345-8-09Г2С");           // eng
+        material.add("345-8-09G2S");
+        material.add("С255");
+        material.add("С245");
+        material.add("С355");
+        material.add("C235");           // rus
+        material.add("355-9");
+        material.add("C390");           // eng
+        material.add("С390");           // rus
+
+    }
+
 
     /**
      * в папке  с pdf файлами
@@ -73,24 +93,31 @@ public class ReadPDF {
 
             //  smotrim stroki gde est'  stroka GradeSteeel  and   save in string
             for (int i = 0; i < lines.length; i++) {
-                if (isLineFound(lines[i])) {
-                    strokaWithGradeSteeel = lines[i];
-                    break;
+                if (isLineFound(lines[i] )) {
+
+                    if (isStrokaContainsNamePos(lines[i], listNamePozicii)) {
+                        strokaWithGradeSteeel = lines[i];
+                        break;
+                    }
+
                 }
             }
-            textAreaPDF.append("\nstrokaWithGradeSteeel   ===   " + strokaWithGradeSteeel);
-
+            if(strokaWithGradeSteeel.equals(null)){
+                textAreaPDF.append("\nstrokaWithGradeSteeel  нет  материала ");
+            }else {
+                textAreaPDF.append("\nstrokaWithGradeSteeel   ===   " + strokaWithGradeSteeel);
+            }
 
             String namePoz = null;
             for (String str : listNamePozicii) {
-                if (strokaWithGradeSteeel.contains(str)) {
+                if ( isStrokaWithGradeSteeelContainsExaclyNamePosAndLenght(strokaWithGradeSteeel , str) ) {
                     namePoz = str;
                     break;
                 }
             }
 
             String pozModify = null;   // poz nahoditsya v spiske  csv
-            boolean delDefis = false ;
+            boolean delDefis = false;
             String strrr = null;
             if (namePoz == null) {
                 for (String str : listNamePozicii) {
@@ -98,7 +125,7 @@ public class ReadPDF {
                     if (strokaWithGradeSteeel.contains(strrr)) {
                         namePoz = strrr;
                         delDefis = true;
-                         pozModify = str;
+                        pozModify = str;
                         break;
                     }
                 }
@@ -119,34 +146,41 @@ public class ReadPDF {
 
             textAreaPDF.append("\nnamePoz   ===   " + namePoz);
 
-            String strokaWithNamePozMinLenght = "J".repeat(200);
-            for (String str : lines) {
-                if (str.contains(namePoz)) {
-                    if (str.length() < strokaWithNamePozMinLenght.length()) {
-                        strokaWithNamePozMinLenght = str;
-                    }
-                }
-            }
+            String strokaWithNamePozMinLenght = namePoz;                        // "J".repeat(200);
+//            for (String str : lines) {
+//                if (str.contains(namePoz)) {
+//                    if (str.length() < strokaWithNamePozMinLenght.length()) {
+//                        strokaWithNamePozMinLenght = str;
+//                    }
+//                }
+//            }
             textAreaPDF.append("\nstrokaWithNamePozMinLenght   ===   " + strokaWithNamePozMinLenght);
 
 
             String cod = null;
             if (strokaWithGradeSteeel.contains(strokaWithNamePozMinLenght)) {
                 cod = strokaWithGradeSteeel.replace(strokaWithNamePozMinLenght, "").split(" ")[0];
+                //  cod = "1096";
+                boolean bb = isCodConteinsLetters(cod);
+                if (bb) {
+                    cod = deleteLettersBeginStartStrings(cod);
+                }
+
+
             } else {
                 String threeChar = strokaWithNamePozMinLenght.substring(0, 3);
                 int index = strokaWithGradeSteeel.indexOf(threeChar);
 
-                if(index == -1){
+                if (index == -1) {
                     cod = strokaWithGradeSteeel.replace(namePoz, "").split(" ")[0];
-                } else{
+                } else {
                     cod = strokaWithGradeSteeel.substring(0, index);
                 }
             }
 
 
             textAreaPDF.append("\nCOD  ===  " + cod);
-///,,,щщщ
+
             if (cod != null || cod != "") {
                 if (delDefis) {
                     map.put(pozModify, cod);
@@ -164,6 +198,61 @@ public class ReadPDF {
 
     }
 
+    private boolean isStrokaWithGradeSteeelContainsExaclyNamePosAndLenght(String strokaWithGradeSteeel, String str) {
+        String[] masStr = strokaWithGradeSteeel.split(" ");
+        for (int i = 0; i <masStr.length ; i++) {
+            if(masStr[i].endsWith(str)){
+                return true;
+            }
+        }
+
+
+        return false;
+    }
+
+    private boolean isStrokaContainsNamePos(String line, List<String> listNamePozicii) {
+        int count = 0;
+        for (String strPoz : listNamePozicii) {
+            if (line.contains(strPoz)) {
+                return true;
+            }
+            count++;
+        }
+
+         count = 0;
+        for (String strPoz : listNamePozicii) {
+            if (line.contains(strPoz.replace("-",""))) {
+                return true;
+            }
+            count++;
+        }
+
+        return false;
+    }
+
+    private String deleteLettersBeginStartStrings(String cod) {
+        int count = 0;
+        for (int i = 0; i < cod.length(); i++) {
+            //  char ch =   cod.charAt(i);
+            if (Character.isDigit(cod.charAt(i))) {
+                count++;
+            } else {
+                break;
+            }
+        }
+        String result = cod.substring(0, count);
+        return result;
+    }
+
+    private boolean isCodConteinsLetters(String cod) {
+        for (int i = 0; i < cod.length(); i++) {
+            if (Character.isAlphabetic(cod.charAt(i))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private String insertDefis(String namePoz, String pozModify) {
         // defis vstavlyaem mejdu bukvami i ciframi
 //        int index = 0;
@@ -177,7 +266,7 @@ public class ReadPDF {
 
         int index = pozModify.charAt('-');
 
-        String start = namePoz.substring(0,index);
+        String start = namePoz.substring(0, index);
         String end = namePoz.substring(index);
         String res = start + "-" + end;
 
@@ -400,19 +489,6 @@ public class ReadPDF {
 
     private boolean isLineFound(String line) {
         boolean bool = false;
-        List<String> material = new ArrayList<>();
-        material.add("С345");
-        material.add("C345");
-        material.add("C355");
-        material.add("C245");
-        material.add("C255");
-        material.add("345-8-09Г2С");           // eng
-        material.add("345-8-09G2S");
-        material.add("С255");
-        material.add("С245");
-        material.add("С355");
-        material.add("C235");           // rus
-        material.add("355-9");
 
         boolean hasMaterial = false;
         for (String mat : material) {
@@ -422,13 +498,22 @@ public class ReadPDF {
             }
         }
 
-        boolean hasChar = (line.contains("x") || line.contains("*") || line.contains("х"));
-        if (hasChar && hasMaterial) {
+        if (hasMaterial) {
             return true;
         }
+
+//        boolean hasChar = (line.contains("x") || line.contains("*") || line.contains("х"));
+//        if (hasChar && hasMaterial) {
+//            return true;
+//        }
+
         if (line.contains("Ст3пс6Sheet diamond/Лист ромб 2.5")) {
             return true;
         }
+
+
+
+
         return bool;
     }
 
