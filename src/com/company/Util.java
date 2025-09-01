@@ -279,7 +279,7 @@ public class Util {
 
     //   todo    getListPoz
     public Set<String> getListPoz(MultiValueHashMap<String, String> mapa, String pathDXF, JTextArea textArea, String gradeSteel, JPanel panel, String textKK, JTextArea textAreaPDF) throws IOException {
-        this.textArea = textArea;
+        this.textArea = textArea ;
         this.gradeSteel = gradeSteel;
         this.pathDXF = pathDXF;
         this.panel = panel;
