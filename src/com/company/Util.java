@@ -1,9 +1,6 @@
 package com.company;
 
-import com.company.logic.MultiValueHashMap;
-import com.company.logic.Point2D;
-import com.company.logic.Rectangle;
-import com.company.logic.TypeMark;
+import com.company.logic.*;
 import com.company.modify.ModifyDXF;
 import com.company.readPDF.ReadPDF;
 
@@ -48,6 +45,12 @@ public class Util {
     private Integer countNashel = 0;
 
 
+    private boolean otvZvezdoy = false;
+    private boolean neskolkoPOLYLINE = false;
+    private boolean zamenaPolylineNaOtv = false;
+    private StringBuilder gabaritPolyline;
+
+
     private String markDefault;
     private double markDefault_X;
     private double markDefault_Y;
@@ -68,6 +71,7 @@ public class Util {
     //PDF parser
     static final String pathToFolderPDF = "c:\\WorkFolder\\ReadOnly\\";
     static final Map<String, String> mapParsingPDF = new HashMap<>();
+    private Point2D tochkaVstavkiDefoultMark;
 
 
     public Util() throws IOException {
@@ -111,7 +115,7 @@ public class Util {
             String poz = "";
             String tolshina;
 
-            Set<String> storeTolshins = new  TreeSet<String>();
+            Set<String> storeTolshins = new TreeSet<String>();
 
             while ((line = br.readLine()) != null) {
                 if (line.equals("\t\t\t\t\t")
@@ -132,8 +136,6 @@ public class Util {
 
                 // poz = mas[1];
                 tolshina = mas[4].split("x")[0];
-
-
 
 
                 if (thikness.equals("")) {             // нечего не ввели
@@ -159,9 +161,9 @@ public class Util {
                 }
 
 
-              }
+            }
 
-            if(  storeTolshins.size() > 1) {
+            if (storeTolshins.size() > 1) {
 
                 JOptionPane.showMessageDialog(null, "в работе разные толщины");
 
@@ -341,8 +343,43 @@ public class Util {
                 boolean isFound = false;
                 String[] mas = value.split("\t");
 
-                poz = mas[1].split("_")[0];
-                zakaz = mas[1].split("_")[1];
+
+
+
+                /*              пример
+ Инв.	Обозначение	Кол.Т	Кол.Н	Габариты
+22100-PR-061-211	1372_2912	3	0	28x448x1198
+22100-PR-061-211	1141_2912	3	0	28x466x1531
+22100-PR-061-211	1434_2912	3	0	28x473x1530
+22100-PR-061-211	1321_2912	14	0	28x300x1030
+22100-PR-061-211	1324_2912	2	0	28x140x546
+22100-PR-061-211	1323_2912	9	0	28x141x650
+22100-PR-061-211	1436_2912	4	0	28x486x771
+22100-PR-061-211	1058_2912	1	0	28x542x778
+L3-41-030-2510.1-031	dp4-256_03110А	1	0	28x180x546
+L3-41-030-2510.1-031	dp4-248_03110А	8	0	28x180x567
+L3-41-030-2510.1-031	dp4-253_03110А	1	0	28x194x545
+L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
+22100-PR-061-211	1404_2912	1	0	28x468x1518
+22100-PR-061-211	1330_2912	34	0	28x190x478
+22100-PR-061-211	881_2912	4	0	28x190x489
+22100-PR-061-211	882_2912	4	0	28x190x489
+22100-PR-061-211	5439_2912	10	0	28x190x478
+22100-PR-061-211	1059_2912	1	0	28x778x763
+
+                 */
+
+
+                if (!mas[1].contains("_")) {
+                    textArea.append("\n в CSV-файле  позиция без  заказа \n");
+                    System.exit(0);
+
+                } else {
+                    poz = mas[1].split("_")[0];
+                    zakaz = mas[1].split("_")[1];
+                }
+
+
                 gabaritCSV = mas[4];
                 kolvoPoz = Integer.parseInt(mas[2]) + Integer.parseInt(mas[3]);             //2  b 3
                 String search = null;
@@ -502,11 +539,7 @@ public class Util {
         for (String strZakaz : setZakaz) {
             if (zak.equals("заказ")) {
                 zakaz = strZakaz;
-
                 inv = fileNotFaundOnZakaz.get(zakaz).get(0).split("_")[1];
-
-
-                // inv = strZakaz;
             }
 
             Map<String, Path> zakazPathMap = searchInCash();
@@ -660,9 +693,25 @@ public class Util {
 
 
             if (pozPathsList.size() >= 1) {
-    //            pathFilePoz = checkExactMatch(pozStr, pozPathsList);
-                pathFolderPoz =  pozPathsList.get(0).getParent();                    //pathFilePoz.getParent();
- //               boolean isLastCharIsDigit = Character.isDigit(pathFolderPoz.toString().charAt(pathFolderPoz.toString().length() - 1));
+
+                textArea.append("\n папки c dxf , нашел " + pozPathsList.size() + " шт  , выбираем папку которая позже создана \n ");
+
+//                for (Path p : pozPathsList){
+//                    System.out.println(p);
+//                }
+//                System.out.println();
+                ComparatorPath cp = new ComparatorPath();
+                Collections.sort(pozPathsList, cp);
+
+//                for (Path p : pozPathsList){
+//                    System.out.println(p);
+//                }
+
+                pathFolderPoz = pozPathsList.get(0).getParent();
+                textArea.append(pathFolderPoz.toString() + "\n");
+
+                //pathFilePoz.getParent();
+                //               boolean isLastCharIsDigit = Character.isDigit(pathFolderPoz.toString().charAt(pathFolderPoz.toString().length() - 1));
                 //   boolean isInvInListNoCash = ChekIsInvInListNoCash();
 //                    if (!isLastCharIsDigit && !isInvInListNoCash) {
 //                        writer.write(pathFolderPoz + "\n");
@@ -704,7 +753,8 @@ public class Util {
                                     }
                                 }
                             } else {
-                                if (conteins(file.getName().replace(".dxf", ""), poz)) {
+                                String sss = file.getName().replace(".dxf", "");
+                                if (conteins(sss, poz)) {
                                     copyFileToDxfFolder(delListOnInv, strZakaz, file, it, zak);
                                     if (listPoz.size() != 0) {
                                         break;
@@ -1267,9 +1317,21 @@ public class Util {
             return true;
         }
 
+        if (str.endsWith(poz)) {
+            int tt = str.lastIndexOf(poz);
+
+
+            char simvol = str.charAt(tt - 1);
+            if (!Character.isDigit(simvol) && !Character.isAlphabetic(simvol)) {
+                return true;
+            }
+
+
+        }
+
+
         if (lengthStr > lengthPoz) {
             char ch = str.charAt(lengthPoz);
-
             if (contein && !Character.isDigit(ch)) {
                 return true;
             }
@@ -1389,39 +1451,9 @@ public class Util {
         String[] masStrok = breakStringOnThreeParts(stroka);
         breakMidlePartOnEntityes(masStrok[1]);
 
+        gabaritPolyline = new StringBuilder();
         double[] gabaritPoz = getGabaritPosition();
         checkGabarit(gabaritPoz);
-
-//        if (searchPozFromMosin) {      //  if (!searchPozFromMosin) {
-//            /* этот блок  не используется
-//             * т к маркировка  ставится на позиию
-//             * как будто  она без  дефолтной маркировки
-//             *
-//             * маркировка ставится методом    opredelyaemSposobMark(gabaritPoz);
-//             *
-//             * */
-//
-//            int handler = 0;
-//            handler = getPropertyDefaultMark();
-//            if (handler != -1) {
-//                char lastCharInString = markDefault.charAt(markDefault.length() - 1);
-//                if (lastCharInString == ';') {
-//                    setMarkOnlyPoz(gabaritPoz, handler);
-//                } else if (lastCharInString == '_') {
-//                    setMarkHorizon(gabaritPoz, handler);
-//                } else {
-//                    setMarkVertical(gabaritPoz, handler);
-//                }
-//                List<String> listCircle = new LinkedList<>();         //  заглушка для метода
-//                try {
-//                    fileSave(new File(stringAbsolutPathToFileInDXF), masStrok, listCircle);
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//            } else {
-//                textArea.append(poz + " нет default маркировки\n");
-//            }
-//        } else {
 
         opredelyaemSposobMark(gabaritPoz);
 
@@ -1459,28 +1491,82 @@ public class Util {
         }
 
         boolean markirovkaStay = false;
-
-        int height = 20;
-        boolean flag = true;
+        int height;
+        boolean flag;
         Rectangle ramkaMark;
-        while (height > 10 && flag) {
-            ramkaMark = defineGabaritRamkiMark(height, TypeMark.HORIZONTAL);
 
-            if (dlinnaPoz > ramkaMark.getDlinna() && shirinaPoz > ramkaMark.getShirina()) {
-                markirovkaStay = findPlaceForMark(gabaritPoz, markaStolbom, ramkaMark, height, TypeMark.HORIZONTAL);
-            }
-            if (markirovkaStay) {
-                flag = false;
-            } else {
-                ramkaMark = defineGabaritRamkiMark(height, TypeMark.VERTICAL);
+
+//tochkaVstavkiDefoultMark=null;
+//  закоментировал след  блок
+        //  может надо  поменять метод  findPlaceForMark
+
+        if (tochkaVstavkiDefoultMark != null) {
+
+            height = 20;
+            flag = true;
+            while (height > 10 && flag) {
+                ramkaMark = defineGabaritRamkiMark(height, TypeMark.HORIZONTAL);
+
                 if (dlinnaPoz > ramkaMark.getDlinna() && shirinaPoz > ramkaMark.getShirina()) {
-                    markirovkaStay = findPlaceForMark(gabaritPoz, markaStolbom, ramkaMark, height, TypeMark.VERTICAL);
+                    markirovkaStay = findPlaceForMarkDefoult(gabaritPoz, markaStolbom, ramkaMark, height, TypeMark.HORIZONTAL);
                 }
                 if (markirovkaStay) {
                     flag = false;
+                } else {
+                    ramkaMark = defineGabaritRamkiMark(height, TypeMark.VERTICAL);
+                    if (dlinnaPoz > ramkaMark.getDlinna() && shirinaPoz > ramkaMark.getShirina()) {
+                        markirovkaStay = findPlaceForMarkDefoult(gabaritPoz, markaStolbom, ramkaMark, height, TypeMark.VERTICAL);
+                    }
+                    if (markirovkaStay) {
+                        flag = false;
+                    }
+                }
+                height--;
+            }
+            if (!markirovkaStay) {
+
+                height = 20;
+                flag = true;
+
+                while (height > 10 && flag) {
+                    ramkaMark = defineGabaritRamkiMark(height, TypeMark.ONLY_POZ);
+
+                    if (dlinnaPoz > ramkaMark.getDlinna() && shirinaPoz > ramkaMark.getShirina()) {
+                        markirovkaStay = findPlaceForMarkDefoult(gabaritPoz, markaStolbom, ramkaMark, height, TypeMark.ONLY_POZ);
+                    }
+                    if (markirovkaStay) {
+                        flag = false;
+                    }
+                    height--;
                 }
             }
-            height--;
+
+
+        }
+
+
+        if (!markirovkaStay) {
+            height = 20;
+            flag = true;
+            while (height > 10 && flag) {
+                ramkaMark = defineGabaritRamkiMark(height, TypeMark.HORIZONTAL);
+
+                if (dlinnaPoz > ramkaMark.getDlinna() && shirinaPoz > ramkaMark.getShirina()) {
+                    markirovkaStay = findPlaceForMark(gabaritPoz, markaStolbom, ramkaMark, height, TypeMark.HORIZONTAL);
+                }
+                if (markirovkaStay) {
+                    flag = false;
+                } else {
+                    ramkaMark = defineGabaritRamkiMark(height, TypeMark.VERTICAL);
+                    if (dlinnaPoz > ramkaMark.getDlinna() && shirinaPoz > ramkaMark.getShirina()) {
+                        markirovkaStay = findPlaceForMark(gabaritPoz, markaStolbom, ramkaMark, height, TypeMark.VERTICAL);
+                    }
+                    if (markirovkaStay) {
+                        flag = false;
+                    }
+                }
+                height--;
+            }
         }
 
         if (!markirovkaStay) {
@@ -1539,7 +1625,7 @@ public class Util {
         long count = gabaritCSV.chars().filter(ch -> ch == 'x').count();
         if (count == 1) {
             shirinaCSV = Integer.parseInt(gabaritCSV.split("x")[0]);
-           // dlinnaСSV = shirinaCSV;
+            // dlinnaСSV = shirinaCSV;
             textArea.append(++countNashel + " )         " + zakaz + " _ " + poz + "     ( круг D = " + shirinaCSV + " )\n");
         } else {
 
@@ -1571,11 +1657,26 @@ public class Util {
             // textArea.append( zakaz +"_" + poz + "    (" + deltaY + " ; " + deltaX + " )                        (" + dY + " ; " + dX + " )\n")
 
             if (dY == 0 && dX == 0) {
-                textArea.append(++countNashel + " )         " + zakaz + " _ " + poz + "\n");
+                textArea.append(++countNashel + " )         " + zakaz + " _ " + poz);      //+ "\n");
             } else {
-                textArea.append(++countNashel + " )         " + zakaz + " _ " + poz + "     (" + dY + " ; " + dX + " )\n");
+                textArea.append(++countNashel + " )         " + zakaz + " _ " + poz + "     (" + dY + " ; " + dX + " )");     //\n");
             }
 
+
+            if (zamenaPolylineNaOtv) {
+                textArea.append("     [ Замена POLYLINE на CIRCLE ]");
+
+            }
+
+            if (neskolkoPOLYLINE) {
+                textArea.append("     [ POLYLINE > 1 ]");
+                textArea.append(gabaritPolyline.toString());
+            }
+            if (otvZvezdoy) {
+                textArea.append("     [ отверстия звездой !!! ]");
+            }
+
+            textArea.append("\n");
             panel.revalidate();
 
         }
@@ -1934,6 +2035,42 @@ public class Util {
     }
 
     public void breakMidlePartOnEntityes(String stringEntities) {
+        tochkaVstavkiDefoultMark = null;
+        zamenaPolylineNaOtv = false;
+        //   if (stringEntities.contains("0\r\nLINE")) {
+
+        //
+        // int beginLINE = stringEntities.indexOf("0\r\nLINE");
+        // int beginLAYER = 0;
+        // int endLAYER = 0;
+        while (stringEntities.contains("0\r\nLINE")) {
+            int beginLine = stringEntities.indexOf("0\r\nLINE");
+            int endLine = stringEntities.indexOf("\r\n0\r\n", beginLine) + 2;
+            if (endLine == 1) {
+                endLine = stringEntities.length();
+            }
+
+            String textLINE = stringEntities.substring(beginLine, endLine);
+            //  int beginLINE = textLINE.indexOf("0\r\nLINE");
+
+            int beginLAYER = textLINE.indexOf("\r\n8\r\n") + 5;
+            int endLAYER = textLINE.indexOf("\r\n6\r\n", beginLAYER);
+
+
+            String textLAYER = textLINE.substring(beginLAYER, endLAYER);
+
+            if (textLAYER.equals("0")) {
+                textArea.append(" y  " + poz + "  есть LINE на слое 0\n");
+                return;
+            }
+            entityies.add(textLINE);
+            stringEntities = stringEntities.replace(textLINE, "");
+
+        }
+
+
+        //  }
+
 
         while (stringEntities.contains("0\r\nPOLYLINE")) {
             int beginPoly = stringEntities.indexOf("0\r\nPOLYLINE");
@@ -1964,19 +2101,37 @@ public class Util {
 
         // округляем размеры габарита
         List<String> newListEntityes = new ArrayList<>();
+
+        int countVertex;
+        List<Integer> listPointsPolyline = null;
+
         for (String ent : entityies) {
             if (ent.contains("POLYLINE")) {
+
                 String[] masVertex = ent.split("VERTEX\r\n");
+
+                countVertex = masVertex.length;
+                System.out.println("VERTEX = " + countVertex);
+                if (countVertex == 3) {
+                    listPointsPolyline = new ArrayList<>();
+                }
+
+
                 for (int i = 1; i < masVertex.length; i++) {
                     int beginX = masVertex[i].indexOf("\r\n10\r\n");
                     int beginY = masVertex[i].indexOf("\r\n20\r\n", beginX);
                     String strX = masVertex[i].substring(beginX, beginY).replace("\r\n10\r\n", "");
                     double x = (double) Math.round(Double.parseDouble(strX));
-
+                    if (countVertex == 3) {
+                        listPointsPolyline.add((int) x);
+                    }
                     if (masVertex[i].contains("\r\n30\r\n")) {
                         int beginZ = masVertex[i].indexOf("\r\n30\r\n", beginY);
                         String strY = masVertex[i].substring(beginY, beginZ).replace("\r\n20\r\n", "").trim();
                         double y = (double) Math.round(Double.parseDouble(strY));
+                        if (countVertex == 3) {
+                            listPointsPolyline.add((int) y);
+                        }
                         masVertex[i] = masVertex[i].replace(strX, String.valueOf(x));
                         masVertex[i] = masVertex[i].replace(strY, String.valueOf(y));
                     } else if (masVertex[i].contains("\r\n42\r\n")) {
@@ -1985,6 +2140,10 @@ public class Util {
                         String strY = masVertex[i].substring(beginY, beginZ);
                         strY = strY.replace("\r\n20\r\n", "").trim();
                         double y = (double) Math.round(Double.parseDouble(strY));
+                        if (countVertex == 3) {
+                            listPointsPolyline.add((int) y);
+                        }
+
                         masVertex[i] = masVertex[i].replace(strX, String.valueOf(x));
                         masVertex[i] = masVertex[i].replace(strY, String.valueOf(y));
 
@@ -1993,19 +2152,78 @@ public class Util {
                         String strY = masVertex[i].substring(beginY, beginZ);
                         strY = strY.replace("\r\n20\r\n", "").trim();
                         double y = (double) Math.round(Double.parseDouble(strY));
+                        if (countVertex == 3) {
+                            listPointsPolyline.add((int) y);
+                        }
                         masVertex[i] = masVertex[i].replace(strX, String.valueOf(x));
                         masVertex[i] = masVertex[i].replace(strY, String.valueOf(y));
                     }
                     // pointsKonturList.add(new Point2D(Double.parseDouble(strX), Double.parseDouble(strY)));
                 }
-                StringJoiner joiner = new StringJoiner("VERTEX\r\n");
-                for (String vertex : masVertex) {
-                    joiner.add(vertex);
+
+                boolean flagEqualsY = false;
+                boolean flagEqualsX = false;
+
+
+                if (countVertex == 3) {
+                    flagEqualsY = (listPointsPolyline.get(1) == listPointsPolyline.get(3));
+                    flagEqualsX = (listPointsPolyline.get(0) == listPointsPolyline.get(2));
                 }
 
-                String newEnt = joiner.toString();         //  stringEntities.substring(beginPoly, endPoly2);
-                newListEntityes.add(newEnt);
-                //  stringEntities = stringEntities.replace(newEnt, "");
+
+                if (countVertex == 3 && (flagEqualsX || flagEqualsY)) {
+
+                    int max;
+                    int min;
+                    String newKoordXCircle;
+                    String newKoordYCircle;
+                    String radiusCircle;
+                    if (flagEqualsY) {
+                        max = Math.max(listPointsPolyline.get(0), listPointsPolyline.get(2));
+                        min = Math.min(listPointsPolyline.get(0), listPointsPolyline.get(2));
+                        newKoordXCircle = Double.toString(min + (max - min) / 2);
+                        newKoordYCircle = Double.toString(listPointsPolyline.get(1));
+                        radiusCircle = Double.toString((max - min) / 2);
+                    } else {
+                        max = Math.max(listPointsPolyline.get(1), listPointsPolyline.get(3));
+                        min = Math.min(listPointsPolyline.get(1), listPointsPolyline.get(3));
+                        newKoordXCircle = Double.toString(listPointsPolyline.get(0));
+                        newKoordYCircle = Double.toString(min + (max - min) / 2);
+                        radiusCircle = Double.toString((max - min) / 2);
+                    }
+
+
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("0\r\n" +
+                            "CIRCLE\r\n" +
+                            "5\r\n" +
+                            "87\r\n" +
+                            "8\r\n" +
+                            "0\r\n" +
+                            "6\r\n" +
+                            "CONTINUOUS\r\n" +
+                            "62\r\n" +
+                            "7\r\n" +
+                            "39\r\n" +
+                            "1.0\r\n" +
+                            "10\r\n");
+                    sb.append(newKoordXCircle).append("\r\n20\r\n").append(newKoordYCircle).append("\r\n30\r\n0.0\r\n40\r\n").append(radiusCircle).append("\r\n");
+                    newListEntityes.add(sb.toString());
+                    zamenaPolylineNaOtv = true;
+
+                } else {
+
+                    StringJoiner joiner = new StringJoiner("VERTEX\r\n");
+                    for (String vertex : masVertex) {
+                        joiner.add(vertex);
+                    }
+
+                    String newEnt = joiner.toString();         //  stringEntities.substring(beginPoly, endPoly2);
+                    newListEntityes.add(newEnt);
+                    //  stringEntities = stringEntities.replace(newEnt, "");
+
+                }
+
             } else {
                 newListEntityes.add(ent);
             }
@@ -2014,7 +2232,7 @@ public class Util {
         entityies = newListEntityes;
 
 
-        if (stringEntities.contains("0\r\nTEXT")) {
+        while (stringEntities.contains("0\r\nTEXT")) {
             int beginTEXT = stringEntities.indexOf("0\r\nTEXT");
             int endTEXT = stringEntities.indexOf("\r\n73\r\n", beginTEXT) + 6;
 
@@ -2025,12 +2243,45 @@ public class Util {
             int endTEXT2 = stringEntities.indexOf("\r\n", endTEXT) + 2;
             String newEnt = stringEntities.substring(beginTEXT, endTEXT2);
 
+//сохраняем точку вставки текста
 
-            //  дефолтную маркировку  не  сохраняем  а  просто удаляем
-            //  маркировка ставится методом    opredelyaemSposobMark(gabaritPoz);
+            int beginTextMark = newEnt.indexOf("\r\n1\r\n") + 5;
+            int endXTextMark = newEnt.indexOf("\r\n72\r\n", beginTextMark);
 
-            // entityies.add(newEnt);
-            stringEntities = stringEntities.replace(newEnt, "");
+            if (endXTextMark == -1) {
+                endXTextMark = newEnt.length();
+            }
+
+            String textMark = newEnt.substring(beginTextMark, endXTextMark);
+
+            if (textMark.equals(poz)) {
+                int beginXcoord = newEnt.indexOf("\r\n10\r\n") + 6;
+                int endXcoord = newEnt.indexOf("\r\n20\r\n", beginXcoord);
+
+                String txtXcoord = newEnt.substring(beginXcoord, endXcoord);
+
+                int beginYcoord = newEnt.indexOf("\r\n20\r\n") + 6;
+                int endYcoord = newEnt.indexOf("\r\n30\r\n", beginYcoord);
+
+
+                String txtYcoord = newEnt.substring(beginYcoord, endYcoord);
+
+
+                //  дефолтную маркировку  не  сохраняем  а  просто удаляем
+                //  маркировка ставится методом    opredelyaemSposobMark(gabaritPoz);
+
+                tochkaVstavkiDefoultMark = new Point2D(Double.parseDouble(txtXcoord), Double.parseDouble(txtYcoord));
+
+                // entityies.add(newEnt);
+                stringEntities = stringEntities.replace(newEnt, "");
+
+
+            } else {
+
+                entityies.add(newEnt);
+                stringEntities = stringEntities.replace(newEnt, "");
+            }
+
         }
 
         // Удаляем DIMENSION
@@ -2149,15 +2400,27 @@ public class Util {
     //  todo   getGabaritPosition()
     public double[] getGabaritPosition() {
 
+
+        otvZvezdoy = false;
+        neskolkoPOLYLINE = false;
         int breakLinesLenght = 10;                                        //  переменая говорит на какие отрезки будем разбивать линию
 
         listKontur = new LinkedList<>();
+
+
+        int countPOLYLINE = countPolyline(entityies);
 
         for (String poly : entityies) {
             if (poly.contains("0\r\nPOLYLINE\r\n")) {
 
                 List<Point2D> point2DList = new LinkedList<>();
                 String[] masVertex = poly.split("VERTEX");
+
+
+                System.out.println("kolvo VERTEX = " + masVertex.length);
+//                if (countPOLYLINE > 1 &&  masVertex.length > 5 ){
+//                    otvZvezdoy = true;
+//                }
 
                 for (int i = 1; i < masVertex.length; i++) {
                     int beginX = masVertex[i].indexOf("\r\n10\r\n");
@@ -2176,6 +2439,16 @@ public class Util {
                         String strY = masVertex[i].substring(beginY, beginZ).replace("\r\n20\r\n", "");
                         point2DList.add(new Point2D(Double.parseDouble(strX), Double.parseDouble(strY)));
                     }
+                }
+                if (countPOLYLINE > 1 && masVertex.length >= 5) {
+                    otvZvezdoy = isOtvZvezdoy(point2DList);
+                }
+                if (countPOLYLINE > 1) {
+
+                    //  if (otvZvezdoy) {
+                    neskolkoPOLYLINE = true;
+                    //  }
+
                 }
                 listKontur.add(point2DList);
             }
@@ -2277,6 +2550,57 @@ public class Util {
         return res;
     }
 
+    private boolean isOtvZvezdoy(List<Point2D> point2DList) {
+        double xMin = point2DList.get(0).getX();
+        double xMax = point2DList.get(0).getX();
+        double yMin = point2DList.get(0).getY();
+        double yMax = point2DList.get(0).getY();
+
+        for (Point2D point : point2DList) {
+            if (xMin > point.getX()) {
+                xMin = point.getX();
+            }
+            if (xMax < point.getX()) {
+                xMax = point.getX();
+            }
+            if (yMin > point.getY()) {
+                yMin = point.getY();
+            }
+            if (yMax < point.getY()) {
+                yMax = point.getY();
+            }
+        }
+        double dlinnaX = xMax - xMin;
+        double dlinnaY = yMax - yMin;
+
+        if (dlinnaX < dlinnaY) {
+            double tmp = dlinnaX;
+            dlinnaX = dlinnaY;
+            dlinnaY = tmp;
+        }
+
+        gabaritPolyline.append(" [" + (int) dlinnaX + "x" + (int) dlinnaY + "] ");
+
+        if (dlinnaX > 30 || dlinnaY > 30) {
+            return false;
+        }
+        if (dlinnaX / dlinnaY > 1.2) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private int countPolyline(List<String> entityies) {
+        int count = 0;
+        for (String str : entityies) {
+            if (str.contains("POLYLINE")) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     private void getLenghtDownAndUpLines(double ymin, double ymax, Point2D pointBeginLine, Point2D pointEndLine) {
         if ((pointBeginLine.getY() == pointEndLine.getY()) && (pointBeginLine.getY() == ymin)) {
             lenghtDownLines = lenghtDownLines + (int) Math.sqrt((pointEndLine.getX() - pointBeginLine.getX()) * (pointEndLine.getX() - pointBeginLine.getX()));
@@ -2362,6 +2686,8 @@ public class Util {
         int XmaxRamkaCentr = XmaxRamka;
         int YminRamkaCentr = YminRamka;
         int YmaxRamkaCentr = YmaxRamka;
+        int dlinnaRamka = XmaxRamka - XminRamka;
+        int sirinaRamka = YmaxRamka - YminRamka;
 
         int shiftCoordinateX = dlinnaPoz / 100;                         //10;
         if (shiftCoordinateX == 0) {
@@ -2371,7 +2697,7 @@ public class Util {
         if (shiftCoordinateY == 0) {
             shiftCoordinateY = 1;
         }
-        System.out.printf(" Рамка (40х90)  min(%s,%s) max(%s,%s)", XminRamka, YminRamka, XmaxRamka, YmaxRamka);
+        System.out.printf(" Рамка (%s, %s)  min(%s,%s) max(%s,%s)", sirinaRamka, dlinnaRamka, XminRamka, YminRamka, XmaxRamka, YmaxRamka);
         System.out.println();
         // главный цикл
 
@@ -2404,12 +2730,9 @@ public class Util {
                     YminRamka = YminRamka + shiftCoordinateY;
                     YmaxRamka = YmaxRamka + shiftCoordinateY;
                 } else {
-
-
                     boolean checkOutMark = checkOutOfBoundMark(new Point2D(XminRamka + (XmaxRamka - XminRamka) / 2, YmaxRamka),
                             new Point2D(XminRamka + (XmaxRamka - XminRamka) / 2, gabaritPoz[2] - 10));
                     if (!checkOutMark) {
-
                         findPlace = true;
                         maxBoundRamka(XminRamka, YminRamka, XmaxRamka, YmaxRamka, gabaritPoz, shiftCoordinateY * 3, ramkaMark, height, typeMark);
                         flag = false;
@@ -2509,18 +2832,133 @@ public class Util {
         return findPlace;
     }
 
-    private boolean checkMarkInCentrPozition(double[] gabaritPoz, int height, TypeMark typeMark, int xminRamka, int xmaxRamka, Rectangle ramkaMark, int yminRamka, int ymaxRamka, int shiftCoordinateY) {
+
+    public boolean findPlaceForMarkDefoult(double[] gabaritPoz, boolean markaStolbom, Rectangle ramkaMark, int height, TypeMark typeMark) {
+
+        double Xmin = gabaritPoz[0];
+        double Xmax = gabaritPoz[1];
+        double Ymin = gabaritPoz[2];
+        double Ymax = gabaritPoz[3];
+
+        int shirinaPoz = (int) Math.abs(Ymax - Ymin);
+        int dlinnaPoz = (int) Math.abs(Xmax - Xmin);
+
+        //  находим центр детали
+        // int Xcntr = (int) (Xmin + (Xmax - Xmin) / 2);
+        //int Ycntr = (int) (Ymin + (Ymax - Ymin) / 2);
+        //System.out.printf(" центр детали (%s,%s)", Xcntr, Ycntr);
+        //System.out.println();
+        int XminRamka;
+        int XmaxRamka;
+        int YminRamka;
+        int YmaxRamka;
+
+        if (typeMark.equals(TypeMark.HORIZONTAL)) {
+
+            XminRamka = (int) ((tochkaVstavkiDefoultMark.getX() + (getLenghtStr(poz) * height) / 2) - ramkaMark.getDlinna() / 2);
+            XmaxRamka = (int) (XminRamka + ramkaMark.getDlinna());
+            YminRamka = (int) (tochkaVstavkiDefoultMark.getY() - ramkaMark.getShirina() / 2);
+            YmaxRamka = (int) (tochkaVstavkiDefoultMark.getY() + ramkaMark.getShirina() / 2);
+
+
+        } else if (typeMark.equals(TypeMark.VERTICAL)) {
+
+            XminRamka = (int) ((tochkaVstavkiDefoultMark.getX() + (getLenghtStr(poz) * height) / 2) - ramkaMark.getDlinna() / 2);
+            XmaxRamka = (int) (XminRamka + ramkaMark.getDlinna());
+            YminRamka = (int) (tochkaVstavkiDefoultMark.getY() - (10 + 5 + 10 + 5));
+            YmaxRamka = (int) (YminRamka + ramkaMark.getShirina());
+
+        } else {
+            //    рамка ширина = 40   рамка длинна = 90                               рамка  40 х 90
+            XminRamka = (int) (tochkaVstavkiDefoultMark.getX() - ramkaMark.getDlinna() / 2);    //  tochku  naado sdvigat  po centru
+            XmaxRamka = (int) (tochkaVstavkiDefoultMark.getX() + ramkaMark.getDlinna() / 2);
+            YminRamka = (int) (tochkaVstavkiDefoultMark.getY() - ramkaMark.getShirina() / 2);
+            YmaxRamka = (int) (tochkaVstavkiDefoultMark.getY() + ramkaMark.getShirina() / 2);
+        }
+        int pointCentrXnewRamki = (int) (XminRamka + ramkaMark.getDlinna() / 2);
+        int pointCentrYnewRamki = (int) (YminRamka + ramkaMark.getShirina() / 2);
+
+
+//        int XminRamkaCentr = XminRamka;
+//        int XmaxRamkaCentr = XmaxRamka;
+//        int YminRamkaCentr = YminRamka;
+//        int YmaxRamkaCentr = YmaxRamka;
+
+//        int shiftCoordinateX = dlinnaPoz / 100;                         //10;
+//        if (shiftCoordinateX == 0) {
+//            shiftCoordinateX = 1;
+//        }
+//        int shiftCoordinateY = shirinaPoz / 100;                         //10;
+//        if (shiftCoordinateY == 0) {
+//            shiftCoordinateY = 1;
+//        }
+//        System.out.printf(" Рамка (40х90)  min(%s,%s) max(%s,%s)", XminRamka, YminRamka, XmaxRamka, YmaxRamka);
+//        System.out.println();
+        // главный цикл
+
+        boolean findPlace = false;
+        //    boolean flag = true;
+
+        // проверка рамкаМаркировки не вышла за габарит позиции и не попала на примитив (внутри позиции)
+
+        boolean tochkaVRamke = false;
+        if (YmaxRamka < Ymax && YminRamka > Ymin && XminRamka > Xmin && XmaxRamka < Xmax) {
+            for (Point2D pnt : listPointInsidePoz) {
+                if (pnt.getX() > XminRamka && pnt.getX() < XmaxRamka && pnt.getY() > YminRamka && pnt.getY() < YmaxRamka) {
+                    tochkaVRamke = true;
+                    break;
+                }
+            }
+        } else {
+            return false;
+        }
+
+        if (tochkaVRamke) {
+            return false;
+        } else {
+
+
+            boolean checkOutMark = checkOutOfBoundMark(new Point2D(XminRamka + (XmaxRamka - XminRamka) / 2, YmaxRamka),
+                    new Point2D(XminRamka + (XmaxRamka - XminRamka) / 2, gabaritPoz[2] - 10));
+
+            if (!checkOutMark) {
+                if (typeMark.equals(TypeMark.VERTICAL)) {
+                    addThreeTextOnEntyties(pointCentrXnewRamki, pointCentrYnewRamki, height);
+                } else if (typeMark.equals(TypeMark.HORIZONTAL)) {
+                    addTwoTextOnEntyties(pointCentrXnewRamki, pointCentrYnewRamki, height);
+                } else if (typeMark.equals(TypeMark.ONLY_POZ)) {
+                    addOneTextOnEntyties(pointCentrXnewRamki, pointCentrYnewRamki, height);
+                }
+
+                findPlace = true;
+            }
+        }
+
+        return findPlace;
+    }
+
+
+    private boolean checkMarkInCentrPozition(double[] gabaritPoz, int height, TypeMark typeMark, int XminRamka, int XmaxRamka, Rectangle ramkaMark, int YminRamka, int YmaxRamka, int shiftCoordinateY) {
         boolean findPlace = false;
         boolean tochkaVRamke = false;
         for (Point2D pnt : listPointInsidePoz) {
-            if (pnt.getX() > xminRamka && pnt.getX() < xmaxRamka && pnt.getY() > yminRamka && pnt.getY() < ymaxRamka) {
+            if (pnt.getX() > XminRamka && pnt.getX() < XmaxRamka && pnt.getY() > YminRamka && pnt.getY() < YmaxRamka) {
                 tochkaVRamke = true;
                 break;
             }
         }
         if (!tochkaVRamke) {
-            maxBoundRamka(xminRamka, yminRamka, xmaxRamka, ymaxRamka, gabaritPoz, shiftCoordinateY * 3, ramkaMark, height, typeMark);
-            findPlace = true;
+
+            boolean checkOutMark = checkOutOfBoundMark(new Point2D(XminRamka + (XmaxRamka - XminRamka) / 2, YmaxRamka),
+                    new Point2D(XminRamka + (XmaxRamka - XminRamka) / 2, gabaritPoz[2] - 10));
+
+            if (!checkOutMark) {
+                findPlace = true;
+                maxBoundRamka(XminRamka, YminRamka, XmaxRamka, YmaxRamka, gabaritPoz, shiftCoordinateY * 3, ramkaMark, height, typeMark);
+
+            } else {
+                findPlace = false;
+            }
         }
         return findPlace;
     }

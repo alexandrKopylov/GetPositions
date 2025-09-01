@@ -367,7 +367,6 @@ public class ReadPDF {
 
     }
 
-
     public void fileRename(String path, Map<String, String> map) throws IOException {
 
 
@@ -404,7 +403,6 @@ public class ReadPDF {
 
 
     }
-
 
     public void serchInTextAndAddToMap2(String[] lines, Map<String, String> map, String stringPath, String prefics) {
         try {

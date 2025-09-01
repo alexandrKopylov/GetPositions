@@ -3,16 +3,47 @@ package com.company;
 import com.company.logic.Point2D;
 import com.company.logic.Rectangle;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.FileTime;
 import java.util.*;
 
 public class Moe {
     public static void main(String[] args) {
 
+        double x = 5;
+        double y = 5;
+        double c = x-y;
 
-      int i = 0;
-        System.out.println(++i + ++i  +  ++i  +  i ++);
-                       //     1    2       3       3
+        System.out.println(c);
+
+    }
+
+//
+//        System.out.println(Runtime.getRuntime().availableProcessors());
+//        Path path = Paths.get (    "\\\\nts2dc\\Мосин\\_инв. № 1857 МиТОК\\03105А\\ЧПУ\\dxf\\206.dxf");
+//        Path t1 = Paths.get (  "\\\\nts2dc\\Мосин\\_инв. № 1857 МиТОК\\03105А\\ЧПУ от 07.08.2025\\dxf\\206.dxf");
+//
+//
+//        FileTime ft1 =null;
+//        FileTime   ft2 = null;
+//        try {
+//            path= path.getParent();
+//            t1= t1.getParent();
+//            ft1 =(FileTime) Files.getAttribute(path, "creationTime");
+//            ft2 =(FileTime) Files.getAttribute(t1, "creationTime");
+//
+//            System.out.println(ft1.toMillis());
+//            System.out.println(ft2.toMillis());
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//
+//    }
+
 
 
 //String name = "Lp103";
@@ -28,10 +59,6 @@ public class Moe {
 //        String end = name.substring(index);
 //        String res = start + "-" + end;
 //        System.out.println(res);
-
-
-
-
 
 
 //        HashMap<String, String> map = new HashMap<>();
@@ -64,9 +91,8 @@ public class Moe {
 //
 //        System.out.println(file);
 
-       // nyMetod();
-        // System.out.println(20* util.PoluchitDlinnuStroki(str""));
-
+    // nyMetod();
+    // System.out.println(20* util.PoluchitDlinnuStroki(str""));
 
 
 //        String ss = "FA";
@@ -76,7 +102,7 @@ public class Moe {
 //       String hex = Integer.toHexString(++decimalValue).toUpperCase();
 //        System.out.println(hex +" = "+decimalValue);
 
-    }
+}
 
 //    private static void nyMetod() {
 //        Util util = new Util();
@@ -85,4 +111,4 @@ public class Moe {
 //
 //        System.out.println(10* util.PoluchitDlinnuStroki(str));
 //    }
-}
+
