@@ -9,6 +9,7 @@ import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.company.logic.MultiValueHashMap;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.PDFTextStripperByArea;
@@ -85,7 +86,7 @@ public class ReadPDF {
         return pdfFileInText.split("\\r\\n");
     }
 
-    public void serchInTextAndAddToMap2(String[] lines, Map<String, String> map, String stringPath, List<String> listNamePozicii, JTextArea textAreaPDF) {
+    public void serchInTextAndAddToMap2(String[] lines, MultiValueHashMap<String, String> mapParsingPDF , String stringPath, List<String> listNamePozicii, JTextArea textAreaPDF) {
 
         try {
 
@@ -103,8 +104,10 @@ public class ReadPDF {
                 }
             }
             if(strokaWithGradeSteeel.equals(null)){
+
                 textAreaPDF.append("\nstrokaWithGradeSteeel  нет  материала ");
             }else {
+                System.out.println("\nstrokaWithGradeSteeel   ===   " + strokaWithGradeSteeel);
                 textAreaPDF.append("\nstrokaWithGradeSteeel   ===   " + strokaWithGradeSteeel);
             }
 
@@ -144,6 +147,7 @@ public class ReadPDF {
                 }
             }
 
+            System.out.println("\nnamePoz   ===   " + namePoz);
             textAreaPDF.append("\nnamePoz   ===   " + namePoz);
 
             String strokaWithNamePozMinLenght = namePoz;                        // "J".repeat(200);
@@ -154,6 +158,7 @@ public class ReadPDF {
 //                    }
 //                }
 //            }
+            System.out.println("\nstrokaWithNamePozMinLenght   ===   " + strokaWithNamePozMinLenght);
             textAreaPDF.append("\nstrokaWithNamePozMinLenght   ===   " + strokaWithNamePozMinLenght);
 
 
@@ -178,16 +183,20 @@ public class ReadPDF {
                 }
             }
 
-
+            System.out.println("\nCOD  ===  " + cod);
             textAreaPDF.append("\nCOD  ===  " + cod);
+
+
+
 
             if (cod != null || cod != "") {
                 if (delDefis) {
-                    map.put(pozModify, cod);
+                    mapParsingPDF .put(pozModify, cod);
                 } else {
-                    map.put(namePoz, cod);
+                    mapParsingPDF .put(namePoz, cod);
                 }
             }
+            System.out.println("\n" + "=".repeat(300));
             textAreaPDF.append("\n" + "=".repeat(300));
 
         } catch (Exception e) {

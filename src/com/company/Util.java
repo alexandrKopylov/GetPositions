@@ -57,6 +57,7 @@ public class Util {
     private String stringEntityText;
     private double markDefaultHeight;
 
+    private List<String> listNamePozicii;
     private List<String> entityies = new LinkedList<>();
     private List<Point2D> listPointInsidePoz = new LinkedList<>();
     private MultiValueHashMap<String, String> fileNotFaundOnZakaz = new MultiValueHashMap<>();
@@ -70,7 +71,7 @@ public class Util {
 
     //PDF parser
     static final String pathToFolderPDF = "c:\\WorkFolder\\ReadOnly\\";
-    static final Map<String, String> mapParsingPDF = new HashMap<>();
+    static final MultiValueHashMap<String, String> mapParsingPDF = new MultiValueHashMap<>();
     private Point2D tochkaVstavkiDefoultMark;
 
 
@@ -194,7 +195,7 @@ public class Util {
     public MultiValueHashMap<String, String> readCSV(File file, String thikness, JTextArea textArea, JTextArea textAreaPDF) throws IOException {
 
         MultiValueHashMap<String, String> map = new MultiValueHashMap<>();
-        List<String> listNamePozicii = new ArrayList<>();
+         listNamePozicii = new ArrayList<>();
 
 
         String[] mas = null;
@@ -307,8 +308,12 @@ public class Util {
         textAreaPDF.append("\n");
 
         textAreaPDF.append("********************* Parsing PDF *************************\n");
-        mapParsingPDF.forEach((key, value) -> textAreaPDF.append(key + " = " + value + "\n"));
-        textAreaPDF.append("mapParsingPDF.size() = " + mapParsingPDF.size() + "\n");
+
+       // mapParsingPDF.forEach((key, value) -> textAreaPDF.append(key + " = " + value + "\n"));
+
+       // mapParsingPDF.
+
+        //textAreaPDF.append("mapParsingPDF.size() = " + mapParsingPDF.size() + "\n");
         textAreaPDF.append("\n");
 
         //   Set<String> set = mapa.kSet();
@@ -719,6 +724,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 //                    }
 
 
+
                 fastMethod(pathFolderPoz, listPoz, strZakaz, zak);
 
 
@@ -775,8 +781,11 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                 }
             } else {
 
+             //   mapParsingPDF.put("Lp-1001","12885");   //     udalit  stroku   for  proverki  raboti
 
-                String codPoz = null;
+                readPDF(listNamePozicii, textAreaPDF);
+
+                List<String> codPoz = null;
                 Iterator<String> it = listPoz.iterator();
                 while (it.hasNext()) {
                     razbiraemNaChasti(zak, it);
@@ -787,7 +796,9 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                     }
 
                     if (pathFolderPoz == null) {
-                        String finalCodPoz = codPoz;
+                       List< String> finalCodPozList = codPoz;
+
+                       for( String  finalCodPoz: finalCodPozList){
 
                         //  pozPathsList
                         /*  List<Path>*/
@@ -801,7 +812,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                         if (pozPathsList.size() >= 1) {
 
 
-                            pathFilePoz = checkExactMatch(codPoz, pozPathsList);
+                            pathFilePoz = checkExactMatch(finalCodPoz, pozPathsList);
                             // pathFilePoz =  pozPathsList.get();
 
 
@@ -813,17 +824,23 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 //                                    writer.write(pathFolderPoz + "\n");
 //                                    writer.close();
 //                                }
+                        }else{
+                            //textArea.append(" нет файла " + poz + " = " + codPoz + " в папкe " + pathFolderPoz + "\n");
+                            continue;
                         }
-                    }
-                    File file = new File(pathFolderPoz.toString() + "\\" + codPoz + ".dxf");
+
+
+
+
+                    File file = new File(pathFolderPoz.toString() + "\\" + finalCodPoz + ".dxf");
                     if (!file.exists()) {
                         textArea.append(" нет файла " + poz + " = " + codPoz + " в папкe " + pathFolderPoz + "\n");
                         continue;
                     }
                     copyFileToDxfFolder(delListOnInv, strZakaz, file, it, zak);
-                    mapParsingPDF.remove(poz, codPoz);
+                   //mapParsingPDF.remove(poz, finalCodPoz);                                     //todo
                 }
-            }
+            }}}
             // }     // esli papka s zakazom ne sushestvuet
         }      // setZakaz
     }
@@ -1266,30 +1283,33 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
             }
 
             if (!isFound) {
-                String codPoz = null;
+               List<String> codPoz = null;
                 // Iterator<String> itt = listPoz.iterator();
 
                 // while (itt.hasNext()) {
                 //   razbiraemNaChasti(zakOrInv, itt);
-                Set<String> keySet = mapParsingPDF.keySet();
+                Set<String> keySet = mapParsingPDF.kSet();
+
                 for (String keyMap : keySet) {
                     if (keyMap.contains(poz)) {
                         codPoz = mapParsingPDF.get(keyMap);
+
+                        for(String sss : codPoz){
                         if (codPoz.equals("")) {
                             continue;
                         }
 
-                        File pathFilePoz = new File(path + "\\" + codPoz + ".dxf");
+                        File pathFilePoz = new File(path + "\\" + sss + ".dxf");
                         if (!pathFilePoz.exists()) {
                             // textArea.append("позиция (" + poz + ") = " + codPoz + " не найдена\n");
                             continue;
                         }
 
                         copyFileToDxfFolder(delListOnInv, strInvOrZakaz, pathFilePoz, it, zakOrInv);
-                        mapParsingPDF.remove(keyMap, codPoz);
+                       // mapParsingPDF.remove(keyMap, sss);
                         break;
                     }
-                }
+                }}
 
             }
         }
@@ -2254,7 +2274,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 
             String textMark = newEnt.substring(beginTextMark, endXTextMark);
 
-            if (textMark.equals(poz)) {
+            if (textMark.equals(poz) || textMark.equals(poz + ";")  ||  textMark.equals(poz + "_")  ) {
                 int beginXcoord = newEnt.indexOf("\r\n10\r\n") + 6;
                 int endXcoord = newEnt.indexOf("\r\n20\r\n", beginXcoord);
 
