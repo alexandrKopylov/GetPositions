@@ -25,6 +25,8 @@ public class Util {
     private String serverBazaDXF = "z:\\DXF\\";
     private String pathMosinString = "\\\\nts2dc\\Мосин\\";
     private String fileCashPath = "c:\\Users\\alexx.STALMOST\\Desktop\\cashPath.txt";
+    private String pathAutonest = "\\\\NTS2DC\\Users\\OGT\\BAZA\\Autonest\\";
+    private String pathFolderMyWork ="c:\\Users\\alexx.STALMOST\\Desktop\\MyWork\\";
     private JTextArea textArea;
     private JTextArea textAreaPDF;
     private JPanel panel;
@@ -44,6 +46,7 @@ public class Util {
     private Integer countNeNashel = 0;
     private Integer countNashel = 0;
 
+    private FileWriter newFileKK = null;   //////////////////////////////////////////////////////////////
 
     private boolean otvZvezdoy = false;
     private boolean neskolkoPOLYLINE = false;
@@ -73,6 +76,7 @@ public class Util {
     static final String pathToFolderPDF = "c:\\WorkFolder\\ReadOnly\\";
     static final MultiValueHashMap<String, String> mapParsingPDF = new MultiValueHashMap<>();
     private Point2D tochkaVstavkiDefoultMark;
+    private Point2D tockaVstavkiOkrKogdaPolylineSostoitIz4vertex;
 
 
     public Util() throws IOException {
@@ -82,10 +86,25 @@ public class Util {
 
     public MultiValueHashMap<String, String> readCSVPlusPodkroi(File file, String thikness, JTextArea textArea, List<String> listPoziciiPlusPodkroi, JTextArea textAreaPDF) throws IOException {
         boolean flag = true;
-        if (!textFieldKK.getText().equals("KK") && flag) {
+ textKK = textFieldKK.getText().replace("/", "_");
 
+
+//        if(textKK.equals("KK")){
+//          //  new Exception("Комплектовочная не указана");
+//           // textArea.append("Комплектовочная не указана");
+//           // return new MultiValueHashMap<>("fdgfg","dfgdfgd");
+//            return null;
+//        }
+
+
+    //    boolean isNewKK = methodIsNewKK();
+
+
+
+            if (!textFieldKK.getText().equals("KK") && flag) {
+       // if (!isNewKK) {
             String pathKK = "\\\\NTS2DC\\Users\\OGT\\BAZA\\Autonest\\";
-            File fileKK = new File(pathKK + textFieldKK.getText().replace("/", "_"));
+            File fileKK = new File(pathKK +  textKK);
             if (fileKK.exists()) {
                 List<String> listFile = new ArrayList<>();
                 File[] masFileKK = fileKK.listFiles();
@@ -97,12 +116,11 @@ public class Util {
                 listPoziciiPlusPodkroi.addAll(listFile);
                 identicalPozAndInv.addAll(listFile);
 
-            } else {
-                new RuntimeException("KK not exist");
             }
+        }else{
 
+         //  newFileKK = new FileWriter(pathFolderMyWork + textKK +"___ДеталиБК_все.csv", StandardCharsets.UTF_8, true);
 
-            flag = false;
         }
 
         this.textAreaPDF = textAreaPDF;
@@ -131,7 +149,7 @@ public class Util {
                     continue;
                 }
 
-
+              //  newFileKK.write(line);
                 mas = line.split("\t");
                 inv = mas[0];                         //.replace(".", "");                 //удаляем точку в инвентарном
 
@@ -164,10 +182,9 @@ public class Util {
 
             }
 
+
             if (storeTolshins.size() > 1) {
-
                 JOptionPane.showMessageDialog(null, "в работе разные толщины");
-
             }
 
 
@@ -195,7 +212,7 @@ public class Util {
     public MultiValueHashMap<String, String> readCSV(File file, String thikness, JTextArea textArea, JTextArea textAreaPDF) throws IOException {
 
         MultiValueHashMap<String, String> map = new MultiValueHashMap<>();
-         listNamePozicii = new ArrayList<>();
+        listNamePozicii = new ArrayList<>();
 
 
         String[] mas = null;
@@ -259,7 +276,7 @@ public class Util {
         List<String> listPDF = readPDF.searchPDF(pathToFolderPDF);
         String[] strMas;
 
-
+        int k = 1;
         for (String str : listPDF) {
             String pathFilePDF = pathToFolderPDF + str;
             strMas = readPDF.readPDFtoString(pathFilePDF);
@@ -267,8 +284,38 @@ public class Util {
             readPDF.serchInTextAndAddToMap2(strMas, mapParsingPDF, pathFilePDF, listNamePozicii, textAreaPDF);
 
             System.out.println("----------------------------------------------------------------------");
+            k++;
         }
         // readPDF.fileRename(pathToDxfFiles, keys);
+
+
+        textAreaPDF.append("\n");
+        textAreaPDF.append("\n");
+        textAreaPDF.append("\n");
+
+        textAreaPDF.append("********************* Parsing PDF *************************\n");
+
+        mapParsingPDF.print();
+
+        Set<String> set = mapParsingPDF.kSet();
+        for (String key : set) {
+            textAreaPDF.append(key);
+            textAreaPDF.append("   ->   ");
+            List<String> listValue = mapParsingPDF.get(key);
+            for (String value : listValue) {
+                textAreaPDF.append(value + "   ");
+            }
+            textAreaPDF.append("\n");
+        }
+
+
+        // mapParsingPDF.forEach((key, value) -> textAreaPDF.append(key + " = " + value + "\n"));
+
+        // mapParsingPDF.
+
+        textAreaPDF.append("mapParsingPDF.size() = " + mapParsingPDF.countOfValue() + "\n");
+        textAreaPDF.append("\n");
+
     }
 
 
@@ -280,11 +327,11 @@ public class Util {
 
     //   todo    getListPoz
     public Set<String> getListPoz(MultiValueHashMap<String, String> mapa, String pathDXF, JTextArea textArea, String gradeSteel, JPanel panel, String textKK, JTextArea textAreaPDF) throws IOException {
-        this.textArea = textArea ;
+        this.textArea = textArea;
         this.gradeSteel = gradeSteel;
         this.pathDXF = pathDXF;
         this.panel = panel;
-        this.textKK = textKK;
+        this.textKK = textKK.replace('/', '_');
 
 
         int countPozciii = 0;
@@ -303,18 +350,6 @@ public class Util {
         fileORD.write("@M=0 @T=1.000000" + System.lineSeparator());
         fileORD.close();
 
-        textAreaPDF.append("\n");
-        textAreaPDF.append("\n");
-        textAreaPDF.append("\n");
-
-        textAreaPDF.append("********************* Parsing PDF *************************\n");
-
-       // mapParsingPDF.forEach((key, value) -> textAreaPDF.append(key + " = " + value + "\n"));
-
-       // mapParsingPDF.
-
-        //textAreaPDF.append("mapParsingPDF.size() = " + mapParsingPDF.size() + "\n");
-        textAreaPDF.append("\n");
 
         //   Set<String> set = mapa.kSet();
         File file;
@@ -430,16 +465,18 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                         }
                     }
 
+//
+//                    if (!isFound) {
+//                        search = inv + ".m" + poz.substring(1) + "L.dxf";
+//                        cod = fileNameAndCod.get(search);
+//                        if (!(cod == null)) {
+//                            isFound = true;
+//                            copyFileInDXF(new File(serverBazaDXF + inv + "\\" + cod + "_" + search), ".m" + poz.substring(1));
+//                            result++;
+//                        }
+//                    }
 
-                    if (!isFound) {
-                        search = inv + ".m" + poz.substring(1) + "L.dxf";
-                        cod = fileNameAndCod.get(search);
-                        if (!(cod == null)) {
-                            isFound = true;
-                            copyFileInDXF(new File(serverBazaDXF + inv + "\\" + cod + "_" + search), ".m" + poz.substring(1));
-                            result++;
-                        }
-                    }
+
                     if (!isFound) {
                         search = inv + ".m" + inv + "." + poz + "L.dxf";
                         cod = fileNameAndCod.get(search);
@@ -484,6 +521,34 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
         textArea.append("\n");
 
         return listPozNeNashel;
+    }
+
+    private boolean methodIsNewKK() {
+
+        File folderKK = new File(pathAutonest + textKK);
+
+        if (folderKK.exists()) {
+            File[] listFileInFolder = folderKK.listFiles();
+
+            List<String> listFiles = Arrays.stream(listFileInFolder)
+                    .map(x -> Path.of(String.valueOf(x)))
+                    .filter(Files::isRegularFile)
+                    .map(x -> x.toString())
+                    .filter(x -> x.endsWith(".dft"))
+                    .collect(Collectors.toList());
+            if (listFiles.size() == 0) {
+                return true;
+            } else {
+                return false;
+            }
+
+
+        } else {
+            return true;
+
+        }
+
+
     }
 
     private void printFindPoz() {
@@ -654,6 +719,24 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                     .filter(x -> x.toFile().getName().contains(finalPozStr))                             //equalsIgnoreCase(pozStr + ".dxf"))
                     .collect(Collectors.toList());
 
+            if (pozPathsList.size() == 0) {
+                List<String> spisokPozUmarki = mapParsingPDF.get(pozStr);
+                if (spisokPozUmarki != null) {
+                    for (String poz : spisokPozUmarki) {
+
+                        pozPathsList = Files.walk(pathFolderZakaz, 4, FileVisitOption.FOLLOW_LINKS)
+                                .filter(Files::isRegularFile)
+                                .filter(x -> x.toFile().getName().endsWith(".dxf"))
+                                .filter(x -> !x.toFile().getPath().contains("round"))
+                                .filter(x -> x.toFile().getName().contains(poz))                             //equalsIgnoreCase(pozStr + ".dxf"))
+                                .collect(Collectors.toList());
+                        if (pozPathsList.size() != 0) {
+                            break;
+                        }
+                    }
+                }
+            }
+
 
             boolean pozModify = false;                                              //  delete first char 'M'
             String search = null;
@@ -724,7 +807,6 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 //                    }
 
 
-
                 fastMethod(pathFolderPoz, listPoz, strZakaz, zak);
 
 
@@ -781,9 +863,9 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                 }
             } else {
 
-             //   mapParsingPDF.put("Lp-1001","12885");   //     udalit  stroku   for  proverki  raboti
+                //   mapParsingPDF.put("Lp-1001","12885");   //     udalit  stroku   for  proverki  raboti
 
-                readPDF(listNamePozicii, textAreaPDF);
+                //  readPDF(listNamePozicii, textAreaPDF);
 
                 List<String> codPoz = null;
                 Iterator<String> it = listPoz.iterator();
@@ -796,51 +878,51 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                     }
 
                     if (pathFolderPoz == null) {
-                       List< String> finalCodPozList = codPoz;
+                        List<String> finalCodPozList = codPoz;
 
-                       for( String  finalCodPoz: finalCodPozList){
+                        for (String finalCodPoz : finalCodPozList) {
 
-                        //  pozPathsList
-                        /*  List<Path>*/
-                        pozPathsList = Files.walk(pathFolderZakaz, 4, FileVisitOption.FOLLOW_LINKS)
-                                .filter(Files::isRegularFile)
-                                .filter(x -> x.toFile().getName().endsWith(".dxf"))
-                                .filter(x -> x.toFile().getName().contains(finalCodPoz))                             //equalsIgnoreCase(pozStr + ".dxf"))
-                                .collect(Collectors.toList());
-                        //.findFirst();
+                            //  pozPathsList
+                            /*  List<Path>*/
+                            pozPathsList = Files.walk(pathFolderZakaz, 4, FileVisitOption.FOLLOW_LINKS)
+                                    .filter(Files::isRegularFile)
+                                    .filter(x -> x.toFile().getName().endsWith(".dxf"))
+                                    .filter(x -> x.toFile().getName().contains(finalCodPoz))                             //equalsIgnoreCase(pozStr + ".dxf"))
+                                    .collect(Collectors.toList());
+                            //.findFirst();
 
-                        if (pozPathsList.size() >= 1) {
-
-
-                            pathFilePoz = checkExactMatch(finalCodPoz, pozPathsList);
-                            // pathFilePoz =  pozPathsList.get();
+                            if (pozPathsList.size() >= 1) {
 
 
-                            pathFolderPoz = pathFilePoz.getParent();
-                            // nameFilePoz = pathFilePoz.toFile().getName();
+                                pathFilePoz = checkExactMatch(finalCodPoz, pozPathsList);
+                                // pathFilePoz =  pozPathsList.get();
+
+
+                                pathFolderPoz = pathFilePoz.getParent();
+                                // nameFilePoz = pathFilePoz.toFile().getName();
 
 //                                boolean isLastCharIsDigit = Character.isDigit(pathFolderPoz.toString().charAt(pathFolderPoz.toString().length() - 1));
 //                                if (!isLastCharIsDigit) {
 //                                    writer.write(pathFolderPoz + "\n");
 //                                    writer.close();
 //                                }
-                        }else{
-                            //textArea.append(" нет файла " + poz + " = " + codPoz + " в папкe " + pathFolderPoz + "\n");
-                            continue;
+                            } else {
+                                //textArea.append(" нет файла " + poz + " = " + codPoz + " в папкe " + pathFolderPoz + "\n");
+                                continue;
+                            }
+
+
+                            File file = new File(pathFolderPoz.toString() + "\\" + finalCodPoz + ".dxf");
+                            if (!file.exists()) {
+                                textArea.append(" нет файла " + poz + " = " + codPoz + " в папкe " + pathFolderPoz + "\n");
+                                continue;
+                            }
+                            copyFileToDxfFolder(delListOnInv, strZakaz, file, it, zak);
+                            //mapParsingPDF.remove(poz, finalCodPoz);                                     //todo
                         }
-
-
-
-
-                    File file = new File(pathFolderPoz.toString() + "\\" + finalCodPoz + ".dxf");
-                    if (!file.exists()) {
-                        textArea.append(" нет файла " + poz + " = " + codPoz + " в папкe " + pathFolderPoz + "\n");
-                        continue;
                     }
-                    copyFileToDxfFolder(delListOnInv, strZakaz, file, it, zak);
-                   //mapParsingPDF.remove(poz, finalCodPoz);                                     //todo
                 }
-            }}}
+            }
             // }     // esli papka s zakazom ne sushestvuet
         }      // setZakaz
     }
@@ -1283,7 +1365,31 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
             }
 
             if (!isFound) {
-               List<String> codPoz = null;
+
+                List<String> spisokPozUmarki = mapParsingPDF.get(poz);
+                if (spisokPozUmarki != null) {
+                    for (String pozzz : spisokPozUmarki) {
+
+
+                        File pathFilePoz = new File(path + "\\" + pozzz + ".dxf");
+                        if (!pathFilePoz.exists()) {
+                            textArea.append("позиция (" + poz + " -> " + pozzz + " не найдена\n");
+                            continue;
+                        } else {
+
+                            copyFileToDxfFolder(delListOnInv, strInvOrZakaz, pathFilePoz, it, zakOrInv);
+                            // mapParsingPDF.remove(keyMap, sss);
+                            break;
+                        }
+
+
+                    }
+                }
+
+
+
+           /*
+                List<String> codPoz = null;
                 // Iterator<String> itt = listPoz.iterator();
 
                 // while (itt.hasNext()) {
@@ -1294,22 +1400,26 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                     if (keyMap.contains(poz)) {
                         codPoz = mapParsingPDF.get(keyMap);
 
-                        for(String sss : codPoz){
-                        if (codPoz.equals("")) {
-                            continue;
-                        }
+                        for (String sss : codPoz) {
+                            if (codPoz.equals("")) {
+                                continue;
+                            }
 
-                        File pathFilePoz = new File(path + "\\" + sss + ".dxf");
-                        if (!pathFilePoz.exists()) {
-                            // textArea.append("позиция (" + poz + ") = " + codPoz + " не найдена\n");
-                            continue;
-                        }
+                            File pathFilePoz = new File(path + "\\" + sss + ".dxf");
+                            if (!pathFilePoz.exists()) {
+                                // textArea.append("позиция (" + poz + ") = " + codPoz + " не найдена\n");
+                                continue;
+                            }
 
-                        copyFileToDxfFolder(delListOnInv, strInvOrZakaz, pathFilePoz, it, zakOrInv);
-                       // mapParsingPDF.remove(keyMap, sss);
-                        break;
+                            copyFileToDxfFolder(delListOnInv, strInvOrZakaz, pathFilePoz, it, zakOrInv);
+                            // mapParsingPDF.remove(keyMap, sss);
+                            break;
+                        }
                     }
-                }}
+                }
+
+                */
+
 
             }
         }
@@ -1520,7 +1630,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 //  закоментировал след  блок
         //  может надо  поменять метод  findPlaceForMark
 
-        if (tochkaVstavkiDefoultMark != null) {
+        if (tochkaVstavkiDefoultMark != null && shirinaPoz > 250 && dlinnaPoz > 250) {
 
             height = 20;
             flag = true;
@@ -2132,7 +2242,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 
                 countVertex = masVertex.length;
                 System.out.println("VERTEX = " + countVertex);
-                if (countVertex == 3) {
+                if (countVertex == 3 || countVertex == 4) {
                     listPointsPolyline = new ArrayList<>();
                 }
 
@@ -2142,14 +2252,14 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                     int beginY = masVertex[i].indexOf("\r\n20\r\n", beginX);
                     String strX = masVertex[i].substring(beginX, beginY).replace("\r\n10\r\n", "");
                     double x = (double) Math.round(Double.parseDouble(strX));
-                    if (countVertex == 3) {
+                    if (countVertex == 3 || countVertex == 4) {
                         listPointsPolyline.add((int) x);
                     }
                     if (masVertex[i].contains("\r\n30\r\n")) {
                         int beginZ = masVertex[i].indexOf("\r\n30\r\n", beginY);
                         String strY = masVertex[i].substring(beginY, beginZ).replace("\r\n20\r\n", "").trim();
                         double y = (double) Math.round(Double.parseDouble(strY));
-                        if (countVertex == 3) {
+                        if (countVertex == 3 || countVertex == 4) {
                             listPointsPolyline.add((int) y);
                         }
                         masVertex[i] = masVertex[i].replace(strX, String.valueOf(x));
@@ -2160,7 +2270,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                         String strY = masVertex[i].substring(beginY, beginZ);
                         strY = strY.replace("\r\n20\r\n", "").trim();
                         double y = (double) Math.round(Double.parseDouble(strY));
-                        if (countVertex == 3) {
+                        if (countVertex == 3 || countVertex == 4) {
                             listPointsPolyline.add((int) y);
                         }
 
@@ -2172,7 +2282,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                         String strY = masVertex[i].substring(beginY, beginZ);
                         strY = strY.replace("\r\n20\r\n", "").trim();
                         double y = (double) Math.round(Double.parseDouble(strY));
-                        if (countVertex == 3) {
+                        if (countVertex == 3 || countVertex == 4) {
                             listPointsPolyline.add((int) y);
                         }
                         masVertex[i] = masVertex[i].replace(strX, String.valueOf(x));
@@ -2183,22 +2293,38 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 
                 boolean flagEqualsY = false;
                 boolean flagEqualsX = false;
-
+                boolean polyline4vertexZamenaNaOkr = false;
+                int rastoyanieDiametr = 0;
+                tockaVstavkiOkrKogdaPolylineSostoitIz4vertex = null;
 
                 if (countVertex == 3) {
                     flagEqualsY = (listPointsPolyline.get(1) == listPointsPolyline.get(3));
                     flagEqualsX = (listPointsPolyline.get(0) == listPointsPolyline.get(2));
                 }
 
+                if (countVertex == 4) {
+                    rastoyanieDiametr = methodFindRastoyanieMejduTockamiMinMaxPolyline(listPointsPolyline);
+                }
 
-                if (countVertex == 3 && (flagEqualsX || flagEqualsY)) {
+                if (countVertex == 4 && gabaritCSV.split("x")[1].equals("60") && rastoyanieDiametr == 30) {
+
+                    polyline4vertexZamenaNaOkr = true;
+
+                }
+
+
+                if ((countVertex == 3 && (flagEqualsX || flagEqualsY)) || polyline4vertexZamenaNaOkr) {
 
                     int max;
                     int min;
                     String newKoordXCircle;
                     String newKoordYCircle;
                     String radiusCircle;
-                    if (flagEqualsY) {
+                    if (polyline4vertexZamenaNaOkr) {
+                        newKoordXCircle = Double.toString(tockaVstavkiOkrKogdaPolylineSostoitIz4vertex.getX());
+                        newKoordYCircle = Double.toString(tockaVstavkiOkrKogdaPolylineSostoitIz4vertex.getY());
+                        radiusCircle = Double.toString(rastoyanieDiametr / 2);
+                    } else if (flagEqualsY) {
                         max = Math.max(listPointsPolyline.get(0), listPointsPolyline.get(2));
                         min = Math.min(listPointsPolyline.get(0), listPointsPolyline.get(2));
                         newKoordXCircle = Double.toString(min + (max - min) / 2);
@@ -2272,9 +2398,9 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                 endXTextMark = newEnt.length();
             }
 
-            String textMark = newEnt.substring(beginTextMark, endXTextMark);
+            String textMark = newEnt.substring(beginTextMark, endXTextMark).trim();
 
-            if (textMark.equals(poz) || textMark.equals(poz + ";")  ||  textMark.equals(poz + "_")  ) {
+            if (textMark.equals(poz) || textMark.equals(poz + ";") || textMark.equals(poz + "_")) {
                 int beginXcoord = newEnt.indexOf("\r\n10\r\n") + 6;
                 int endXcoord = newEnt.indexOf("\r\n20\r\n", beginXcoord);
 
@@ -2339,6 +2465,36 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
         }
 
         vivodNaConsoleEntityies();
+    }
+
+    private int methodFindRastoyanieMejduTockamiMinMaxPolyline(List<Integer> listPointsPolyline) {
+        int Xmin = listPointsPolyline.get(0);
+        int Xmax = listPointsPolyline.get(0);
+        int Ymin = listPointsPolyline.get(1);
+        int Ymax = listPointsPolyline.get(1);
+        for (int i = 0; i < listPointsPolyline.size(); i++) {
+            if (i == 0 || i == 2 || i == 4) {
+                if (Xmin > listPointsPolyline.get(i)) {
+                    Xmin = listPointsPolyline.get(i);
+                }
+                if (Xmax < listPointsPolyline.get(i)) {
+                    Xmax = listPointsPolyline.get(i);
+                }
+            } else {
+                if (Ymin > listPointsPolyline.get(i)) {
+                    Ymin = listPointsPolyline.get(i);
+                }
+                if (Ymax < listPointsPolyline.get(i)) {
+                    Ymax = listPointsPolyline.get(i);
+                }
+            }
+
+        }
+
+        tockaVstavkiOkrKogdaPolylineSostoitIz4vertex = new Point2D(Xmin + (Xmax - Xmin) / 2, Ymin + (Ymax - Ymin) / 2);
+
+
+        return Xmax - Xmin;
     }
 
     private void vivodNaConsoleEntityies() {

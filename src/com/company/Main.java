@@ -175,6 +175,11 @@ public class Main {
 
                         Util util = new Util();
                         MultiValueHashMap<String, String> map = util.readCSVPlusPodkroi(fileCSV, thiknes, textArea, listPoziciiPlusPodkroi, textAreaPDF);
+
+//                        if(  Objects.isNull(map)){
+//                            textArea.append("\n\n\n       KK не задана");
+//                            return;
+//                        }
                         if (map.countOfValue() == 0) {
                             textArea.append("\n\n\n        фвйл ДеталиБК_все.csv НЕ ОБНОВЛЁН");
                             return;

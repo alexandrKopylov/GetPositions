@@ -107,7 +107,7 @@ public class ReadPDF {
 
                 textAreaPDF.append("\nstrokaWithGradeSteeel  нет  материала ");
             }else {
-                System.out.println("\nstrokaWithGradeSteeel   ===   " + strokaWithGradeSteeel);
+                System.out.println("strokaWithGradeSteeel   ===   " + strokaWithGradeSteeel);
                 textAreaPDF.append("\nstrokaWithGradeSteeel   ===   " + strokaWithGradeSteeel);
             }
 
@@ -147,7 +147,7 @@ public class ReadPDF {
                 }
             }
 
-            System.out.println("\nnamePoz   ===   " + namePoz);
+            System.out.println("namePoz   ===   " + namePoz);
             textAreaPDF.append("\nnamePoz   ===   " + namePoz);
 
             String strokaWithNamePozMinLenght = namePoz;                        // "J".repeat(200);
@@ -158,7 +158,7 @@ public class ReadPDF {
 //                    }
 //                }
 //            }
-            System.out.println("\nstrokaWithNamePozMinLenght   ===   " + strokaWithNamePozMinLenght);
+            System.out.println("strokaWithNamePozMinLenght   ===   " + strokaWithNamePozMinLenght);
             textAreaPDF.append("\nstrokaWithNamePozMinLenght   ===   " + strokaWithNamePozMinLenght);
 
 
@@ -183,7 +183,7 @@ public class ReadPDF {
                 }
             }
 
-            System.out.println("\nCOD  ===  " + cod);
+            System.out.println("COD  ===  " + cod);
             textAreaPDF.append("\nCOD  ===  " + cod);
 
 
@@ -287,6 +287,9 @@ public class ReadPDF {
         return str.replace("-", "");
     }
 
+
+
+    /*
     public void serchInTextAndAddToMap(String[] lines, Map<String, String> map, String stringPath) {
         try {
             //  split by whitespace
@@ -372,9 +375,9 @@ public class ReadPDF {
             e.printStackTrace();
             System.out.println(stringPath + " не парсится ");
         }
-
-
     }
+
+    */
 
     public void fileRename(String path, Map<String, String> map) throws IOException {
 
