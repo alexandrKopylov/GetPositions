@@ -14,13 +14,12 @@ import java.util.*;
 public class Moe {
     public static void main(String[] args) {
 
-        double x = 5;
-        double y = 5;
-        double c = x-y;
 
-        System.out.println(c);
 
-    }
+    }  // end main
+
+
+    // double roubles = NumberReader.getDouble();
 
 //
 //        System.out.println(Runtime.getRuntime().availableProcessors());
@@ -43,7 +42,6 @@ public class Moe {
 //        }
 //
 //    }
-
 
 
 //String name = "Lp103";
