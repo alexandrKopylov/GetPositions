@@ -29,6 +29,7 @@ public class Main {
     //  z:\DXF\
     static Path pathToDxfOnServer = Path.of("z:\\DXF\\");
      static JTextField textFieldKK;
+    static JTextField textFieldZakaz;
     private static JTextField textFieldVozvrat;
     private static JTextField textFieldSteelGrade;
     private static JTextArea textArea;
@@ -73,6 +74,11 @@ public class Main {
 
         // JLabel pustishka = new JLabel("                      ");
         // panelTextFields.add(pustishka);
+
+
+
+        textFieldZakaz = new JTextField("zakaz", 10);
+        panelTextFields.add(textFieldZakaz);
 
         // Модель данных списка
         DefaultComboBoxModel<String> cbModel = new DefaultComboBoxModel<>();
@@ -171,10 +177,11 @@ public class Main {
                         }
 
                         String textKK = textFieldKK.getText();
+                        String textZakaz = textFieldZakaz.getText();
                         textArea.setText("");
 
                         Util util = new Util();
-                        MultiValueHashMap<String, String> map = util.readCSVPlusPodkroi(fileCSV, thiknes, textArea, listPoziciiPlusPodkroi, textAreaPDF);
+                        MultiValueHashMap<String, String> map = util.readCSVPlusPodkroi(fileCSV, thiknes, textArea, listPoziciiPlusPodkroi, textAreaPDF, textZakaz);
 
 //                        if(  Objects.isNull(map)){
 //                            textArea.append("\n\n\n       KK не задана");
@@ -207,7 +214,7 @@ public class Main {
 
                         Set<String> lisPozNeNashel = new HashSet<>();
 
-                        lisPozNeNashel = util.getListPoz(map, pathDXF, textArea, gradeSteel, panel, textKK, textAreaPDF);
+                        lisPozNeNashel = util.getListPoz(map, pathDXF, textArea, gradeSteel, panel, textKK , textAreaPDF);
 
                         int neNashlos = lisPozNeNashel.size();
 

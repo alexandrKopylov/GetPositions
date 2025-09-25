@@ -19,6 +19,24 @@ public class Moe {
     }  // end main
 
 
+    // System.out.println("43627.01391618608");
+/*
+    String str1 = "22100-SHT-051-131";
+    String str2 = "\t1923";
+        System.out.println(str1);
+        System.out.println(str2);
+        System.out.println("    5");
+
+    String s1 = "111";
+    String s2 = "22222222222222";
+    String s3 = "33333333";
+    int chislo = 50;
+
+        System.out.println(String.format("%"+chislo+"s",s1));
+        System.out.println(String.format("%20s",s2));
+        System.out.println(String.format("%20s",s3));
+    */
+
     // double roubles = NumberReader.getDouble();
 
 //

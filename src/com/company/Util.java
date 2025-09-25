@@ -84,10 +84,11 @@ public class Util {
     }
 
 
-    public MultiValueHashMap<String, String> readCSVPlusPodkroi(File file, String thikness, JTextArea textArea, List<String> listPoziciiPlusPodkroi, JTextArea textAreaPDF) throws IOException {
+    public MultiValueHashMap<String, String> readCSVPlusPodkroi(File file, String thikness, JTextArea textArea, List<String> listPoziciiPlusPodkroi, JTextArea textAreaPDF, String textZakaz) throws IOException {
         boolean flag = true;
         textKK = textFieldKK.getText().replace("/", "_");
 
+        this.textArea = textArea;
 
 //        if(textKK.equals("KK")){
 //          //  new Exception("Комплектовочная не указана");
@@ -126,12 +127,16 @@ public class Util {
         MultiValueHashMap<String, String> map = new MultiValueHashMap<>();
         List<String> listNamePozicii = new ArrayList<>();
 
+        List<String> strrings = Files.readAllLines(Paths.get(file.toString()));
+        beautifulVivod(strrings);
+
         String[] mas = null;
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             String inv = "";
             String poz = "";
             String tolshina;
+            String strZakaz;
 
             Set<String> storeTolshins = new TreeSet<String>();
 
@@ -154,24 +159,21 @@ public class Util {
 
                 // poz = mas[1];
                 tolshina = mas[4].split("x")[0];
+                strZakaz = mas[1].split("_")[1];
 
 
                 if (thikness.equals("")) {             // нечего не ввели
                     map.put(inv, line);
                     storeTolshins.add(tolshina);
-
                     textArea.append(line + "\n");
                     if (mas[1].contains("_")) {
                         listNamePozicii.add(mas[1].split("_")[0]);
-
                     }
                 } else {
-
                     if (thikness.equals(tolshina)) {
                         map.put(inv, line);
                         textArea.append(line + "\n");
                         textArea.update(textArea.getGraphics());
-                        // panel.revalidate();
                         if (mas[1].contains("_")) {
                             listNamePozicii.add(mas[1].split("_")[0]);
                         }
@@ -179,7 +181,60 @@ public class Util {
                 }
 
 
-            }
+//                if (!thikness.equals(tolshina)) {
+//                    continue;
+//                }
+//                if (!textZakaz.equals(strZakaz)) {
+//                    continue;
+//                }
+//
+//                map.put(inv, line);
+//                storeTolshins.add(tolshina);
+//                textArea.append(line + "\n");
+//                if (mas[1].contains("_")) {
+//                    listNamePozicii.add(mas[1].split("_")[0]);
+//                }
+
+
+//                //2 версия
+//                if (thikness.equals("")) {             // нечего не ввели
+//
+//                    if (textZakaz.equals("")) {
+//                        map.put(inv, line);
+//                        storeTolshins.add(tolshina);
+//                        textArea.append(line + "\n");
+//                        if (mas[1].contains("_")) {
+//                            listNamePozicii.add(mas[1].split("_")[0]);
+//                        }
+//                    } else {
+//                        if (textZakaz.equals(strZakaz)) {
+//                            map.put(inv, line);
+//                            storeTolshins.add(tolshina);
+//                            textArea.append(line + "\n");
+//                            if (mas[1].contains("_")) {
+//                                listNamePozicii.add(mas[1].split("_")[0]);
+//                            }
+//                        }
+//
+//
+//                    }
+//                } else {
+//
+//                    if (thikness.equals(tolshina)) {
+//
+//                        map.put(inv, line);
+//                        textArea.append(line + "\n");
+//                        textArea.update(textArea.getGraphics());
+//                        if (mas[1].contains("_")) {
+//                            listNamePozicii.add(mas[1].split("_")[0]);
+//                        }
+//
+//
+//                    }
+//                }
+//
+//
+           }
 
 
             if (storeTolshins.size() > 1) {
@@ -194,6 +249,120 @@ public class Util {
             // readPDF(listNamePozicii, textAreaPDF);
         }
         return map;
+    }
+
+    private void beautifulVivod(List<String> strrings) {
+        // Инв.	Обозначение	Кол.Т	Кол.Н	Габариты
+        strrings.remove(0);
+        strrings.remove(0);
+        int invMaxLenght = 0;
+        int oboznachenieMaxLenght = 0;
+        int kolTakMaxLenght = 0;
+        int kolNakMaxLenght = 0;
+        int gabaritiMaxLenght = 0;
+        Set<String> setThikness = new HashSet<>();
+        Set<String> setZakaz = new HashSet<>();
+        Set<String> setInv = new HashSet<>();
+
+        List<String> modList = new ArrayList<>();
+
+        for (String str : strrings) {
+            String[] mas = str.split("\t");
+            String inv = mas[0];
+            String poz = mas[1].split("_")[0];
+            String zakaz = mas[1].split("_")[1];
+            String oboznachenie = mas[1];
+            String kolTak = mas[2];
+            String kolNak = mas[3];
+            String gabarit = mas[4];
+            String thikness = mas[4].split("x")[0];
+
+            setThikness.add(thikness);
+            setZakaz.add(zakaz);
+            setInv.add(inv);
+
+            if (invMaxLenght < inv.length()) {
+                invMaxLenght = inv.length();
+            }
+            if (oboznachenieMaxLenght < oboznachenie.length()) {
+                oboznachenieMaxLenght = oboznachenie.length();
+            }
+            if (kolTakMaxLenght < kolTak.length()) {
+                kolTakMaxLenght = kolTak.length();
+            }
+
+            if (kolNakMaxLenght < kolNak.length()) {
+                kolNakMaxLenght = kolNak.length();
+            }
+
+            if (gabaritiMaxLenght < gabarit.length()) {
+                gabaritiMaxLenght = gabarit.length();
+            }
+        }
+
+        for (String str : strrings) {
+            String[] mas = str.split("\t");
+
+            String inv = mas[0];
+            String oboznachenie = mas[1];
+            String kolTak = mas[2];
+            String kolNak = mas[3];
+            String gabarit = mas[4];
+/*
+            if (inv.length() != invMaxLenght) {
+                inv = addSpace(inv, invMaxLenght);
+            }
+
+            if (oboznachenie.length() != oboznachenieMaxLenght) {
+                oboznachenie = addSpace(oboznachenie, oboznachenieMaxLenght);
+            }
+
+            if ( kolTak.length() != kolTakMaxLenght) {
+                kolTak = addSpace(kolTak, kolNakMaxLenght);
+            }
+
+            if ( kolNak.length()  != kolNakMaxLenght) {
+                kolNak = addSpace(kolNak, kolNakMaxLenght);
+            }
+
+            if (gabarit.length() != gabaritiMaxLenght) {
+                gabarit = addSpace(gabarit, gabaritiMaxLenght);
+            }
+*/
+
+            //modList.add( inv + "     " + oboznachenie + "     " + kolTak + "     " + "kolNak" + "     " +gabarit);
+
+//            int invMaxLenght = 0;
+//            int oboznachenieMaxLenght = 0;
+//            int kolTakMaxLenght = 0;
+//            int kolNakMaxLenght = 0;
+//            int gabaritiMaxLenght = 0;
+            textArea.append(String.format("%" + (invMaxLenght + 2) + "s", inv));
+            textArea.append(String.format("%" + (oboznachenieMaxLenght + 2) + "s", oboznachenie));
+            textArea.append(String.format("%" + (kolTakMaxLenght + 2) + "s", kolTak));
+            textArea.append(String.format("%" + (kolNakMaxLenght + 2) + "s", kolNak));
+            textArea.append(String.format("%" + (gabaritiMaxLenght + 2) + "s", gabarit));
+            textArea.append("\n");
+
+        }
+        strrings = modList;
+        for (String str : strrings) {
+            textArea.append(str + "\n");
+        }
+
+        textArea.append("\n");
+        textArea.append("\n");
+        textArea.append("\n");
+
+    }
+
+    private String addSpace(String stroka, int maxLenght) {
+        StringBuilder sb = new StringBuilder(stroka);
+        int raznica = maxLenght - stroka.length();
+        for (int i = 0; i < raznica; i++) {
+            sb.append(" ");
+        }
+        return sb.toString();
     }
 
     private boolean isLineInList(String line, List<String> listPoziciiPlusPodkroi) {
@@ -418,7 +587,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 
                 } else {
                     poz = mas[1].split("_")[0];
-                    zakaz = mas[1].split("_")[1];
+                    zakaz = mas[1].split("_")[1].replace("/", "_");
                 }
 
 
@@ -542,7 +711,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 
         Set<String> settt = new HashSet<>();
         List<String> list = new ArrayList<>();
-        String poz =null;
+        String poz = null;
 
         int result = 0;
         Set<String> set = mapa.kSet();
@@ -551,7 +720,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
             List<String> listValue = mapa.get(key);
             for (String value : listValue) {
                 String[] mas = value.split("\t");
-                 poz = mas[1].split("_")[0];
+                poz = mas[1].split("_")[0];
                 if (!settt.add(poz)) {
                     list.add(poz);
                 }
@@ -2290,7 +2459,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 
                 countVertex = masVertex.length;
                 System.out.println("VERTEX = " + countVertex);
-                if (countVertex == 3 || countVertex == 4   || countVertex == 5  ) {
+                if (countVertex == 3 || countVertex == 4 || countVertex == 5) {
                     listPointsPolyline = new ArrayList<>();
                 }
 
@@ -2300,14 +2469,14 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                     int beginY = masVertex[i].indexOf("\r\n20\r\n", beginX);
                     String strX = masVertex[i].substring(beginX, beginY).replace("\r\n10\r\n", "");
                     double x = (double) Math.round(Double.parseDouble(strX));
-                    if (countVertex == 3 || countVertex == 4 || countVertex == 5 ) {
+                    if (countVertex == 3 || countVertex == 4 || countVertex == 5) {
                         listPointsPolyline.add((int) x);
                     }
                     if (masVertex[i].contains("\r\n30\r\n")) {
                         int beginZ = masVertex[i].indexOf("\r\n30\r\n", beginY);
                         String strY = masVertex[i].substring(beginY, beginZ).replace("\r\n20\r\n", "").trim();
                         double y = (double) Math.round(Double.parseDouble(strY));
-                        if (countVertex == 3 || countVertex == 4 || countVertex == 5 ) {
+                        if (countVertex == 3 || countVertex == 4 || countVertex == 5) {
                             listPointsPolyline.add((int) y);
                         }
                         masVertex[i] = masVertex[i].replace(strX, String.valueOf(x));
@@ -2318,7 +2487,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                         String strY = masVertex[i].substring(beginY, beginZ);
                         strY = strY.replace("\r\n20\r\n", "").trim();
                         double y = (double) Math.round(Double.parseDouble(strY));
-                        if (countVertex == 3 || countVertex == 4  || countVertex == 5) {
+                        if (countVertex == 3 || countVertex == 4 || countVertex == 5) {
                             listPointsPolyline.add((int) y);
                         }
 
@@ -2340,7 +2509,6 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                 }
 
 
-
                 boolean flagEqualsY = false;
                 boolean flagEqualsX = false;
                 boolean polyline4vertexZamenaNaOkr = false;
@@ -2357,7 +2525,6 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                 }
 
 
-
                 if (countVertex == 4 && gabaritCSV.split("x")[1].equals("60") && rastoyanieDiametr == 30) {
 
                     polyline4vertexZamenaNaOkr = true;
@@ -2372,7 +2539,6 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                     polyline4vertexZamenaNaOkr = true;
 
                 }
-
 
 
                 if ((countVertex == 3 && (flagEqualsX || flagEqualsY)) || polyline4vertexZamenaNaOkr) {
@@ -2453,7 +2619,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 
 //сохраняем точку вставки текста
             int beginTextRotate = newEnt.indexOf("\r\n50\r\n") + 6;
-            if(beginTextRotate == 5){
+            if (beginTextRotate == 5) {
 
             }
             int endXTextRotate = newEnt.indexOf("\r\n72\r\n", beginTextRotate);
