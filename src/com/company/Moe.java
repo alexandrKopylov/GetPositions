@@ -14,6 +14,31 @@ import java.util.*;
 public class Moe {
     public static void main(String[] args) {
 
+        Map<String, Integer> map = new HashMap<>();
+        String str = "[xx][yyy][yyy][yyy]";
+        int begin = -1;
+        int end = -1;
+        String sss;
+        int count;
+
+        for (int i = 0; i < str.length(); i++) {
+
+            if (str.charAt(i) == '[') {
+                begin = i;
+            }
+            if (str.charAt(i) == ']') {
+                end = i;
+                sss = str.substring(begin, end + 1);
+                if (map.containsKey(sss)) {
+                    count = map.get(sss);
+                     map.put(sss, ++count);
+                }else{
+                    map.put(sss,1);
+                }
+            }
+        }
+
+        System.out.println(map);
 
 
     }  // end main

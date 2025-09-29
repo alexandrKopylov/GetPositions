@@ -2014,7 +2014,8 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 
             if (neskolkoPOLYLINE) {
                 textArea.append("     [ POLYLINE > 1 ]");
-                textArea.append(gabaritPolyline.toString());
+               String strokaMod =  viewGabaritPolyline();
+                textArea.append(strokaMod);
             }
             if (otvZvezdoy) {
                 textArea.append("     [ отверстия звездой !!! ]");
@@ -2024,6 +2025,47 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
             panel.revalidate();
 
         }
+    }
+
+    private String viewGabaritPolyline() {
+        Map<String, Integer> map = new HashMap<>();
+
+        StringBuilder sb = new StringBuilder();
+
+        String str = gabaritPolyline.toString();
+        int begin = -1;
+        int end = -1;
+        String sss;
+        int count;
+
+        for (int i = 0; i < str.length(); i++) {
+
+            if (str.charAt(i) == '[') {
+                begin = i;
+            }
+            if (str.charAt(i) == ']') {
+                end = i;
+                sss = str.substring(begin, end + 1);
+                if (map.containsKey(sss)) {
+                    count = map.get(sss);
+                    map.put(sss, ++count);
+                }else{
+                    map.put(sss,1);
+                }
+            }
+        }
+
+        for(String stroka : map.keySet()){
+            int counter = map.get(stroka);
+            if(counter == 1){
+                sb.append(stroka).append(" ");
+            }else{
+                sb.append(stroka).append("=").append(counter).append(" ");
+            }
+        }
+
+
+return sb.toString();
     }
 
     private void setMarkVertical(double[] gabaritPoz, int handler) {
@@ -2459,7 +2501,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 
                 countVertex = masVertex.length;
                 System.out.println("VERTEX = " + countVertex);
-                if (countVertex == 3 || countVertex == 4 || countVertex == 5) {
+                if (countVertex == 3 || countVertex == 4 || countVertex == 5  || countVertex == 41 ) {
                     listPointsPolyline = new ArrayList<>();
                 }
 
@@ -2469,14 +2511,14 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                     int beginY = masVertex[i].indexOf("\r\n20\r\n", beginX);
                     String strX = masVertex[i].substring(beginX, beginY).replace("\r\n10\r\n", "");
                     double x = (double) Math.round(Double.parseDouble(strX));
-                    if (countVertex == 3 || countVertex == 4 || countVertex == 5) {
+                    if (countVertex == 3 || countVertex == 4 || countVertex == 5  || countVertex == 41) {
                         listPointsPolyline.add((int) x);
                     }
                     if (masVertex[i].contains("\r\n30\r\n")) {
                         int beginZ = masVertex[i].indexOf("\r\n30\r\n", beginY);
                         String strY = masVertex[i].substring(beginY, beginZ).replace("\r\n20\r\n", "").trim();
                         double y = (double) Math.round(Double.parseDouble(strY));
-                        if (countVertex == 3 || countVertex == 4 || countVertex == 5) {
+                        if (countVertex == 3 || countVertex == 4 || countVertex == 5  || countVertex == 41) {
                             listPointsPolyline.add((int) y);
                         }
                         masVertex[i] = masVertex[i].replace(strX, String.valueOf(x));
@@ -2487,7 +2529,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                         String strY = masVertex[i].substring(beginY, beginZ);
                         strY = strY.replace("\r\n20\r\n", "").trim();
                         double y = (double) Math.round(Double.parseDouble(strY));
-                        if (countVertex == 3 || countVertex == 4 || countVertex == 5) {
+                        if (countVertex == 3 || countVertex == 4 || countVertex == 5  || countVertex == 41) {
                             listPointsPolyline.add((int) y);
                         }
 
@@ -2499,7 +2541,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                         String strY = masVertex[i].substring(beginY, beginZ);
                         strY = strY.replace("\r\n20\r\n", "").trim();
                         double y = (double) Math.round(Double.parseDouble(strY));
-                        if (countVertex == 3 || countVertex == 4 || countVertex == 5) {
+                        if (countVertex == 3 || countVertex == 4 || countVertex == 5  || countVertex == 41) {
                             listPointsPolyline.add((int) y);
                         }
                         masVertex[i] = masVertex[i].replace(strX, String.valueOf(x));
@@ -2526,22 +2568,24 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 
 
                 if (countVertex == 4 && gabaritCSV.split("x")[1].equals("60") && rastoyanieDiametr == 30) {
-
                     polyline4vertexZamenaNaOkr = true;
-
                 }
 
                 if (countVertex == 5) {
                     rastoyanieDiametr = methodFindRastoyanieMejduTockamiMinMaxPolyline(listPointsPolyline);
                 }
+
                 if (countVertex == 5 && gabaritCSV.split("x")[1].equals("60") && rastoyanieDiametr == 30) {
-
                     polyline4vertexZamenaNaOkr = true;
+                }
 
+                if (countVertex == 41) {
+                    rastoyanieDiametr = methodFindRastoyanieMejduTockamiMinMaxPolyline(listPointsPolyline);
+                    polyline4vertexZamenaNaOkr = true;
                 }
 
 
-                if ((countVertex == 3 && (flagEqualsX || flagEqualsY)) || polyline4vertexZamenaNaOkr) {
+                if (    ((countVertex == 3 && (flagEqualsX || flagEqualsY)) || polyline4vertexZamenaNaOkr )  ||  (countVertex == 41)   ) {
 
                     int max;
                     int min;
@@ -2707,7 +2751,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
         int Ymin = listPointsPolyline.get(1);
         int Ymax = listPointsPolyline.get(1);
         for (int i = 0; i < listPointsPolyline.size(); i++) {
-            if (i == 0 || i == 2 || i == 4 || i == 6 || i == 8) {
+            if (i %2 ==0) {
                 if (Xmin > listPointsPolyline.get(i)) {
                     Xmin = listPointsPolyline.get(i);
                 }
