@@ -30,6 +30,7 @@ public class ReadPDF {
         material.add("C245");
         material.add("C255");
         material.add("345-8-09Г2С");           // eng
+        material.add("345-5-09Г2С");
         material.add("345-8-09G2S");
         material.add("С255");
         material.add("С245");
@@ -38,6 +39,7 @@ public class ReadPDF {
         material.add("355-9");
         material.add("C390");           // eng
         material.add("С390");           // rus
+        material.add("C355-5");
 
     }
 
@@ -86,34 +88,69 @@ public class ReadPDF {
         return pdfFileInText.split("\\r\\n");
     }
 
-    public void serchInTextAndAddToMap2(String[] lines, MultiValueHashMap<String, String> mapParsingPDF , String stringPath, List<String> listNamePozicii, JTextArea textAreaPDF) {
+    public void serchInTextAndAddToMap2(String[] lines, MultiValueHashMap<String, String> mapParsingPDF, String stringPath, List<String> listNamePozicii, JTextArea textAreaPDF) {
 
         try {
 
             String strokaWithGradeSteeel = null;
+            Map<String, Integer> namePozCount = new HashMap<>();
+
+            for (int i = 0; i < lines.length; i++) {
+                String stroka = lines[i];
+                for (int i1 = 0; i1 < listNamePozicii.size(); i1++) {
+                    String poz = listNamePozicii.get(i1);
+                    if (stroka.contains(poz)) {
+
+                        Integer count = namePozCount.get(poz);
+                        if (count == null) {
+                            namePozCount.put(poz, 1);
+                        } else {
+                            namePozCount.put(poz, ++count);
+                        }
+                    }
+                }
+            }
+
+            String namePozzz = (String) namePozCount.keySet().toArray()[0];
+            int namePozKolvo = namePozCount.get(namePozzz);
+
+
+            for (String str : namePozCount.keySet()) {
+                if (namePozKolvo < namePozCount.get(str)) {
+                    namePozzz = str;
+                    namePozKolvo = namePozCount.get(str);
+                }
+            }
+
 
             //  smotrim stroki gde est'  stroka GradeSteeel  and   save in string
             for (int i = 0; i < lines.length; i++) {
-                if (isLineFound(lines[i] )) {
+                if (isLineFound(lines[i])) {
 
                     if (isStrokaContainsNamePos(lines[i], listNamePozicii)) {
                         strokaWithGradeSteeel = lines[i];
                         break;
                     }
 
+                    if (namePozKolvo > 2) {
+                        strokaWithGradeSteeel = lines[i];
+                        break;
+                    }
+
                 }
             }
-            if(strokaWithGradeSteeel.equals(null)){
+            if (strokaWithGradeSteeel.equals(null)) {
+
 
                 textAreaPDF.append("\nstrokaWithGradeSteeel  нет  материала ");
-            }else {
+            } else {
                 System.out.println("strokaWithGradeSteeel   ===   " + strokaWithGradeSteeel);
                 textAreaPDF.append("\nstrokaWithGradeSteeel   ===   " + strokaWithGradeSteeel);
             }
 
             String namePoz = null;
             for (String str : listNamePozicii) {
-                if ( isStrokaWithGradeSteeelContainsExaclyNamePosAndLenght(strokaWithGradeSteeel , str) ) {
+                if (isStrokaWithGradeSteeelContainsExaclyNamePosAndLenght(strokaWithGradeSteeel, str)) {
                     namePoz = str;
                     break;
                 }
@@ -187,13 +224,11 @@ public class ReadPDF {
             textAreaPDF.append("\nCOD  ===  " + cod);
 
 
-
-
             if (cod != null || cod != "") {
                 if (delDefis) {
-                    mapParsingPDF .put(pozModify, cod);
+                    mapParsingPDF.put(pozModify, cod);
                 } else {
-                    mapParsingPDF .put(namePoz, cod);
+                    mapParsingPDF.put(namePoz, cod);
                 }
             }
             System.out.println("\n" + "=".repeat(300));
@@ -209,8 +244,8 @@ public class ReadPDF {
 
     private boolean isStrokaWithGradeSteeelContainsExaclyNamePosAndLenght(String strokaWithGradeSteeel, String str) {
         String[] masStr = strokaWithGradeSteeel.split(" ");
-        for (int i = 0; i <masStr.length ; i++) {
-            if(masStr[i].endsWith(str)){
+        for (int i = 0; i < masStr.length; i++) {
+            if (masStr[i].endsWith(str)) {
                 return true;
             }
         }
@@ -228,9 +263,9 @@ public class ReadPDF {
             count++;
         }
 
-         count = 0;
+        count = 0;
         for (String strPoz : listNamePozicii) {
-            if (line.contains(strPoz.replace("-",""))) {
+            if (line.contains(strPoz.replace("-", ""))) {
                 return true;
             }
             count++;
@@ -520,8 +555,6 @@ public class ReadPDF {
         if (line.contains("Ст3пс6Sheet diamond/Лист ромб 2.5")) {
             return true;
         }
-
-
 
 
         return bool;

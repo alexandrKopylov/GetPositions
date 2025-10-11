@@ -59,6 +59,7 @@ public class Util {
     private double markDefault_Y;
     private String stringEntityText;
     private double markDefaultHeight;
+    private String textRotateMark;
 
     private List<String> listNamePozicii;
     private List<String> entityies = new LinkedList<>();
@@ -128,7 +129,7 @@ public class Util {
         List<String> listNamePozicii = new ArrayList<>();
 
         List<String> strrings = Files.readAllLines(Paths.get(file.toString()));
-        beautifulVivod(strrings);
+        // beautifulVivod(strrings);
 
         String[] mas = null;
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
@@ -234,7 +235,7 @@ public class Util {
 //                }
 //
 //
-           }
+            }
 
 
             if (storeTolshins.size() > 1) {
@@ -246,15 +247,15 @@ public class Util {
             ex.printStackTrace();
         }
         if (map.countOfValue() != 0) {
-            // readPDF(listNamePozicii, textAreaPDF);
+            readPDF(listNamePozicii, textAreaPDF);
         }
         return map;
     }
 
     private void beautifulVivod(List<String> strrings) {
         // Инв.	Обозначение	Кол.Т	Кол.Н	Габариты
-        strrings.remove(0);
-        strrings.remove(0);
+        // strrings.remove(0);
+        // strrings.remove(0);
         int invMaxLenght = 0;
         int oboznachenieMaxLenght = 0;
         int kolTakMaxLenght = 0;
@@ -588,6 +589,9 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                 } else {
                     poz = mas[1].split("_")[0];
                     zakaz = mas[1].split("_")[1].replace("/", "_");
+                    zakaz=zakaz.replace("_0000005903156833235620022", "");                        // удаляем идентификатор гос заказа из заказа
+
+
                 }
 
 
@@ -607,6 +611,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                             result++;
                         }
                     }
+
                     if (!isFound) {
                         search = inv + ".m" + poz + "L.dxf";
                         cod = fileNameAndCod.get(search);
@@ -636,17 +641,6 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                         }
                     }
 
-//
-//                    if (!isFound) {
-//                        search = inv + ".m" + poz.substring(1) + "L.dxf";
-//                        cod = fileNameAndCod.get(search);
-//                        if (!(cod == null)) {
-//                            isFound = true;
-//                            copyFileInDXF(new File(serverBazaDXF + inv + "\\" + cod + "_" + search), ".m" + poz.substring(1));
-//                            result++;
-//                        }
-//                    }
-
 
                     if (!isFound) {
                         search = inv + ".m" + inv + "." + poz + "L.dxf";
@@ -660,17 +654,33 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 
 
                     if (!isFound) {
-                        search = inv + ".m" + poz.substring(1) + "L.dxf";
-                        cod = fileNameAndCod.get(search);
-                        if (!(cod == null)) {
-                            isFound = true;
-                            copyFileInDXF(new File(serverBazaDXF + inv + "\\" + cod + "_" + search), ".m" + poz.substring(1));
-                            result++;
+                        char simbol = poz.charAt(0);
+                        if (simbol == 'M' || simbol == 'm' || simbol == 'М' || simbol == 'м') {
+                            search = inv + ".m" + poz.substring(1) + "L.dxf";
+                            cod = fileNameAndCod.get(search);
+
+
+                            if (new File(serverBazaDXF + inv + "\\" + cod + "_" + search).exists()) {
+                                String stroka = null;
+                                stroka = readFileInString(serverBazaDXF + inv + "\\" + cod + "_" + search);
+                                stroka = stroka.replace(" ", "");
+
+
+                                String[] masStrok = breakStringOnThreeParts(stroka);
+                                breakMidlePartOnEntityes(masStrok[1]);
+                                String markTextNamePoz = getMarkPozText(masStrok[1]);
+                                if (markTextNamePoz.equals(poz) || markTextNamePoz.equals(poz + ";") || markTextNamePoz.equals(poz + "_")) {
+                                    if (!(cod == null)) {
+                                        isFound = true;
+                                        copyFileInDXF(new File(serverBazaDXF + inv + "\\" + cod + "_" + search), ".m" + poz.substring(1));
+                                        result++;
+                                    }
+                                }
+                            }
                         }
                     }
-
-
                 }
+
 
                 if (!isFound) {            // тогда  ищем файл  у Мосина
                     fileNotFaundOnZakaz.put(zakaz, poz + "_" + inv + "_" + gabaritCSV + "_" + kolvoPoz);
@@ -688,7 +698,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
         }
 
 
-        if (fileNotFaundOnZakaz.countOfValue() > 0 /*|| fileNotFaundOnInv.countOfValue() > 0   */) {
+        if (fileNotFaundOnZakaz.countOfValue() > 0     /*|| fileNotFaundOnInv.countOfValue() > 0 */) {
             textArea.append("\n\n\n" + "*".repeat(300) + "\n");
             textArea.append("*".repeat(100) + "  ищем файлы в папке Mosin  " + "*".repeat(100) + "\n");
             textArea.append("*".repeat(300) + "\n");
@@ -705,6 +715,38 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
         textArea.append("\n");
 
         return listPozNeNashel;
+    }
+
+    private String getMarkPozText(String stringEntities) {
+        String result = "";
+        int beginTextMark = -1;
+        int endXTextMark = -1;
+
+
+        while (stringEntities.contains("0\r\nTEXT")) {
+            int beginTEXT = stringEntities.indexOf("0\r\nTEXT");
+            int endTEXT = stringEntities.indexOf("\r\n73\r\n", beginTEXT) + 6;
+            if (endTEXT == 5) {
+                endTEXT = stringEntities.indexOf("\r\n1\r\n", beginTEXT) + 5;
+            }
+            int endTEXT2 = stringEntities.indexOf("\r\n", endTEXT) + 2;
+            String newEnt = stringEntities.substring(beginTEXT, endTEXT2);
+
+            beginTextMark = newEnt.indexOf("\r\n1\r\n") + 5;
+            endXTextMark = newEnt.indexOf("\r\n72\r\n", beginTextMark);
+
+            if (endXTextMark == -1) {
+                endXTextMark = newEnt.length();
+            }
+
+            String textMark = newEnt.substring(beginTextMark, endXTextMark).trim();
+            if (!textMark.equals("B")) {
+                result = textMark;
+                break;
+            }
+        }
+
+        return result;
     }
 
     private int methodCountOfPoz(MultiValueHashMap<String, String> mapa) {
@@ -1844,7 +1886,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 //  закоментировал след  блок
         //  может надо  поменять метод  findPlaceForMark
 
-        if (tochkaVstavkiDefoultMark != null && shirinaPoz > 250 && dlinnaPoz > 250) {
+        if (tochkaVstavkiDefoultMark != null /*&& shirinaPoz > 250 && dlinnaPoz > 250*/) {
 
             height = 20;
             flag = true;
@@ -1998,12 +2040,14 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 
             double dX = Math.abs(dlinnaPoz - dlinnaСSV);
             double dY = Math.abs(shirinaPoz - shirinaCSV);
+
+            int max = (int)Math.max(dX, dY);
             // textArea.append( zakaz +"_" + poz + "    (" + deltaY + " ; " + deltaX + " )                        (" + dY + " ; " + dX + " )\n")
 
             if (dY == 0 && dX == 0) {
                 textArea.append(++countNashel + " )         " + zakaz + " _ " + poz);      //+ "\n");
             } else {
-                textArea.append(++countNashel + " )         " + zakaz + " _ " + poz + "     (" + dY + " ; " + dX + " )");     //\n");
+                textArea.append(++countNashel + " )         " + zakaz + " _ " + poz + "      - " + max        /*"     (" + dY + " ; " + dX + " )"*/  );     //\n");
             }
 
 
@@ -2014,7 +2058,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 
             if (neskolkoPOLYLINE) {
                 textArea.append("     [ POLYLINE > 1 ]");
-               String strokaMod =  viewGabaritPolyline();
+                String strokaMod = viewGabaritPolyline();
                 textArea.append(strokaMod);
             }
             if (otvZvezdoy) {
@@ -2049,23 +2093,23 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                 if (map.containsKey(sss)) {
                     count = map.get(sss);
                     map.put(sss, ++count);
-                }else{
-                    map.put(sss,1);
+                } else {
+                    map.put(sss, 1);
                 }
             }
         }
 
-        for(String stroka : map.keySet()){
+        for (String stroka : map.keySet()) {
             int counter = map.get(stroka);
-            if(counter == 1){
+            if (counter == 1) {
                 sb.append(stroka).append(" ");
-            }else{
+            } else {
                 sb.append(stroka).append("=").append(counter).append(" ");
             }
         }
 
 
-return sb.toString();
+        return sb.toString();
     }
 
     private void setMarkVertical(double[] gabaritPoz, int handler) {
@@ -2424,14 +2468,37 @@ return sb.toString();
         stringEntities = stringEntities.replace(" ", "");
         tochkaVstavkiDefoultMark = null;
         zamenaPolylineNaOtv = false;
-        //   if (stringEntities.contains("0\r\nLINE")) {
 
-        //
-        // int beginLINE = stringEntities.indexOf("0\r\nLINE");
-        // int beginLAYER = 0;
-        // int endLAYER = 0;
         while (stringEntities.contains("0\r\nLINE")) {
             int beginLine = stringEntities.indexOf("0\r\nLINE");
+
+//            String s = "0\n" +
+//                    "LINE\n" +
+//                    "5\n" +
+//                    "A9\n" +
+//                    "8\n" +
+//                    "0\n" +
+//                    "10\n" +
+//                    "0.0\n" +
+//                    "20\n" +
+//                    "16.0\n" +
+//                    "30\n" +
+//                    "0.0\n" +
+//                    "11\n" +
+//                    "74.0\n" +
+//                    "21\n" +
+//                    "72.0\n" +
+//                    "31\n" +
+//                    "0.0";
+//            int endLine = stringEntities.indexOf("\r\n8\r\n0\r\n", beginLine) ;
+//            if(endLine==-1){
+//                textArea.append(poz+" не замкнута");
+//                return;
+//            }
+//            int razn = endLine-beginLine;
+//            if(razn)
+
+
             int endLine = stringEntities.indexOf("\r\n0\r\n", beginLine) + 2;
             if (endLine == 1) {
                 endLine = stringEntities.length();
@@ -2456,10 +2523,6 @@ return sb.toString();
             stringEntities = stringEntities.replace(textLINE, "");
 
         }
-
-
-        //  }
-
 
         while (stringEntities.contains("0\r\nPOLYLINE")) {
             int beginPoly = stringEntities.indexOf("0\r\nPOLYLINE");
@@ -2490,18 +2553,26 @@ return sb.toString();
 
         // округляем размеры габарита
         List<String> newListEntityes = new ArrayList<>();
-
         int countVertex;
         List<Integer> listPointsPolyline = null;
 
+        int chisloPolyline = opredelyaemChisloPolyline();
+//        int countPolyline = 0;
+//        for (String ent : entityies) {
+//            if (ent.contains("POLYLINE")) {
+//                countPolyline++;
+
+        int countPolyline = 0;
         for (String ent : entityies) {
             if (ent.contains("POLYLINE")) {
-
+                countPolyline++;
                 String[] masVertex = ent.split("VERTEX\r\n");
 
                 countVertex = masVertex.length;
                 System.out.println("VERTEX = " + countVertex);
-                if (countVertex == 3 || countVertex == 4 || countVertex == 5  || countVertex == 41 ) {
+
+                //  if (countVertex == 3 || countVertex == 4 || countVertex == 5 || countVertex > 20) {
+                if (chisloPolyline > 1) {
                     listPointsPolyline = new ArrayList<>();
                 }
 
@@ -2511,14 +2582,17 @@ return sb.toString();
                     int beginY = masVertex[i].indexOf("\r\n20\r\n", beginX);
                     String strX = masVertex[i].substring(beginX, beginY).replace("\r\n10\r\n", "");
                     double x = (double) Math.round(Double.parseDouble(strX));
-                    if (countVertex == 3 || countVertex == 4 || countVertex == 5  || countVertex == 41) {
+                    //if (countVertex == 3 || countVertex == 4 || countVertex == 5 || countVertex > 20) {
+                    if (countPolyline != 1) {
                         listPointsPolyline.add((int) x);
                     }
                     if (masVertex[i].contains("\r\n30\r\n")) {
                         int beginZ = masVertex[i].indexOf("\r\n30\r\n", beginY);
                         String strY = masVertex[i].substring(beginY, beginZ).replace("\r\n20\r\n", "").trim();
                         double y = (double) Math.round(Double.parseDouble(strY));
-                        if (countVertex == 3 || countVertex == 4 || countVertex == 5  || countVertex == 41) {
+
+                        // if (countVertex == 3 || countVertex == 4 || countVertex == 5 || countVertex > 20) {
+                        if (countPolyline != 1) {
                             listPointsPolyline.add((int) y);
                         }
                         masVertex[i] = masVertex[i].replace(strX, String.valueOf(x));
@@ -2529,7 +2603,8 @@ return sb.toString();
                         String strY = masVertex[i].substring(beginY, beginZ);
                         strY = strY.replace("\r\n20\r\n", "").trim();
                         double y = (double) Math.round(Double.parseDouble(strY));
-                        if (countVertex == 3 || countVertex == 4 || countVertex == 5  || countVertex == 41) {
+                        // if (countVertex == 3 || countVertex == 4 || countVertex == 5 || countVertex > 20) {
+                        if (countPolyline != 1) {
                             listPointsPolyline.add((int) y);
                         }
 
@@ -2541,7 +2616,8 @@ return sb.toString();
                         String strY = masVertex[i].substring(beginY, beginZ);
                         strY = strY.replace("\r\n20\r\n", "").trim();
                         double y = (double) Math.round(Double.parseDouble(strY));
-                        if (countVertex == 3 || countVertex == 4 || countVertex == 5  || countVertex == 41) {
+                        // if (countVertex == 3 || countVertex == 4 || countVertex == 5 || countVertex > 20) {
+                        if (countPolyline != 1) {
                             listPointsPolyline.add((int) y);
                         }
                         masVertex[i] = masVertex[i].replace(strX, String.valueOf(x));
@@ -2557,35 +2633,35 @@ return sb.toString();
                 int rastoyanieDiametr = 0;
                 tockaVstavkiOkrKogdaPolylineSostoitIz4vertex = null;
 
-                if (countVertex == 3) {
+                if (countVertex == 3 && countPolyline != 1) {
                     flagEqualsY = (listPointsPolyline.get(1) == listPointsPolyline.get(3));
                     flagEqualsX = (listPointsPolyline.get(0) == listPointsPolyline.get(2));
                 }
 
-                if (countVertex == 4) {
+                if (countVertex == 4 && countPolyline != 1) {
                     rastoyanieDiametr = methodFindRastoyanieMejduTockamiMinMaxPolyline(listPointsPolyline);
                 }
 
 
-                if (countVertex == 4 && gabaritCSV.split("x")[1].equals("60") && rastoyanieDiametr == 30) {
+                if (countVertex == 4 && gabaritCSV.split("x")[1].equals("60") && (rastoyanieDiametr == 30 || rastoyanieDiametr == 29)) {
                     polyline4vertexZamenaNaOkr = true;
                 }
 
-                if (countVertex == 5) {
+                if (countVertex == 5 && countPolyline != 1) {
                     rastoyanieDiametr = methodFindRastoyanieMejduTockamiMinMaxPolyline(listPointsPolyline);
                 }
 
-                if (countVertex == 5 && gabaritCSV.split("x")[1].equals("60") && rastoyanieDiametr == 30) {
+                if (countVertex == 5 && gabaritCSV.split("x")[1].equals("60") && (rastoyanieDiametr == 30 || rastoyanieDiametr == 29)) {
                     polyline4vertexZamenaNaOkr = true;
                 }
 
-                if (countVertex == 41) {
+                if (countVertex > 15 && countPolyline != 1) {
                     rastoyanieDiametr = methodFindRastoyanieMejduTockamiMinMaxPolyline(listPointsPolyline);
                     polyline4vertexZamenaNaOkr = true;
                 }
 
 
-                if (    ((countVertex == 3 && (flagEqualsX || flagEqualsY)) || polyline4vertexZamenaNaOkr )  ||  (countVertex == 41)   ) {
+                if ((((countVertex == 3 && (flagEqualsX || flagEqualsY)) || polyline4vertexZamenaNaOkr) || (countVertex > 15)) && countPolyline != 1) {
 
                     int max;
                     int min;
@@ -2647,6 +2723,221 @@ return sb.toString();
             }
         }
 
+
+//        int countPolyline = 0;
+//        for (String ent : entityies) {
+//            if (ent.contains("POLYLINE")) {
+//                countPolyline++;
+//
+//                String[] masVertex = ent.split("VERTEX\r\n");
+//                countVertex = masVertex.length;
+//                System.out.println("VERTEX = " + countVertex);
+//
+//
+//                if (countPolyline == 1) {
+//                    for (int i = 1; i < masVertex.length; i++) {
+//                        int beginX = masVertex[i].indexOf("\r\n10\r\n");
+//                        int beginY = masVertex[i].indexOf("\r\n20\r\n", beginX);
+//                        String strX = masVertex[i].substring(beginX, beginY).replace("\r\n10\r\n", "");
+//                        double x = (double) Math.round(Double.parseDouble(strX));
+////                        if (countVertex == 3 || countVertex == 4 || countVertex == 5 || countVertex > 20) {
+////                            listPointsPolyline.add((int) x);
+////                        }
+//                        if (masVertex[i].contains("\r\n30\r\n")) {
+//                            int beginZ = masVertex[i].indexOf("\r\n30\r\n", beginY);
+//                            String strY = masVertex[i].substring(beginY, beginZ).replace("\r\n20\r\n", "").trim();
+//                            double y = (double) Math.round(Double.parseDouble(strY));
+////                            if (countVertex == 3 || countVertex == 4 || countVertex == 5 || countVertex > 20) {
+////                                listPointsPolyline.add((int) y);
+////                            }
+//                            masVertex[i] = masVertex[i].replace(strX, String.valueOf(x));
+//                            masVertex[i] = masVertex[i].replace(strY, String.valueOf(y));
+//                        } else if (masVertex[i].contains("\r\n42\r\n")) {
+//
+//                            int beginZ = masVertex[i].indexOf("\r\n42\r\n", beginY);
+//                            String strY = masVertex[i].substring(beginY, beginZ);
+//                            strY = strY.replace("\r\n20\r\n", "").trim();
+//                            double y = (double) Math.round(Double.parseDouble(strY));
+////                            if (countVertex == 3 || countVertex == 4 || countVertex == 5 || countVertex > 20) {
+////                                listPointsPolyline.add((int) y);
+////                            }
+//
+//                            masVertex[i] = masVertex[i].replace(strX, String.valueOf(x));
+//                            masVertex[i] = masVertex[i].replace(strY, String.valueOf(y));
+//
+//                        } else {
+//                            int beginZ = masVertex[i].indexOf("\r\n0\r\n", beginY);
+//                            String strY = masVertex[i].substring(beginY, beginZ);
+//                            strY = strY.replace("\r\n20\r\n", "").trim();
+//                            double y = (double) Math.round(Double.parseDouble(strY));
+////                            if (countVertex == 3 || countVertex == 4 || countVertex == 5 || countVertex > 20) {
+////                                listPointsPolyline.add((int) y);
+////                            }
+//                            masVertex[i] = masVertex[i].replace(strX, String.valueOf(x));
+//                            masVertex[i] = masVertex[i].replace(strY, String.valueOf(y));
+//                        }
+//                        // pointsKonturList.add(new Point2D(Double.parseDouble(strX), Double.parseDouble(strY)));
+//                    }
+//                    newListEntityes.add(ent);
+//
+//                } else {
+//                    listPointsPolyline = new ArrayList<>();
+//
+//                    for (int i = 1; i < masVertex.length; i++) {
+//                        int beginX = masVertex[i].indexOf("\r\n10\r\n");
+//                        int beginY = masVertex[i].indexOf("\r\n20\r\n", beginX);
+//                        String strX = masVertex[i].substring(beginX, beginY).replace("\r\n10\r\n", "");
+//                        double x = (double) Math.round(Double.parseDouble(strX));
+//                      //  if (countVertex == 3 || countVertex == 4 || countVertex == 5 || countVertex > 25) {
+//                            listPointsPolyline.add((int) x);
+//                       // }
+//                        if (masVertex[i].contains("\r\n30\r\n")) {
+//                            int beginZ = masVertex[i].indexOf("\r\n30\r\n", beginY);
+//                            String strY = masVertex[i].substring(beginY, beginZ).replace("\r\n20\r\n", "").trim();
+//                            double y = (double) Math.round(Double.parseDouble(strY));
+////                            if (countVertex == 3 || countVertex == 4 || countVertex == 5 || countVertex > 20) {
+//                               listPointsPolyline.add((int) y);
+////                            }
+//                            masVertex[i] = masVertex[i].replace(strX, String.valueOf(x));
+//                            masVertex[i] = masVertex[i].replace(strY, String.valueOf(y));
+//                        } else if (masVertex[i].contains("\r\n42\r\n")) {
+//
+//                            int beginZ = masVertex[i].indexOf("\r\n42\r\n", beginY);
+//                            String strY = masVertex[i].substring(beginY, beginZ);
+//                            strY = strY.replace("\r\n20\r\n", "").trim();
+//                            double y = (double) Math.round(Double.parseDouble(strY));
+////                            if (countVertex == 3 || countVertex == 4 || countVertex == 5 || countVertex > 20) {
+//                                listPointsPolyline.add((int) y);
+////                            }
+//
+//                            masVertex[i] = masVertex[i].replace(strX, String.valueOf(x));
+//                            masVertex[i] = masVertex[i].replace(strY, String.valueOf(y));
+//
+//                        } else {
+//                            int beginZ = masVertex[i].indexOf("\r\n0\r\n", beginY);
+//                            String strY = masVertex[i].substring(beginY, beginZ);
+//                            strY = strY.replace("\r\n20\r\n", "").trim();
+//                            double y = (double) Math.round(Double.parseDouble(strY));
+////                            if (countVertex == 3 || countVertex == 4 || countVertex == 5 || countVertex > 20) {
+//                                listPointsPolyline.add((int) y);
+////                            }
+//                            masVertex[i] = masVertex[i].replace(strX, String.valueOf(x));
+//                            masVertex[i] = masVertex[i].replace(strY, String.valueOf(y));
+//                        }
+//                        // pointsKonturList.add(new Point2D(Double.parseDouble(strX), Double.parseDouble(strY)));
+//                    }
+//                    boolean flagEqualsY = false;
+//                    boolean flagEqualsX = false;
+//                    boolean polyline4vertexZamenaNaOkr = false;
+//                    int rastoyanieDiametr = 0;
+//                    tockaVstavkiOkrKogdaPolylineSostoitIz4vertex = null;
+//
+//                    if (countVertex == 3) {
+//                        flagEqualsY = (listPointsPolyline.get(1) == listPointsPolyline.get(3));
+//                        flagEqualsX = (listPointsPolyline.get(0) == listPointsPolyline.get(2));
+//                    }
+//
+//                    if (countVertex == 4) {
+//                        rastoyanieDiametr = methodFindRastoyanieMejduTockamiMinMaxPolyline(listPointsPolyline);
+//                    }
+//
+//
+//                    if (countVertex == 4 && gabaritCSV.split("x")[1].equals("60") && rastoyanieDiametr == 30) {
+//                        polyline4vertexZamenaNaOkr = true;
+//                    }
+//
+//                    if (countVertex == 5) {
+//                        rastoyanieDiametr = methodFindRastoyanieMejduTockamiMinMaxPolyline(listPointsPolyline);
+//                    }
+//
+//                    if (countVertex == 5 && gabaritCSV.split("x")[1].equals("60") && rastoyanieDiametr == 30) {
+//                        polyline4vertexZamenaNaOkr = true;
+//                    }
+//
+//                    if (countVertex > 20) {
+//                        rastoyanieDiametr = methodFindRastoyanieMejduTockamiMinMaxPolyline(listPointsPolyline);
+//                        polyline4vertexZamenaNaOkr = true;
+//                    }
+//
+//                    if (((countVertex == 3 && (flagEqualsX || flagEqualsY)) || polyline4vertexZamenaNaOkr) || (countVertex > 20)) {
+//
+//                        int max;
+//                        int min;
+//                        String newKoordXCircle;
+//                        String newKoordYCircle;
+//                        String radiusCircle;
+//                        if (polyline4vertexZamenaNaOkr) {
+//                            newKoordXCircle = Double.toString(tockaVstavkiOkrKogdaPolylineSostoitIz4vertex.getX());
+//                            newKoordYCircle = Double.toString(tockaVstavkiOkrKogdaPolylineSostoitIz4vertex.getY());
+//                            radiusCircle = Double.toString(rastoyanieDiametr / 2);
+//                        } else if (flagEqualsY) {
+//                            max = Math.max(listPointsPolyline.get(0), listPointsPolyline.get(2));
+//                            min = Math.min(listPointsPolyline.get(0), listPointsPolyline.get(2));
+//                            newKoordXCircle = Double.toString(min + (max - min) / 2);
+//                            newKoordYCircle = Double.toString(listPointsPolyline.get(1));
+//                            radiusCircle = Double.toString((max - min) / 2);
+//                        } else {
+//                            max = Math.max(listPointsPolyline.get(1), listPointsPolyline.get(3));
+//                            min = Math.min(listPointsPolyline.get(1), listPointsPolyline.get(3));
+//                            newKoordXCircle = Double.toString(listPointsPolyline.get(0));
+//                            newKoordYCircle = Double.toString(min + (max - min) / 2);
+//                            radiusCircle = Double.toString((max - min) / 2);
+//                        }
+//
+//
+//                        StringBuilder sb = new StringBuilder();
+//                        sb.append("0\r\n" +
+//                                "CIRCLE\r\n" +
+//                                "5\r\n" +
+//                                "87\r\n" +
+//                                "8\r\n" +
+//                                "0\r\n" +
+//                                "6\r\n" +
+//                                "CONTINUOUS\r\n" +
+//                                "62\r\n" +
+//                                "7\r\n" +
+//                                "39\r\n" +
+//                                "1.0\r\n" +
+//                                "10\r\n");
+//                        sb.append(newKoordXCircle).append("\r\n20\r\n").append(newKoordYCircle).append("\r\n30\r\n0.0\r\n40\r\n").append(radiusCircle).append("\r\n");
+//                        newListEntityes.add(sb.toString());
+//                        zamenaPolylineNaOtv = true;
+//
+//                    } else {
+//
+//                        StringJoiner joiner = new StringJoiner("VERTEX\r\n");
+//                        for (String vertex : masVertex) {
+//                            joiner.add(vertex);
+//                        }
+//
+//                        String newEnt = joiner.toString();         //  stringEntities.substring(beginPoly, endPoly2);
+//                        newListEntityes.add(newEnt);
+//                        //  stringEntities = stringEntities.replace(newEnt, "");
+//
+//                    }
+//
+//
+//
+//                }
+//
+//
+////                if (countVertex == 3 || countVertex == 4 || countVertex == 5 || countVertex > 20) {
+////
+////                }
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//            }
+//        }
+
+
         entityies = newListEntityes;
 
 
@@ -2662,23 +2953,36 @@ return sb.toString();
             String newEnt = stringEntities.substring(beginTEXT, endTEXT2);
 
 //сохраняем точку вставки текста
+            textRotateMark = "";
+
+            int beginTextMark = 0;
+            int endXTextMark = 0;
+
             int beginTextRotate = newEnt.indexOf("\r\n50\r\n") + 6;
-            if (beginTextRotate == 5) {
+            if (beginTextRotate != 5) {
+                int endXTextRotate = newEnt.indexOf("\r\n72\r\n", beginTextRotate);
+                textRotateMark = newEnt.substring(beginTextRotate, endXTextRotate);
 
+                beginTextMark = newEnt.indexOf("\r\n1\r\n") + 5;
+                endXTextMark = newEnt.indexOf("\r\n50\r\n", beginTextMark);
+
+                if (endXTextMark == -1) {
+                    endXTextMark = newEnt.length();
+                }
+            } else {
+                beginTextMark = newEnt.indexOf("\r\n1\r\n") + 5;
+                endXTextMark = newEnt.indexOf("\r\n72\r\n", beginTextMark);
+
+                if (endXTextMark == -1) {
+                    endXTextMark = newEnt.length();
+                }
             }
-            int endXTextRotate = newEnt.indexOf("\r\n72\r\n", beginTextRotate);
-
-
-            int beginTextMark = newEnt.indexOf("\r\n1\r\n") + 5;
-            int endXTextMark = newEnt.indexOf("\r\n72\r\n", beginTextMark);
-
-            if (endXTextMark == -1) {
-                endXTextMark = newEnt.length();
-            }
-
             String textMark = newEnt.substring(beginTextMark, endXTextMark).trim();
 
-            if (textMark.equals(poz) || textMark.equals(poz + ";") || textMark.equals(poz + "_")) {
+
+          //  if (textMark.equals(poz) || textMark.equals(poz + ";") || textMark.equals(poz + "_")) {
+          //  if(textMark.contains(poz) && (!textMark.equals("B") ||  !textMark.equals("b") || !textMark.equals("В")  || !textMark.equals("в")  )){
+            if(!textMark.equals("B") ||  !textMark.equals("b") || !textMark.equals("В")  || !textMark.equals("в")  ){
                 int beginXcoord = newEnt.indexOf("\r\n10\r\n") + 6;
                 int endXcoord = newEnt.indexOf("\r\n20\r\n", beginXcoord);
 
@@ -2686,8 +2990,6 @@ return sb.toString();
 
                 int beginYcoord = newEnt.indexOf("\r\n20\r\n") + 6;
                 int endYcoord = newEnt.indexOf("\r\n30\r\n", beginYcoord);
-
-
                 String txtYcoord = newEnt.substring(beginYcoord, endYcoord);
 
 
@@ -2745,13 +3047,23 @@ return sb.toString();
         vivodNaConsoleEntityies();
     }
 
+    private int opredelyaemChisloPolyline() {
+        int result = 0;
+        for (String str : entityies) {
+            if (str.contains("POLYLINE")) {
+                result++;
+            }
+        }
+        return result;
+    }
+
     private int methodFindRastoyanieMejduTockamiMinMaxPolyline(List<Integer> listPointsPolyline) {
         int Xmin = listPointsPolyline.get(0);
         int Xmax = listPointsPolyline.get(0);
         int Ymin = listPointsPolyline.get(1);
         int Ymax = listPointsPolyline.get(1);
         for (int i = 0; i < listPointsPolyline.size(); i++) {
-            if (i %2 ==0) {
+            if (i % 2 == 0) {
                 if (Xmin > listPointsPolyline.get(i)) {
                     Xmin = listPointsPolyline.get(i);
                 }
@@ -2771,7 +3083,9 @@ return sb.toString();
 
         tockaVstavkiOkrKogdaPolylineSostoitIz4vertex = new Point2D(Xmin + (Xmax - Xmin) / 2, Ymin + (Ymax - Ymin) / 2);
 
-
+        if ((Xmax - Xmin) == 29) {
+            return 30;
+        }
         return Xmax - Xmin;
     }
 
