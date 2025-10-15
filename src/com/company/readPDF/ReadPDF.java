@@ -126,22 +126,25 @@ public class ReadPDF {
             //  smotrim stroki gde est'  stroka GradeSteeel  and   save in string
             for (int i = 0; i < lines.length; i++) {
                 if (isLineFound(lines[i])) {
-
                     if (isStrokaContainsNamePos(lines[i], listNamePozicii)) {
                         strokaWithGradeSteeel = lines[i];
                         break;
                     }
-
-                    if (namePozKolvo > 2) {
-                        strokaWithGradeSteeel = lines[i];
-                        break;
-                    }
-
                 }
             }
+
             if (strokaWithGradeSteeel.equals(null)) {
+                for (int i = 0; i < lines.length; i++) {
+                    if (isLineFound(lines[i])) {
+                        if (namePozKolvo > 2) {
+                            strokaWithGradeSteeel = lines[i];
+                            break;
+                        }
+                    }
+                }
+            }
 
-
+            if (strokaWithGradeSteeel.equals(null)) {
                 textAreaPDF.append("\nstrokaWithGradeSteeel  нет  материала ");
             } else {
                 System.out.println("strokaWithGradeSteeel   ===   " + strokaWithGradeSteeel);
