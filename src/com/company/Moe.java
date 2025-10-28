@@ -20,6 +20,7 @@ public class Moe {
 
     public static void main(String[] args) {
         System.out.println("ttttttttt");
+        System.out.println("rrrrrr");
         addTriangle(3, 4, 5);
         addTriangle(5, 6, 10);
         addRectangle(15, 25);
