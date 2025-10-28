@@ -19,6 +19,7 @@ public class Moe {
     public static ArrayList<int[]> figures = new ArrayList<>();  // Придумайте тип хранилища фигур
 
     public static void main(String[] args) {
+        System.out.println("ttttttttt");
         addTriangle(3, 4, 5);
         addTriangle(5, 6, 10);
         addRectangle(15, 25);
