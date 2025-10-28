@@ -16,6 +16,8 @@ import java.time.Year;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.company.Main.*;
@@ -53,7 +55,7 @@ public class Util {
     private boolean zamenaPolylineNaOtv = false;
     private StringBuilder gabaritPolyline;
 
-
+    private int maxHandlerEntityes;
     private String markDefault;
     private double markDefault_X;
     private double markDefault_Y;
@@ -589,7 +591,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                 } else {
                     poz = mas[1].split("_")[0];
                     zakaz = mas[1].split("_")[1].replace("/", "_");
-                    zakaz=zakaz.replace("_0000005903156833235620022", "");                        // удаляем идентификатор гос заказа из заказа
+                    zakaz = zakaz.replace("_0000005903156833235620022", "");                        // удаляем идентификатор гос заказа из заказа
 
 
                 }
@@ -1829,10 +1831,10 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
     ///todo  prepareMark  общий
     private void prepareMark(String stringAbsolutPathToFileInDXF) {
         printPozShapka();
-        String stroka = null;
-        stroka = readFileInString(stringAbsolutPathToFileInDXF);
+        String stroka = readFileInString(stringAbsolutPathToFileInDXF);
         stroka = stroka.replace(" ", "");
         hasSpaces = stroka.contains(" ");
+        maxHandlerEntityes = getMaxHandler(stroka);
 
         String[] masStrok = breakStringOnThreeParts(stroka);
         breakMidlePartOnEntityes(masStrok[1]);
@@ -1851,7 +1853,22 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
         }
 
     }
-    //  }
+
+    private int getMaxHandler(String stroka) {
+        int max = 0;
+        Pattern myPatter = Pattern.compile("\r\n5\r\n\\w{1,3}\r\n");        //8\r\n0\r\n");
+        Matcher matcher = myPatter.matcher(stroka);
+        while (matcher.find()) {
+            int position = matcher.start();
+            String find = matcher.group().replace("\r\n5\r\n", "").trim();
+            int temp = Integer.parseInt(find, 16);
+            if (temp > max) {
+                max = temp;
+            }
+        }
+        return max + 50;          //  добавляем к хенлеру еще 50 значений
+    }
+
 
     private void printPozShapka() {
         System.out.println("#".repeat(300));
@@ -2041,13 +2058,13 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
             double dX = Math.abs(dlinnaPoz - dlinnaСSV);
             double dY = Math.abs(shirinaPoz - shirinaCSV);
 
-            int max = (int)Math.max(dX, dY);
+            int max = (int) Math.max(dX, dY);
             // textArea.append( zakaz +"_" + poz + "    (" + deltaY + " ; " + deltaX + " )                        (" + dY + " ; " + dX + " )\n")
 
             if (dY == 0 && dX == 0) {
                 textArea.append(++countNashel + " )         " + zakaz + " _ " + poz);      //+ "\n");
             } else {
-                textArea.append(++countNashel + " )         " + zakaz + " _ " + poz + "      - " + max        /*"     (" + dY + " ; " + dX + " )"*/  );     //\n");
+                textArea.append(++countNashel + " )         " + zakaz + " _ " + poz + "      - " + max        /*"     (" + dY + " ; " + dX + " )"*/);     //\n");
             }
 
 
@@ -2469,35 +2486,15 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
         tochkaVstavkiDefoultMark = null;
         zamenaPolylineNaOtv = false;
 
+        Pattern myPatter = Pattern.compile("0\r\nLINE\r\n5\r\n\\w{1,3}\r\n8\r\n0\r\n");
+        Matcher matcher = myPatter.matcher(stringEntities);
+        if (matcher.find()) {
+            textArea.append("  " + poz + " не замкнута !!!");
+            return;
+        }
+
         while (stringEntities.contains("0\r\nLINE")) {
             int beginLine = stringEntities.indexOf("0\r\nLINE");
-
-//            String s = "0\n" +
-//                    "LINE\n" +
-//                    "5\n" +
-//                    "A9\n" +
-//                    "8\n" +
-//                    "0\n" +
-//                    "10\n" +
-//                    "0.0\n" +
-//                    "20\n" +
-//                    "16.0\n" +
-//                    "30\n" +
-//                    "0.0\n" +
-//                    "11\n" +
-//                    "74.0\n" +
-//                    "21\n" +
-//                    "72.0\n" +
-//                    "31\n" +
-//                    "0.0";
-//            int endLine = stringEntities.indexOf("\r\n8\r\n0\r\n", beginLine) ;
-//            if(endLine==-1){
-//                textArea.append(poz+" не замкнута");
-//                return;
-//            }
-//            int razn = endLine-beginLine;
-//            if(razn)
-
 
             int endLine = stringEntities.indexOf("\r\n0\r\n", beginLine) + 2;
             if (endLine == 1) {
@@ -2505,20 +2502,20 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
             }
 
             String textLINE = stringEntities.substring(beginLine, endLine);
-            //  int beginLINE = textLINE.indexOf("0\r\nLINE");
 
-            int beginLAYER = textLINE.indexOf("\r\n8\r\n") + 5;
-            int endLAYER = textLINE.indexOf("\r\n6\r\n", beginLAYER);
-            if (endLAYER == -1) {
-                endLAYER = textLINE.indexOf("\r\n10\r\n", beginLAYER);
-            }
-
-            String textLAYER = textLINE.substring(beginLAYER, endLAYER);
-
-            if (textLAYER.equals("0")) {
-                textArea.append(" y  " + poz + "  есть LINE на слое 0\n");
-                return;
-            }
+//
+//            int beginLAYER = textLINE.indexOf("\r\n8\r\n") + 5;
+//            int endLAYER = textLINE.indexOf("\r\n6\r\n", beginLAYER);
+//            if (endLAYER == -1) {
+//                endLAYER = textLINE.indexOf("\r\n10\r\n", beginLAYER);
+//            }
+//
+//            String textLAYER = textLINE.substring(beginLAYER, endLAYER);
+//
+//            if (textLAYER.equals("0")) {
+//                textArea.append(" y  " + poz + "  есть LINE на слое 0\n");
+//                return;
+//            }
             entityies.add(textLINE);
             stringEntities = stringEntities.replace(textLINE, "");
 
@@ -2980,9 +2977,9 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
             String textMark = newEnt.substring(beginTextMark, endXTextMark).trim();
 
 
-          //  if (textMark.equals(poz) || textMark.equals(poz + ";") || textMark.equals(poz + "_")) {
-          //  if(textMark.contains(poz) && (!textMark.equals("B") ||  !textMark.equals("b") || !textMark.equals("В")  || !textMark.equals("в")  )){
-            if(!textMark.equals("B") ||  !textMark.equals("b") || !textMark.equals("В")  || !textMark.equals("в")  ){
+            //  if (textMark.equals(poz) || textMark.equals(poz + ";") || textMark.equals(poz + "_")) {
+            //  if(textMark.contains(poz) && (!textMark.equals("B") ||  !textMark.equals("b") || !textMark.equals("В")  || !textMark.equals("в")  )){
+            if (!textMark.equals("B") || !textMark.equals("b") || !textMark.equals("В") || !textMark.equals("в")) {
                 int beginXcoord = newEnt.indexOf("\r\n10\r\n") + 6;
                 int endXcoord = newEnt.indexOf("\r\n20\r\n", beginXcoord);
 
