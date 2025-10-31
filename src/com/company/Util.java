@@ -1783,7 +1783,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
             } else {
 
                 if (countCharInString(srokaSearch, '.') == 1) {
-                    stringAbsolutPathToFileInDXF = pathDXF + inv.replace(".", "") + srokaSearch.replace(".", "") + "L" + "_" + zakaz.replace("/", "-") + ".dxf";
+                    stringAbsolutPathToFileInDXF = pathDXF + inv.replace(".", "") + srokaSearch + "L" + "_" + zakaz.replace("/", "-") + ".dxf";
                 } else {
                     stringAbsolutPathToFileInDXF = pathDXF + inv.replace(".", "") + srokaSearch.substring(1) + "L" + "_" + zakaz.replace("/", "-") + ".dxf";
                 }
@@ -2482,6 +2482,8 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
     }
 
     public void breakMidlePartOnEntityes(String stringEntities) {
+
+        entityies.clear();
         stringEntities = stringEntities.replace(" ", "");
         tochkaVstavkiDefoultMark = null;
         zamenaPolylineNaOtv = false;
