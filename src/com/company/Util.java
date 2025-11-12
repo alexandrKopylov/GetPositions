@@ -670,14 +670,39 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 
                                 String[] masStrok = breakStringOnThreeParts(stroka);
                                 breakMidlePartOnEntityes(masStrok[1]);
-                                String markTextNamePoz = getMarkPozText(masStrok[1]);
+                                String markTextNamePoz = getMarkPozText(masStrok[1]).toUpperCase();
+                                boolean isFind = false;
+
+                               // boolean hhh = markTextNamePoz.equals(poz);
+
+                               // boolean yyy =  markTextNamePoz.replace("M", "М").equals(poz);
+
+
                                 if (markTextNamePoz.equals(poz) || markTextNamePoz.equals(poz + ";") || markTextNamePoz.equals(poz + "_")) {
                                     if (!(cod == null)) {
                                         isFound = true;
                                         copyFileInDXF(new File(serverBazaDXF + inv + "\\" + cod + "_" + search), ".m" + poz.substring(1));
                                         result++;
+                                        isFind = true;
                                     }
                                 }
+                                if (!isFind) {
+                                    markTextNamePoz = markTextNamePoz.replace("M", "М");
+                                   // boolean bb = markTextNamePoz.equals(poz);
+
+                                    if (markTextNamePoz.equals(poz) || markTextNamePoz.equals(poz + ";") || markTextNamePoz.equals(poz + "_")) {
+                                        if (!(cod == null)) {
+                                            isFound = true;
+                                            copyFileInDXF(new File(serverBazaDXF + inv + "\\" + cod + "_" + search), ".m" + poz.substring(1));
+                                            result++;
+                                            isFind = true;
+                                        }
+                                    }
+
+
+                                }
+
+
                             }
                         }
                     }
@@ -893,8 +918,13 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 
                 if (streamPath.size() > 1) {
                     int dlinnaStokiZakaz = strZakaz.length();
+
                     for (Path path : streamPath) {
-                        String str = path.toString().trim();
+                        String str = path.toString().trim().replace(" ", "").toLowerCase();
+                        if (str.contains("заказ" + zakaz)) {
+                            pathFolderZakaz = path;
+                            break;
+                        }
                         int dlinnaStroki = str.length();
                         if (str.indexOf(strZakaz) + dlinnaStokiZakaz == dlinnaStroki) {
                             pathFolderZakaz = path;
@@ -967,6 +997,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 
             //  определяем папку для кеша
             String pozStr = listPoz.get(0).split("_")[0];
+            pozStr = pozStr.replace(".", "_");
             String finalPozStr = pozStr;
             List<Path> pozPathsList = Files.walk(pathFolderZakaz, 4, FileVisitOption.FOLLOW_LINKS)
                     .filter(Files::isRegularFile)
@@ -1069,12 +1100,13 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                 if (listPoz.size() != 0) {
                     METKA:
                     for (File file : pathFolderPoz.toFile().listFiles()) {
+                        String fileStr = file.toString();
                         Iterator<String> it = listPoz.iterator();
                         while (it.hasNext()) {
                             razbiraemNaChasti(zak, it);
 
-                            if (pozModify2) {
 
+                            if (pozModify2) {
                                 String sss = poz.replace(".", "_");
                                 if (conteins(file.getName().replace(".dxf", ""), sss)) {
                                     copyFileToDxfFolder(delListOnInv, strZakaz, file, it, zak);
@@ -1620,6 +1652,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                 isFound = true;
             }
 
+
             if (!isFound) {
 
                 List<String> spisokPozUmarki = mapParsingPDF.get(poz);
@@ -1644,42 +1677,9 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                     }
                 }
 
-
-
-           /*
-                List<String> codPoz = null;
-                // Iterator<String> itt = listPoz.iterator();
-
-                // while (itt.hasNext()) {
-                //   razbiraemNaChasti(zakOrInv, itt);
-                Set<String> keySet = mapParsingPDF.kSet();
-
-                for (String keyMap : keySet) {
-                    if (keyMap.contains(poz)) {
-                        codPoz = mapParsingPDF.get(keyMap);
-
-                        for (String sss : codPoz) {
-                            if (codPoz.equals("")) {
-                                continue;
-                            }
-
-                            File pathFilePoz = new File(path + "\\" + sss + ".dxf");
-                            if (!pathFilePoz.exists()) {
-                                // textArea.append("позиция (" + poz + ") = " + codPoz + " не найдена\n");
-                                continue;
-                            }
-
-                            copyFileToDxfFolder(delListOnInv, strInvOrZakaz, pathFilePoz, it, zakOrInv);
-                            // mapParsingPDF.remove(keyMap, sss);
-                            break;
-                        }
-                    }
-                }
-
-                */
-
-
             }
+
+
         }
     }
 
@@ -1783,7 +1783,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
             } else {
 
                 if (countCharInString(srokaSearch, '.') == 1) {
-                    stringAbsolutPathToFileInDXF = pathDXF + inv.replace(".", "") + srokaSearch + "L" + "_" + zakaz.replace("/", "-") + ".dxf";
+                    stringAbsolutPathToFileInDXF = pathDXF + inv.replace(".", "") + srokaSearch.replace(".", "") + "L" + "_" + zakaz.replace("/", "-") + ".dxf";
                 } else {
                     stringAbsolutPathToFileInDXF = pathDXF + inv.replace(".", "") + srokaSearch.substring(1) + "L" + "_" + zakaz.replace("/", "-") + ".dxf";
                 }
