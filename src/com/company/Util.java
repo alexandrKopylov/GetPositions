@@ -921,7 +921,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 
                     for (Path path : streamPath) {
                         String str = path.toString().trim().replace(" ", "").toLowerCase();
-                        if (str.contains("заказ" + zakaz)) {
+                        if (str.contains("заказ" + zakaz)  ) {
                             pathFolderZakaz = path;
                             break;
                         }

@@ -91,16 +91,25 @@ public class ReadPDF {
     public void serchInTextAndAddToMap2(String[] lines, MultiValueHashMap<String, String> mapParsingPDF, String stringPath, List<String> listNamePozicii, JTextArea textAreaPDF) {
 
         try {
-
             String strokaWithGradeSteeel = null;
             Map<String, Integer> namePozCount = new HashMap<>();
-
             for (int i = 0; i < lines.length; i++) {
                 String stroka = lines[i];
+//               if( !isLineFound(stroka)){
+//                   continue;
+//               }
                 for (int i1 = 0; i1 < listNamePozicii.size(); i1++) {
                     String poz = listNamePozicii.get(i1);
-                    if (stroka.contains(poz)) {
 
+                   if(!isHaveLetterInPozName(poz)){
+                       continue;
+                   }
+//                    if(Character.isDigit(poz.charAt(0))){              //  у поз 1й символ цифра        у марки  1й символ буква  (в основном )
+//                        continue;
+//                    }
+
+
+                    if (stroka.contains(poz)) {
                         Integer count = namePozCount.get(poz);
                         if (count == null) {
                             namePozCount.put(poz, 1);
@@ -126,7 +135,8 @@ public class ReadPDF {
             //  smotrim stroki gde est'  stroka GradeSteeel  and   save in string
             for (int i = 0; i < lines.length; i++) {
                 if (isLineFound(lines[i])) {
-                    if (isStrokaContainsNamePos(lines[i], listNamePozicii)) {
+                  //  if (isStrokaContainsNamePos(lines[i], listNamePozicii)) {
+                        if (lines[i].contains(namePozzz)) {
                         strokaWithGradeSteeel = lines[i];
                         break;
                     }
@@ -243,6 +253,16 @@ public class ReadPDF {
             textAreaPDF.append("\n" + stringPath + "  не парсится \n");
         }
 
+    }
+
+    private boolean isHaveLetterInPozName(String poz) {
+        for (int i = 0; i <poz.length() ; i++) {
+            char simvol = poz.charAt(i);
+            if(Character.isAlphabetic(simvol)){
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean isStrokaWithGradeSteeelContainsExaclyNamePosAndLenght(String strokaWithGradeSteeel, String str) {
