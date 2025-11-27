@@ -1646,7 +1646,8 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
         while (it.hasNext()) {
             razbiraemNaChasti(zakOrInv, it);
             isFound = false;
-            File file = new File(path.toString() + "\\" + poz + ".dxf");
+
+            File file = new File(path.toString() + "\\" + poz.replace(".", "_") + ".dxf");
             if (Files.exists(file.toPath())) {
                 copyFileToDxfFolder(delListOnInv, strInvOrZakaz, file, it, zakOrInv);
                 isFound = true;
