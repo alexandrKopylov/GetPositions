@@ -2671,7 +2671,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                 }
 
 
-                if ((((countVertex == 3 && (flagEqualsX || flagEqualsY)) || polyline4vertexZamenaNaOkr) || (countVertex > 15)) && countPolyline != 1 && !strLayer.equals("1")) {
+                if ((((countVertex == 3 && (flagEqualsX || flagEqualsY)) || polyline4vertexZamenaNaOkr) || (countVertex > 15)) && countPolyline != 1 && strLayer.equals("0")) {
 
                     int max;
                     int min;
