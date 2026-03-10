@@ -613,16 +613,8 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                             result++;
                         }
                     }
+// 1906793_1937.m1002L.dxf
 
-                    if (!isFound) {
-                        search = inv + ".m" + poz + "L.dxf";
-                        cod = fileNameAndCod.get(search);
-                        if (!(cod == null)) {
-                            isFound = true;
-                            copyFileInDXF(new File(serverBazaDXF + inv + "\\" + cod + "_" + search), ".m" + poz);
-                            result++;
-                        }
-                    }
                     if (!isFound) {
                         search = inv + ".p" + poz + "L.dxf";
                         cod = fileNameAndCod.get(search);
@@ -639,6 +631,17 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                         if (!(cod == null)) {
                             isFound = true;
                             copyFileInDXF(new File(serverBazaDXF + inv + "\\" + cod + "_" + search), ".p" + poz);
+                            result++;
+                        }
+                    }
+
+
+                    if (!isFound) {
+                        search = inv + ".m" + poz + "L.dxf";
+                        cod = fileNameAndCod.get(search);
+                        if (!(cod == null)) {
+                            isFound = true;
+                            copyFileInDXF(new File(serverBazaDXF + inv + "\\" + cod + "_" + search), ".m" + poz);
                             result++;
                         }
                     }
@@ -775,6 +778,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 
         return result;
     }
+
 
     private int methodCountOfPoz(MultiValueHashMap<String, String> mapa) {
 
@@ -997,7 +1001,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 
             //  определяем папку для кеша
             String pozStr = listPoz.get(0).split("_")[0];
-            pozStr = pozStr.replace(".", "_");
+          //  pozStr = pozStr.replace(".", "_");                   //  дальше в коде расмотрен этот случай
             String finalPozStr = pozStr;
             List<Path> pozPathsList = Files.walk(pathFolderZakaz, 4, FileVisitOption.FOLLOW_LINKS)
                     .filter(Files::isRegularFile)
@@ -1046,7 +1050,6 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
             }
 
             boolean pozModify2 = false;                                                  //  change point(.) on  underscore(_)
-
             if (pozPathsList.size() == 0) {
                 search = pozStr;
                 search = search.replace(".", "_");
@@ -1075,8 +1078,10 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 //                    System.out.println(p);
 //                }
 //                System.out.println();
-                ComparatorPath cp = new ComparatorPath();
-                Collections.sort(pozPathsList, cp);
+
+                // todo   ComparatorPath cp = new ComparatorPath();
+              //  ComparatorPath cp = new ComparatorPath();
+              //  Collections.sort(pozPathsList, cp);
 
 //                for (Path p : pozPathsList){
 //                    System.out.println(p);
@@ -2941,74 +2946,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
         entityies = newListEntityes;
 
 
-        while (stringEntities.contains("0\r\nTEXT")) {
-            int beginTEXT = stringEntities.indexOf("0\r\nTEXT");
-            int endTEXT = stringEntities.indexOf("\r\n73\r\n", beginTEXT) + 6;
 
-            if (endTEXT == 5) {
-                endTEXT = stringEntities.indexOf("\r\n1\r\n", beginTEXT) + 5;
-            }
-
-            int endTEXT2 = stringEntities.indexOf("\r\n", endTEXT) + 2;
-            String newEnt = stringEntities.substring(beginTEXT, endTEXT2);
-
-//сохраняем точку вставки текста
-            textRotateMark = "";
-
-            int beginTextMark = 0;
-            int endXTextMark = 0;
-
-            int beginTextRotate = newEnt.indexOf("\r\n50\r\n") + 6;
-            if (beginTextRotate != 5) {
-                int endXTextRotate = newEnt.indexOf("\r\n72\r\n", beginTextRotate);
-                textRotateMark = newEnt.substring(beginTextRotate, endXTextRotate);
-
-                beginTextMark = newEnt.indexOf("\r\n1\r\n") + 5;
-                endXTextMark = newEnt.indexOf("\r\n50\r\n", beginTextMark);
-
-                if (endXTextMark == -1) {
-                    endXTextMark = newEnt.length();
-                }
-            } else {
-                beginTextMark = newEnt.indexOf("\r\n1\r\n") + 5;
-                endXTextMark = newEnt.indexOf("\r\n72\r\n", beginTextMark);
-
-                if (endXTextMark == -1) {
-                    endXTextMark = newEnt.length();
-                }
-            }
-            String textMark = newEnt.substring(beginTextMark, endXTextMark).trim();
-
-
-            //  if (textMark.equals(poz) || textMark.equals(poz + ";") || textMark.equals(poz + "_")) {
-            //  if(textMark.contains(poz) && (!textMark.equals("B") ||  !textMark.equals("b") || !textMark.equals("В")  || !textMark.equals("в")  )){
-            if (!textMark.equals("B") || !textMark.equals("b") || !textMark.equals("В") || !textMark.equals("в")) {
-                int beginXcoord = newEnt.indexOf("\r\n10\r\n") + 6;
-                int endXcoord = newEnt.indexOf("\r\n20\r\n", beginXcoord);
-
-                String txtXcoord = newEnt.substring(beginXcoord, endXcoord);
-
-                int beginYcoord = newEnt.indexOf("\r\n20\r\n") + 6;
-                int endYcoord = newEnt.indexOf("\r\n30\r\n", beginYcoord);
-                String txtYcoord = newEnt.substring(beginYcoord, endYcoord);
-
-
-                //  дефолтную маркировку  не  сохраняем  а  просто удаляем
-                //  маркировка ставится методом    opredelyaemSposobMark(gabaritPoz);
-
-                tochkaVstavkiDefoultMark = new Point2D(Double.parseDouble(txtXcoord), Double.parseDouble(txtYcoord));
-
-                // entityies.add(newEnt);
-                stringEntities = stringEntities.replace(newEnt, "");
-
-
-            } else {
-
-                entityies.add(newEnt);
-                stringEntities = stringEntities.replace(newEnt, "");
-            }
-
-        }
 
         // Удаляем DIMENSION
 //            while (stringEntities.contains("0\r\nDIMENSION")) {
@@ -3043,6 +2981,85 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
             entityies.add(newEnt);
             stringEntities = stringEntities.replace(newEnt, "");
         }
+
+
+
+     //   int ind1 = stringEntities.indexOf("0\r\nTEXT");
+        int ind2 = stringEntities.indexOf("0\nTEXT");
+        if (ind2 >= 0){
+            stringEntities = stringEntities.replace("\n","\r\n");
+        }
+
+        while (stringEntities.contains("0\r\nTEXT")) {
+            int beginTEXT = stringEntities.indexOf("0\r\nTEXT");
+            int endTEXT = stringEntities.indexOf("\r\n73\r\n", beginTEXT) + 6;
+
+            if (endTEXT == 5) {
+                endTEXT = stringEntities.indexOf("\r\n1\r\n", beginTEXT) + 5;
+            }
+
+            int endTEXT2 = stringEntities.indexOf("\r\n", endTEXT) + 2;
+            String newEnt = stringEntities.substring(beginTEXT, endTEXT2);
+
+//сохраняем точку вставки текста
+            textRotateMark = "";
+
+            int beginTextMark = 0;
+            int endXTextMark = 0;
+
+            int beginTextRotate = newEnt.indexOf("\r\n50\r\n90.0\r\n") + 6;      //есть ли  текст  с под 90 градусов
+            if (beginTextRotate != 5) {
+                int endXTextRotate = newEnt.indexOf("\r\n72\r\n", beginTextRotate);
+                textRotateMark = newEnt.substring(beginTextRotate, endXTextRotate);
+
+                beginTextMark = newEnt.indexOf("\r\n1\r\n") + 5;
+                endXTextMark = newEnt.indexOf("\r\n50\r\n", beginTextMark);
+
+                if (endXTextMark == -1) {
+                    endXTextMark = newEnt.length();
+                }
+            } else {
+                beginTextMark = newEnt.indexOf("\r\n1\r\n") + 5;
+                endXTextMark = newEnt.indexOf("\r\n72\r\n", beginTextMark);
+
+                if (endXTextMark == -1) {
+                    endXTextMark = newEnt.length();
+                }
+            }
+            String textMark = newEnt.substring(beginTextMark, endXTextMark).trim();
+
+
+            //  if (textMark.equals(poz) || textMark.equals(poz + ";") || textMark.equals(poz + "_")) {
+            //  if(textMark.contains(poz) && (!textMark.equals("B") ||  !textMark.equals("b") || !textMark.equals("В")  || !textMark.equals("в")  )){
+            if (!textMark.equals("B") /*|| !textMark.equals("b") || !textMark.equals("В") || !textMark.equals("в")*/) {
+                int beginXcoord = newEnt.indexOf("\r\n10\r\n") + 6;
+                int endXcoord = newEnt.indexOf("\r\n20\r\n", beginXcoord);
+
+                String txtXcoord = newEnt.substring(beginXcoord, endXcoord);
+
+                int beginYcoord = newEnt.indexOf("\r\n20\r\n") + 6;
+                int endYcoord = newEnt.indexOf("\r\n30\r\n", beginYcoord);
+                String txtYcoord = newEnt.substring(beginYcoord, endYcoord);
+
+
+                //  дефолтную маркировку  не  сохраняем  а  просто удаляем
+                //  маркировка ставится методом    opredelyaemSposobMark(gabaritPoz);
+
+                tochkaVstavkiDefoultMark = new Point2D(Double.parseDouble(txtXcoord), Double.parseDouble(txtYcoord));
+
+                // entityies.add(newEnt);
+                stringEntities = stringEntities.replace(newEnt, "");
+
+
+            } else {
+
+                entityies.add(newEnt);
+                stringEntities = stringEntities.replace(newEnt, "");
+            }
+
+        }
+
+
 
         vivodNaConsoleEntityies();
     }
