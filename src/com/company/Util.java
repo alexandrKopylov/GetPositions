@@ -2567,6 +2567,8 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 //            if (ent.contains("POLYLINE")) {
 //                countPolyline++;
 
+
+
         int countPolyline = 0;
         for (String ent : entityies) {
             if (ent.contains("POLYLINE")) {
@@ -2581,6 +2583,9 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                     listPointsPolyline = new ArrayList<>();
                 }
 
+                int startIndexLayer = masVertex[0].indexOf("\r\n8\r\n");
+                int endIndexLayer = masVertex[0].indexOf("\r\n66\r\n");
+                String strLayer = masVertex[0].substring(startIndexLayer, endIndexLayer).replace("\r\n8\r\n", "");
 
                 for (int i = 1; i < masVertex.length; i++) {
                     int beginX = masVertex[i].indexOf("\r\n10\r\n");
@@ -2666,7 +2671,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                 }
 
 
-                if ((((countVertex == 3 && (flagEqualsX || flagEqualsY)) || polyline4vertexZamenaNaOkr) || (countVertex > 15)) && countPolyline != 1) {
+                if ((((countVertex == 3 && (flagEqualsX || flagEqualsY)) || polyline4vertexZamenaNaOkr) || (countVertex > 15)) && countPolyline != 1 && !strLayer.equals("1")) {
 
                     int max;
                     int min;
