@@ -2584,14 +2584,24 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                 }
 
                 int startIndexLayer = masVertex[0].indexOf("\r\n8\r\n");
-                int endIndexLayer = masVertex[0].indexOf("\r\n66\r\n");
+                int endIndexLayer = masVertex[0].indexOf("\r\n6\r\n");
+
+                if(endIndexLayer == -1){
+                    endIndexLayer = masVertex[0].indexOf("\r\n66\r\n");
+                }
+                // int endIndexLayer = masVertex[0].indexOf("\r\n66\r\n");   доделать
+                // когда на чертеже были черточки в другом слое, для разметки , то они заменялись окржностями  ,  это косяк
                 String strLayer = masVertex[0].substring(startIndexLayer, endIndexLayer).replace("\r\n8\r\n", "");
+                Integer.parseInt(strLayer);  // проверка что слой определился нормально
+
 
                 for (int i = 1; i < masVertex.length; i++) {
                     int beginX = masVertex[i].indexOf("\r\n10\r\n");
                     int beginY = masVertex[i].indexOf("\r\n20\r\n", beginX);
                     String strX = masVertex[i].substring(beginX, beginY).replace("\r\n10\r\n", "");
                     double x = (double) Math.round(Double.parseDouble(strX));
+
+
                     //if (countVertex == 3 || countVertex == 4 || countVertex == 5 || countVertex > 20) {
                     if (countPolyline != 1) {
                         listPointsPolyline.add((int) x);
