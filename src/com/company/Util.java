@@ -163,7 +163,12 @@ public class Util {
 
                 // poz = mas[1];
                 tolshina = mas[4].split("x")[0];
-                strZakaz = mas[1].split("_")[1];
+
+                try {
+                    strZakaz = mas[1].split("_")[1];
+                } catch (Exception e) {
+                   throw  new RuntimeException("нет заказа у позиции");
+                }
 
 
                 if (thikness.equals("")) {             // нечего не ввели
@@ -910,6 +915,18 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                         .collect(Collectors.toList());
 
 
+
+                if (streamPath.size() == 0) {
+                    String finalStrInv = inv;
+                    streamPath = Files.walk(pathMosin, 2, FileVisitOption.FOLLOW_LINKS)
+                            .filter(Files::isDirectory)
+                            .filter(x -> x.toFile().getName().contains(finalStrInv))
+                            .collect(Collectors.toList());
+
+                }
+
+
+
                 if (streamPath.size() == 0 && !Character.isDigit(strZakaz.charAt(strZakaz.length() - 1))) {
                     // RUS - >  LAT
                     String strZakazLeterChange = strZakaz.replace('А', 'A').replace('В', 'B').replace('С', 'C').replace('Е', 'E');
@@ -926,7 +943,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 
                     for (Path path : streamPath) {
                         String str = path.toString().trim().replace(" ", "").toLowerCase();
-                        if (str.contains("заказ" + zakaz)) {
+                        if (str.contains("заказ")) {
                             pathFolderZakaz = path;
                             break;
                         }
@@ -1166,8 +1183,10 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                 while (it.hasNext()) {
                     razbiraemNaChasti(zak, it);
                     codPoz = mapParsingPDF.get(poz);
-                    if (codPoz == null) {
+                    if (codPoz.size() == 0) {
+                        textArea.append(" \n");
                         textArea.append(" нет файла " + poz + " = " + codPoz + " в папкe " + pathFolderPoz + " посмотри во вкладку parsingPDF \n");
+                        listPozNeNashel.add(" заказ = " + strZakaz + " позиция =  " + poz +" _ " + gabaritCSV +" _ " +kolvoPoz);
                         continue;
                     }
 
