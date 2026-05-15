@@ -167,7 +167,7 @@ public class Util {
                 try {
                     strZakaz = mas[1].split("_")[1];
                 } catch (Exception e) {
-                   throw  new RuntimeException("нет заказа у позиции");
+                    throw new RuntimeException("нет заказа у позиции");
                 }
 
 
@@ -915,16 +915,13 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                         .collect(Collectors.toList());
 
 
-
                 if (streamPath.size() == 0) {
                     String finalStrInv = inv;
                     streamPath = Files.walk(pathMosin, 2, FileVisitOption.FOLLOW_LINKS)
                             .filter(Files::isDirectory)
                             .filter(x -> x.toFile().getName().contains(finalStrInv))
                             .collect(Collectors.toList());
-
                 }
-
 
 
                 if (streamPath.size() == 0 && !Character.isDigit(strZakaz.charAt(strZakaz.length() - 1))) {
@@ -964,8 +961,26 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                                 .filter(Files::isDirectory)
                                 .filter(x -> x.toFile().getName().contains(strInvOrZakazWithoutLastChar))
                                 .collect(Collectors.toList());
-                        if (streamPath.size() > 0) {
-                            pathFolderZakaz = streamPath.get(0);
+
+                        if (streamPath.size() >= 2) {
+
+                            for (Path path : streamPath) {
+                                String str = path.toString().trim().replace(" ", "").toLowerCase();
+
+                                if (str.contains("zeman") || str.contains("!" + strInvOrZakazWithoutLastChar)) {
+                                   continue;
+                                }
+
+                                if (str.contains("заказ")  ) {
+                                    pathFolderZakaz = path;
+                                    break;
+                                }
+
+
+                            }
+                            if (pathFolderZakaz == null) {
+                                pathFolderZakaz = streamPath.get(0);
+                            }
                         }
                         if (streamPath.size() == 0) {
 
@@ -1186,7 +1201,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                     if (codPoz.size() == 0) {
                         textArea.append(" \n");
                         textArea.append(" нет файла " + poz + " = " + codPoz + " в папкe " + pathFolderPoz + " посмотри во вкладку parsingPDF \n");
-                        listPozNeNashel.add(" заказ = " + strZakaz + " позиция =  " + poz +" _ " + gabaritCSV +" _ " +kolvoPoz);
+                        listPozNeNashel.add(" заказ = " + strZakaz + " позиция =  " + poz + " _ " + gabaritCSV + " _ " + kolvoPoz);
                         continue;
                     }
 
@@ -1890,10 +1905,10 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
     private void rotatePoz(double[] gabaritPoz) {
         double Xmin = gabaritPoz[0];
         double Xmax = gabaritPoz[1];
-       // double Ymin = gabaritPoz[2];
+        // double Ymin = gabaritPoz[2];
         //double Ymax = gabaritPoz[3];
 
-       // double shirinaPoz = Math.abs(Ymax - Ymin);
+        // double shirinaPoz = Math.abs(Ymax - Ymin);
         double dlinnaPoz = Math.abs(Xmax - Xmin);
 
         List<String> newListEntityes = new ArrayList<>();
@@ -1942,8 +1957,7 @@ Y=−1 * (x)
                         double y = Double.parseDouble(strY);
 
 
-
-                       // masVertex[i] = masVertex[i].replace(strX, String.valueOf(y));
+                        // masVertex[i] = masVertex[i].replace(strX, String.valueOf(y));
                         //masVertex[i] = masVertex[i].replace(strY, String.valueOf((-1) * x));
 
                         StringBuilder sb = new StringBuilder();
@@ -1963,8 +1977,8 @@ Y=−1 * (x)
                         strY = strY.replace("\r\n20\r\n", "").trim();
                         double y = Double.parseDouble(strY);
 
-                       // masVertex[i] = masVertex[i].replace(strX, String.valueOf(y));
-                       // masVertex[i] = masVertex[i].replace(strY, String.valueOf((-1) * x));
+                        // masVertex[i] = masVertex[i].replace(strX, String.valueOf(y));
+                        // masVertex[i] = masVertex[i].replace(strY, String.valueOf((-1) * x));
 
                         StringBuilder sb = new StringBuilder();
                         sb.append(masVertex[i].substring(0, beginX));
@@ -2016,8 +2030,6 @@ Y=−1 * (x)
                 }
 
 
-
-
 //                int beginCir = stringEntities.indexOf("0\r\nCIRCLE\r\n");
 //                int endCir = stringEntities.indexOf("\r\n40\r\n", beginCir) + 6;
 //                int endCir2 = stringEntities.indexOf("\r\n", endCir) + 2;
@@ -2030,12 +2042,12 @@ Y=−1 * (x)
 
         entityies = newListEntityes;
 
-        if(tochkaVstavkiDefoultMark != null){
+        if (tochkaVstavkiDefoultMark != null) {
             //   X=y
             // Y=−1 * (x)
             double x = tochkaVstavkiDefoultMark.getY();
-            double y = tochkaVstavkiDefoultMark.getX()* (-1) + dlinnaPoz;
-            Point2D newPoint = new Point2D(x,y);
+            double y = tochkaVstavkiDefoultMark.getX() * (-1) + dlinnaPoz;
+            Point2D newPoint = new Point2D(x, y);
             tochkaVstavkiDefoultMark = newPoint;
         }
     }
@@ -3037,8 +3049,6 @@ Y=−1 * (x)
                 stringEntities = stringEntities.replace(newEnt, "");
             }
         }
-
-
 
 
         vivodNaConsoleEntityies();
