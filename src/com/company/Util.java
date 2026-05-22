@@ -962,16 +962,21 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                                 .filter(x -> x.toFile().getName().contains(strInvOrZakazWithoutLastChar))
                                 .collect(Collectors.toList());
 
-                        if (streamPath.size() >= 2) {
+                        if (streamPath.size() == 1) {
+                            pathFolderZakaz = streamPath.get(0);
+                        }
+
+
+                        if (streamPath.size() >= 2 && pathFolderZakaz == null) {
 
                             for (Path path : streamPath) {
                                 String str = path.toString().trim().replace(" ", "").toLowerCase();
 
                                 if (str.contains("zeman") || str.contains("!" + strInvOrZakazWithoutLastChar)) {
-                                   continue;
+                                    continue;
                                 }
 
-                                if (str.contains("заказ")  ) {
+                                if (str.contains("заказ")) {
                                     pathFolderZakaz = path;
                                     break;
                                 }
@@ -1113,8 +1118,8 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 //                System.out.println();
 
                 // todo   ComparatorPath cp = new ComparatorPath();
-                //  ComparatorPath cp = new ComparatorPath();
-                //  Collections.sort(pozPathsList, cp);
+                ComparatorPath cp = new ComparatorPath();
+                Collections.sort(pozPathsList, cp);
 
 //                for (Path p : pozPathsList){
 //                    System.out.println(p);
@@ -1137,6 +1142,10 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 
                 if (listPoz.size() != 0) {
                     METKA:
+
+                    // File[] files = pathFolderPoz.toFile().listFiles();
+                    //  File fff =  pathFolderPoz.toFile();
+
                     for (File file : pathFolderPoz.toFile().listFiles()) {
                         String fileStr = file.toString();
                         Iterator<String> it = listPoz.iterator();
@@ -1741,32 +1750,39 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
         }
         int lengthPoz = poz.length();
         int lengthStr = str.length();
-
         if (contein && (lengthPoz == lengthStr)) {
             return true;
         }
-
         if (str.endsWith(poz)) {
             int tt = str.lastIndexOf(poz);
-
-
             char simvol = str.charAt(tt - 1);
             if (!Character.isDigit(simvol) && !Character.isAlphabetic(simvol)) {
                 return true;
             }
-
-
         }
-
-
         if (lengthStr > lengthPoz) {
-            char ch = str.charAt(lengthPoz);
-            if (contein && !Character.isDigit(ch)) {
-                return true;
+            int index = str.indexOf(poz);
+
+
+            // poz na poslednem mecte
+            if (index + 1 == lengthStr) {
+                char ch2 = str.charAt(index - 1);
+                if (contein && !Character.isDigit(ch2)) {
+                    return true;
+                }
+            } else {
+                char ch = str.charAt(str.indexOf(poz) + 1);
+                if (index > 0) {
+                    char ch2 = str.charAt(index - 1);
+                    if (contein && !Character.isDigit(ch) && !Character.isDigit(ch2)) {
+                        return true;
+                    }
+                }
             }
         }
         return res;
     }
+
 
     private List<Path> find(Path startPath, String extension) throws IOException {
         List<Path> matches = new ArrayList<>();
