@@ -92,6 +92,10 @@ public class ReadPDF {
 
         try {
             String strokaWithGradeSteeel = null;
+
+            /**
+             * цикл ищет  в строках pdf файла какая позиция встречается чаще всего из списка  listNamePozicii
+             */
             Map<String, Integer> namePozCount = new HashMap<>();
             for (int i = 0; i < lines.length; i++) {
                 String stroka = lines[i];
@@ -123,7 +127,7 @@ public class ReadPDF {
             String namePozzz = (String) namePozCount.keySet().toArray()[0];
             int namePozKolvo = namePozCount.get(namePozzz);
 
-
+//  выбираем  ту позицию  у которой количество появлений в тексте больше всего
             for (String str : namePozCount.keySet()) {
                 if (namePozKolvo < namePozCount.get(str)) {
                     namePozzz = str;
@@ -143,7 +147,10 @@ public class ReadPDF {
                 }
             }
 
-            if (strokaWithGradeSteeel.equals(null)) {
+/**
+ * берем строку с материалом  при кол-ве нахождений позиции больше  2
+ */
+            if (strokaWithGradeSteeel == null) {
                 for (int i = 0; i < lines.length; i++) {
                     if (isLineFound(lines[i])) {
                         if (namePozKolvo > 2) {
@@ -154,7 +161,7 @@ public class ReadPDF {
                 }
             }
 
-            if (strokaWithGradeSteeel.equals(null)) {
+            if (strokaWithGradeSteeel == null) {
                 textAreaPDF.append("\nstrokaWithGradeSteeel  нет  материала ");
             } else {
                 System.out.println("strokaWithGradeSteeel   ===   " + strokaWithGradeSteeel);

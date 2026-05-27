@@ -19,18 +19,23 @@ import java.util.regex.Pattern;
 public class Moe {
     public static ArrayList<int[]> figures = new ArrayList<>();  // Придумайте тип хранилища фигур
 
-    public static void main(String[] args) {
-        List<Integer> list = new ArrayList<>();
-        list.add(1);
+    public static boolean conteins(String str, String poz) {
 
-
-       // list.remove(1);
-        //Integer i = 4;
-        list.remove(1);
-        System.out.println(list);
-
+        String escapedPos = Pattern.quote(poz);
+        String regex = "^(?!.*" + escapedPos + ".*" + escapedPos + ")[^0-9]*" + escapedPos + ".*$";
+        Pattern pat = Pattern.compile(regex);
+        Matcher matcher = pat.matcher(str);
+        return matcher.find();
     }
 
+    public static void main(String[] args) {
+        System.out.println(conteins("999","9"));
+        System.out.println(conteins("99","9"));
+        System.out.println(conteins("9","9"));
+        System.out.println(conteins("-9-","9"));
+        System.out.println(conteins("-9","9"));
+        System.out.println(conteins("9-","9"));
+    }
 
 
 }  // end main

@@ -1734,53 +1734,62 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
     }
 
     private boolean conteins(String str, String poz) {
-        boolean res = false;
-        boolean contein = str.contains(poz);
-        if (!contein) {
-            String firstChar = poz.substring(0);
-            if (firstChar.equalsIgnoreCase("M") || firstChar.equalsIgnoreCase("М")) {
-                String ostatok = poz.substring(1, poz.length() - 1);
-                String search = firstChar + "-" + ostatok;
-                if (str.contains(search)) {
-                    return true;
-                }
-            }
 
-            return false;
-        }
-        int lengthPoz = poz.length();
-        int lengthStr = str.length();
-        if (contein && (lengthPoz == lengthStr)) {
-            return true;
-        }
-        if (str.endsWith(poz)) {
-            int tt = str.lastIndexOf(poz);
-            char simvol = str.charAt(tt - 1);
-            if (!Character.isDigit(simvol) && !Character.isAlphabetic(simvol)) {
-                return true;
-            }
-        }
-        if (lengthStr > lengthPoz) {
-            int index = str.indexOf(poz);
+        String escapedPos = Pattern.quote(poz);
+        String regex = "^(?!.*" + escapedPos + ".*" + escapedPos + ")[^0-9]*" + escapedPos + ".*$";
+      Pattern pat = Pattern.compile(regex);
+      Matcher matcher = pat.matcher(str);
+return  matcher.find();
 
-
-            // poz na poslednem mecte
-            if (index + 1 == lengthStr) {
-                char ch2 = str.charAt(index - 1);
-                if (contein && !Character.isDigit(ch2)) {
-                    return true;
-                }
-            } else {
-                char ch = str.charAt(str.indexOf(poz) + 1);
-                if (index > 0) {
-                    char ch2 = str.charAt(index - 1);
-                    if (contein && !Character.isDigit(ch) && !Character.isDigit(ch2)) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return res;
+//
+//        boolean res = false;
+//        boolean contein = str.contains(poz);
+//        if (!contein) {
+//            String firstChar = poz.substring(0);
+//            if (firstChar.equalsIgnoreCase("M") || firstChar.equalsIgnoreCase("М")) {
+//                String ostatok = poz.substring(1, poz.length() - 1);
+//                String search = firstChar + "-" + ostatok;
+//                if (str.contains(search)) {
+//                    return true;
+//                }
+//            }
+//
+//            return false;
+//        }
+//        int lengthPoz = poz.length();
+//        int lengthStr = str.length();
+//        if (contein && (lengthPoz == lengthStr)) {
+//            return true;
+//        }
+//        if (str.endsWith(poz)) {
+//            int tt = str.lastIndexOf(poz);
+//            char simvol = str.charAt(tt - 1);
+//            if (!Character.isDigit(simvol) && !Character.isAlphabetic(simvol)) {
+//                return true;
+//            }
+//        }
+//        if (lengthStr > lengthPoz) {
+//            int index = str.indexOf(poz);
+//
+//
+//            // poz na poslednem mecte
+//            if (index + 1 == lengthStr) {
+//                char ch2 = str.charAt(index - 1);
+//                if (contein && !Character.isDigit(ch2)) {
+//                    return true;
+//                }
+//            } else {
+//                char ch = str.charAt(str.indexOf(poz) + 1);
+//                if (index > 0) {
+//                    char ch2 = str.charAt(index - 1);
+//                    if (contein && !Character.isDigit(ch) && !Character.isDigit(ch2)) {
+//                        return true;
+//                    }
+//                }
+//            }
+//        }
+//        return res;
+         //   return false;
     }
 
 
