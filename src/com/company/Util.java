@@ -145,6 +145,22 @@ public class Util {
             Set<String> storeTolshins = new TreeSet<String>();
 
             while ((line = br.readLine()) != null) {
+
+                if (line.equals("Инв.\tОбозначение\tКол.Т\tКол.Н\tГабариты\tПозиция для Марки\t\"Допуск")){
+                    continue;
+                }
+                if (line.equals("ширина\"\t\"Допуск")){
+                    continue;
+                }
+
+                if (line.equals("длина\"")){
+                    continue;
+                }
+
+                if (line.equals("\t\t\t\t\t\t\t")){
+                    continue;
+                }
+
                 if (line.equals("\t\t\t\t\t")
                         || line.equals("\t\t\t\t")
                         || line.equals("")
@@ -1736,7 +1752,16 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
     private boolean conteins(String str, String poz) {
 
         String escapedPos = Pattern.quote(poz);
-        String regex = "^(?!.*" + escapedPos + ".*" + escapedPos + ")[^0-9]*" + escapedPos + ".*$";
+       // String regex = "^(?!.*" + escapedPos + ".*" + escapedPos + ")[^0-9]*" + escapedPos + ".*$";
+
+
+        // Паттерн:
+        // ^ — начало строки
+        // (?!.*<pos>.*<pos>) — проверка на однократное вхождение
+        // .* — любые символы до искомой подстроки
+        // <pos> — сама искомая подстрока
+        // ([^0-9]*|$) — либо только нецифровые символы, либо конец строки
+        String regex = "^(?!.*" + escapedPos + ".*" + escapedPos + ").*" + escapedPos + "([^0-9]*|$)";
       Pattern pat = Pattern.compile(regex);
       Matcher matcher = pat.matcher(str);
 return  matcher.find();
