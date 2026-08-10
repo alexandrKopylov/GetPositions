@@ -218,11 +218,23 @@ public class ReadPDF {
             System.out.println("strokaWithNamePozMinLenght   ===   " + strokaWithNamePozMinLenght);
             textAreaPDF.append("\nstrokaWithNamePozMinLenght   ===   " + strokaWithNamePozMinLenght);
 
-
+String dlinna = null;
+String shirina = null;
             String cod = null;
             if (strokaWithGradeSteeel.contains(strokaWithNamePozMinLenght)) {
-                cod = strokaWithGradeSteeel.replace(strokaWithNamePozMinLenght, "").split(" ")[0];
+
+                String str2 = strokaWithGradeSteeel.replace(strokaWithNamePozMinLenght, "");
+                String[] massiveStrok =str2.split(" ");    //str2.split(" ")[0];
+
+                cod = massiveStrok[0];
+                dlinna = massiveStrok[2];
+               String strokaShir = massiveStrok[5];
+shirina = getShirina(strokaShir);
+
+
                 //  cod = "1096";
+
+
                 boolean bb = isCodConteinsLetters(cod);
                 if (bb) {
                     cod = deleteLettersBeginStartStrings(cod);
@@ -239,7 +251,7 @@ public class ReadPDF {
                     cod = strokaWithGradeSteeel.substring(0, index);
                 }
             }
-
+cod = cod+"-"+shirina+"x"+dlinna;
             System.out.println("COD  ===  " + cod);
             textAreaPDF.append("\nCOD  ===  " + cod);
 
@@ -260,6 +272,27 @@ public class ReadPDF {
             textAreaPDF.append("\n" + stringPath + "  не парсится \n");
         }
 
+    }
+
+    private String getShirina(String originalString) {
+String result = null;
+        // Находим индекс символа 'x' (латинский) или 'х' (кириллический)
+        int index = originalString.indexOf('x');
+        if (index == -1) {
+            index = originalString.indexOf('х'); // проверяем кириллический 'х'
+        }
+
+        // Извлекаем подстроку от найденного символа до конца, если символ найден
+        if (index != -1) {
+            result = originalString.substring(index + 1); // +1, чтобы не включать сам символ 'x/х'
+        } else {
+            result = ""; // если ни один из символов не найден, возвращаем пустую строку
+        }
+
+        System.out.println("Исходная строка: " + originalString);
+        System.out.println("Извлечённая часть: " + result); // Вывод: 175
+
+        return  result;
     }
 
     private boolean isHaveLetterInPozName(String poz) {

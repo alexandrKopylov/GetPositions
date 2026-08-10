@@ -146,18 +146,18 @@ public class Util {
 
             while ((line = br.readLine()) != null) {
 
-                if (line.equals("Инв.\tОбозначение\tКол.Т\tКол.Н\tГабариты\tПозиция для Марки\t\"Допуск")){
+                if (line.equals("Инв.\tОбозначение\tКол.Т\tКол.Н\tГабариты\tПозиция для Марки\t\"Допуск")) {
                     continue;
                 }
-                if (line.equals("ширина\"\t\"Допуск")){
-                    continue;
-                }
-
-                if (line.equals("длина\"")){
+                if (line.equals("ширина\"\t\"Допуск")) {
                     continue;
                 }
 
-                if (line.equals("\t\t\t\t\t\t\t")){
+                if (line.equals("длина\"")) {
+                    continue;
+                }
+
+                if (line.equals("\t\t\t\t\t\t\t")) {
                     continue;
                 }
 
@@ -919,6 +919,8 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                 inv = fileNotFaundOnZakaz.get(zakaz).get(0).split("_")[1];
             }
 
+  textArea.append("\n  **************************    заказ = " + zakaz + " ********************************************* \n ");
+
             Map<String, Path> zakazPathMap = searchInCash();
 
             Path pathFolderZakaz = zakazPathMap.get(strZakaz);
@@ -956,6 +958,10 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 
                     for (Path path : streamPath) {
                         String str = path.toString().trim().replace(" ", "").toLowerCase();
+                        if (str.contains("!")) {
+                           continue;
+                        }
+
                         if (str.contains("заказ")) {
                             pathFolderZakaz = path;
                             break;
@@ -1067,18 +1073,32 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
             if (pozPathsList.size() == 0) {
                 List<String> spisokPozUmarki = mapParsingPDF.get(pozStr);
                 if (spisokPozUmarki != null) {
-                    for (String poz : spisokPozUmarki) {
 
+                    String poz = null;
+// LP-1103_03186А
+// 1859-x12x110
+                    if( spisokPozUmarki.size() == 1){
+                        poz = spisokPozUmarki.get(0).split("-")[0];
+                    } else {
+                        for (String pozSpisok : spisokPozUmarki) {
+                            if (!equalsGabariti(pozSpisok, listPoz)) {
+                                continue;
+                            }
+                            poz = pozSpisok.split("-")[0];
+                            break;
+                        }
+                    }
+                        String finalPoz = poz;
                         pozPathsList = Files.walk(pathFolderZakaz, 4, FileVisitOption.FOLLOW_LINKS)
                                 .filter(Files::isRegularFile)
                                 .filter(x -> x.toFile().getName().endsWith(".dxf"))
                                 .filter(x -> !x.toFile().getPath().contains("round"))
-                                .filter(x -> x.toFile().getName().contains(poz))                             //equalsIgnoreCase(pozStr + ".dxf"))
+                                .filter(x -> x.toFile().getName().contains(finalPoz))                             //equalsIgnoreCase(pozStr + ".dxf"))
                                 .collect(Collectors.toList());
-                        if (pozPathsList.size() != 0) {
-                            break;
-                        }
-                    }
+//                        if (pozPathsList.size() != 0) {
+//                            break;
+//                        }
+
                 }
             }
 
@@ -1278,6 +1298,37 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
             }
             // }     // esli papka s zakazom ne sushestvuet
         }      // setZakaz
+    }
+
+    private boolean equalsGabariti(String poz, List<String> listPoz) {
+
+        for (String str : listPoz) {
+            str = str.split("_")[2];
+            String tmpStr = poz.split("-")[1];
+            if (str.contains(tmpStr)) {
+                return true;
+            }
+            if(tmpStr.equals("nullxnull")){
+                return false;
+            }
+//  str = 12x181x646
+            //    tmpStr =   175x658
+
+            String shtrina1 = str.split("x")[1];
+            String shtrina2 = tmpStr.split("x")[0];
+            boolean equalsShirina = Math.abs(Integer.parseInt(shtrina1) - Integer.parseInt(shtrina2)) <= 1;
+
+            String dlinna1 = str.split("x")[2];
+            String dlinna2 = tmpStr.split("x")[1];
+            boolean equalsDlinna = Math.abs(Integer.parseInt(dlinna1) - Integer.parseInt(dlinna2)) <= 1;
+
+            if (equalsShirina && equalsDlinna) {
+                return true;
+            }
+
+        }
+
+        return false;
     }
 
     private String modifyPozForSearch(String poz) {
@@ -1722,8 +1773,34 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
             if (!isFound) {
 
                 List<String> spisokPozUmarki = mapParsingPDF.get(poz);
-                if (spisokPozUmarki != null) {
-                    for (String pozzz : spisokPozUmarki) {
+                if (spisokPozUmarki != null && spisokPozUmarki.size() > 0) {
+
+
+                    String pozzz = null;
+// LP-1103_03186А
+// 1859-x12x110
+                    if( spisokPozUmarki.size() == 1){
+                        pozzz = spisokPozUmarki.get(0).split("-")[0];
+                    } else {
+                        for (String pozSpisok : spisokPozUmarki) {
+                            if (!equalsGabariti(pozSpisok, listPoz)) {
+                                continue;
+                            }
+                            pozzz = pozSpisok.split("-")[0];
+                            break;
+                        }
+                    }
+
+                  //  for (String pozzz : spisokPozUmarki) {
+
+
+
+
+//                        if (!equalsGabariti(pozzz, listPoz)) {
+//                            continue;
+//                        }
+                      //  pozzz = pozzz.split("-")[0];
+
 
                         if (pozzz.equals("")) {
                             continue;
@@ -1736,12 +1813,12 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 
                             copyFileToDxfFolder(delListOnInv, strInvOrZakaz, pathFilePoz, it, zakOrInv);
                             // mapParsingPDF.remove(keyMap, sss);
-                            break;
+                           // break;
                         }
 
 
                     }
-                }
+               // }
 
             }
 
@@ -1752,7 +1829,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
     private boolean conteins(String str, String poz) {
 
         String escapedPos = Pattern.quote(poz);
-       // String regex = "^(?!.*" + escapedPos + ".*" + escapedPos + ")[^0-9]*" + escapedPos + ".*$";
+        // String regex = "^(?!.*" + escapedPos + ".*" + escapedPos + ")[^0-9]*" + escapedPos + ".*$";
 
 
         // Паттерн:
@@ -1762,9 +1839,9 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
         // <pos> — сама искомая подстрока
         // ([^0-9]*|$) — либо только нецифровые символы, либо конец строки
         String regex = "^(?!.*" + escapedPos + ".*" + escapedPos + ").*" + escapedPos + "([^0-9]*|$)";
-      Pattern pat = Pattern.compile(regex);
-      Matcher matcher = pat.matcher(str);
-return  matcher.find();
+        Pattern pat = Pattern.compile(regex);
+        Matcher matcher = pat.matcher(str);
+        return matcher.find();
 
 //
 //        boolean res = false;
@@ -1814,7 +1891,7 @@ return  matcher.find();
 //            }
 //        }
 //        return res;
-         //   return false;
+        //   return false;
     }
 
 
