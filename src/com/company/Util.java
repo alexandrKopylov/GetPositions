@@ -919,11 +919,15 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                 inv = fileNotFaundOnZakaz.get(zakaz).get(0).split("_")[1];
             }
 
-  textArea.append("\n  **************************    заказ = " + zakaz + " ********************************************* \n ");
+            textArea.append("\n  **************************    заказ = " + zakaz + " ********************************************* \n ");
 
             Map<String, Path> zakazPathMap = searchInCash();
 
             Path pathFolderZakaz = zakazPathMap.get(strZakaz);
+            boolean flagFolderWithDXF = false;
+            if (pathFolderZakaz != null) {
+                flagFolderWithDXF = true;
+            }
             if (pathFolderZakaz == null) {
 
                 String finalStrInvOrZakaz = strZakaz;
@@ -959,7 +963,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                     for (Path path : streamPath) {
                         String str = path.toString().trim().replace(" ", "").toLowerCase();
                         if (str.contains("!")) {
-                           continue;
+                            continue;
                         }
 
                         if (str.contains("заказ")) {
@@ -1063,12 +1067,18 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
             String pozStr = listPoz.get(0).split("_")[0];
             //  pozStr = pozStr.replace(".", "_");                   //  дальше в коде расмотрен этот случай
             String finalPozStr = pozStr;
-            List<Path> pozPathsList = Files.walk(pathFolderZakaz, 4, FileVisitOption.FOLLOW_LINKS)
-                    .filter(Files::isRegularFile)
-                    .filter(x -> x.toFile().getName().endsWith(".dxf"))
-                    .filter(x -> !x.toFile().getPath().contains("round"))
-                    .filter(x -> x.toFile().getName().contains(finalPozStr))                             //equalsIgnoreCase(pozStr + ".dxf"))
-                    .collect(Collectors.toList());
+            List<Path> pozPathsList = new ArrayList<>();
+
+            if (flagFolderWithDXF) {
+                pozPathsList.add(pathFolderZakaz);
+            } else {
+                pozPathsList = Files.walk(pathFolderZakaz, 4, FileVisitOption.FOLLOW_LINKS)
+                        .filter(Files::isRegularFile)
+                        .filter(x -> x.toFile().getName().endsWith(".dxf"))
+                        .filter(x -> !x.toFile().getPath().contains("round"))
+                        .filter(x -> x.toFile().getName().contains(finalPozStr))                             //equalsIgnoreCase(pozStr + ".dxf"))
+                        .collect(Collectors.toList());
+            }
 
             if (pozPathsList.size() == 0) {
                 List<String> spisokPozUmarki = mapParsingPDF.get(pozStr);
@@ -1077,8 +1087,8 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                     String poz = null;
 // LP-1103_03186А
 // 1859-x12x110
-                    if( spisokPozUmarki.size() == 1){
-                        poz = spisokPozUmarki.get(0).split("-")[0];
+                    if (spisokPozUmarki.size() == 1) {
+                        poz = spisokPozUmarki.get(0).split("@")[0];
                     } else {
                         for (String pozSpisok : spisokPozUmarki) {
                             if (!equalsGabariti(pozSpisok, listPoz)) {
@@ -1088,13 +1098,13 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                             break;
                         }
                     }
-                        String finalPoz = poz;
-                        pozPathsList = Files.walk(pathFolderZakaz, 4, FileVisitOption.FOLLOW_LINKS)
-                                .filter(Files::isRegularFile)
-                                .filter(x -> x.toFile().getName().endsWith(".dxf"))
-                                .filter(x -> !x.toFile().getPath().contains("round"))
-                                .filter(x -> x.toFile().getName().contains(finalPoz))                             //equalsIgnoreCase(pozStr + ".dxf"))
-                                .collect(Collectors.toList());
+                    String finalPoz = poz;
+                    pozPathsList = Files.walk(pathFolderZakaz, 4, FileVisitOption.FOLLOW_LINKS)
+                            .filter(Files::isRegularFile)
+                            .filter(x -> x.toFile().getName().endsWith(".dxf"))
+                            .filter(x -> !x.toFile().getPath().contains("round"))
+                            .filter(x -> x.toFile().getName().contains(finalPoz))                             //equalsIgnoreCase(pozStr + ".dxf"))
+                            .collect(Collectors.toList());
 //                        if (pozPathsList.size() != 0) {
 //                            break;
 //                        }
@@ -1172,7 +1182,11 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 //                        writer.close();
 //                    }
 
+                // todo    fastMethod
 
+                if (flagFolderWithDXF) {
+                    pathFolderPoz = pozPathsList.get(0);
+                }
                 fastMethod(pathFolderPoz, listPoz, strZakaz, zak);
 
 
@@ -1226,8 +1240,33 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                     }
                     if (listPoz.size() != 0) {
                         for (String str : listPoz) {
-                            str = str.split("_")[0];
+                            //   str = str.split("_")[0];
                             listPozNeNashel.add(str);
+
+
+                            //todo   NE nashel
+                            if (checkbox2.isSelected()) {
+                                poz = str.split("_")[0];
+                                kolvoPoz = Integer.parseInt(str.split("_")[3]);
+                                gabaritCSV = str.split("_")[2];
+
+
+                                gabaritCSV = gabaritCSV.replace("Лист чечевич. В-К-ПУ ", "").replace("х", "x");
+                                File fileInFolderDXF;
+                                if (identicalPozAndInv.add(poz)) {
+                                    fileInFolderDXF = new File(pathDXF + poz + ".dxf");
+                                } else {
+                                    fileInFolderDXF = new File(pathDXF + poz + "_" + zakaz + ".dxf");
+                                }
+                                addToFileORD(fileInFolderDXF.getName());
+
+                                //  сюда нужен метод который рисует файл в папке DX
+                                createDXF(fileInFolderDXF, str.split("_")[2]);
+                                // clearDXF(fileInFolderDXF.toString());
+                                prepareMark(fileInFolderDXF.toString());
+                            }
+
+
                         }
                     }
 
@@ -1235,7 +1274,6 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
             } else {
 
                 //   mapParsingPDF.put("Lp-1001","12885");   //     udalit  stroku   for  proverki  raboti
-
                 //  readPDF(listNamePozicii, textAreaPDF);
 
                 List<String> codPoz = null;
@@ -1300,6 +1338,253 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
         }      // setZakaz
     }
 
+    private void createDXF(File fileInFolderDXF, String gabarit) throws IOException {
+//      St
+        gabarit = gabarit.replace("х", "x");
+        String[] mas = gabarit.split("x");
+
+        Files.writeString(
+                //  Paths.get("c:\\Users\\alexx.STALMOST\\Desktop\\vozvrat.dxf"),
+                fileInFolderDXF.toPath(),
+                sapog(mas[1], mas[2]),
+                Charset.forName("windows-1251")
+        );
+
+
+    }
+
+    private String sapog(String razmerA, String razmerB) {
+
+        razmerA = String.valueOf(Double.parseDouble(razmerA));
+        razmerB = String.valueOf(Double.parseDouble(razmerB));
+
+        String str = "0\r\n" +
+                "SECTION\r\n" +
+                "2\r\n" +
+                "HEADER\r\n" +
+                "9\r\n" +
+                "$PDMODE\r\n" +
+                "70\r\n" +
+                "33\r\n" +
+                "9\r\n" +
+                "$PDSIZE\r\n" +
+                "40\r\n" +
+                "1.000\r\n" +
+                "9\r\n" +
+                "$EXTMIN\r\n" +
+                "10\r\n" +
+                "-18.000\r\n" +
+                "20\r\n" +
+                "-14.000\r\n" +
+                "30\r\n" +
+                "-1.000\r\n" +
+                "9\r\n" +
+                "$EXTMAX\r\n" +
+                "10\r\n" +
+                "198.000\r\n" +
+                "20\r\n" +
+                "154.000\r\n" +
+                "30\r\n" +
+                "1.000\r\n" +
+                "9\r\n" +
+                "$LIMMIN\r\n" +
+                "10\r\n" +
+                "-18.000\r\n" +
+                "20\r\n" +
+                "-14.000\r\n" +
+                "9\r\n" +
+                "$LIMMAX\r\n" +
+                "10\r\n" +
+                "198.000\r\n" +
+                "20\r\n" +
+                "154.000\r\n" +
+                "0\r\n" +
+                "ENDSEC\r\n" +
+                "0\r\n" +
+                "SECTION\r\n" +
+                "2\r\n" +
+                "TABLES\r\n" +
+                "0\r\n" +
+                "TABLE\r\n" +
+                "2\r\n" +
+                "LAYER\r\n" +
+                "70\r\n" +
+                "7\r\n" +
+                "0\r\n" +
+                "LAYER\r\n" +
+                "2\r\n" +
+                "0\r\n" +
+                "70\r\n" +
+                "0\r\n" +
+                "62\r\n" +
+                "7\r\n" +
+                "6\r\n" +
+                "CONTINUOUS\r\n" +
+                "0\r\n" +
+                "ENDTAB\r\n" +
+                "0\r\n" +
+                "TABLE\r\n" +
+                "2\r\n" +
+                "VPORT\r\n" +
+                "70\r\n" +
+                "4\r\n" +
+                "0\r\n" +
+                "VPORT\r\n" +
+                "2\r\n" +
+                "*ACTIVE\r\n" +
+                "70\r\n" +
+                "0\r\n" +
+                "10\r\n" +
+                "0.000000\r\n" +
+                "20\r\n" +
+                "0.000000\r\n" +
+                "11\r\n" +
+                "1.000000\r\n" +
+                "21\r\n" +
+                "1.000000\r\n" +
+                "12\r\n" +
+                "90.000000\r\n" +
+                "22\r\n" +
+                "70.000000\r\n" +
+                "13\r\n" +
+                "0.000000\r\n" +
+                "23\r\n" +
+                "0.000000\r\n" +
+                "14\r\n" +
+                "1.000000\r\n" +
+                "24\r\n" +
+                "1.000000\r\n" +
+                "15\r\n" +
+                "1.000000\r\n" +
+                "25\r\n" +
+                "1.000000\r\n" +
+                "16\r\n" +
+                "0.000000\r\n" +
+                "26\r\n" +
+                "0.000000\r\n" +
+                "36\r\n" +
+                "1.000000\r\n" +
+                "17\r\n" +
+                "0.000000\r\n" +
+                "27\r\n" +
+                "0.000000\r\n" +
+                "37\r\n" +
+                "0.000000\r\n" +
+                "40\r\n" +
+                "180.000000\r\n" +
+                "41\r\n" +
+                "1.500000\r\n" +
+                "42\r\n" +
+                "50.000000\r\n" +
+                "43\r\n" +
+                "0.000000\r\n" +
+                "44\r\n" +
+                "0.000000\r\n" +
+                "50\r\n" +
+                "0.000000\r\n" +
+                "51\r\n" +
+                "0.000000\r\n" +
+                "71\r\n" +
+                "0\r\n" +
+                "72\r\n" +
+                "100\r\n" +
+                "73\r\n" +
+                "1\r\n" +
+                "74\r\n" +
+                "1\r\n" +
+                "75\r\n" +
+                "0\r\n" +
+                "76\r\n" +
+                "0\r\n" +
+                "77\r\n" +
+                "0\r\n" +
+                "78\r\n" +
+                "0\r\n" +
+                "0\r\n" +
+                "ENDTAB\r\n" +
+                "0\r\n" +
+                "ENDSEC\r\n" +
+                "0\r\n" +
+                "SECTION\r\n" +
+                "2\r\n" +
+                "ENTITIES\r\n" +
+                "0\r\n" +
+                "POLYLINE\r\n" +
+                "8\r\n" +
+                "0\r\n" +
+                "6\r\n" +
+                "CONTINUOUS\r\n" +
+                "62\r\n" +
+                "7\r\n" +
+                "66\r\n" +
+                "1\r\n" +
+                "10\r\n" +
+                "0.000\r\n" +
+                "20\r\n" +
+                "0.000\r\n" +
+                "30\r\n" +
+                "0.000\r\n" +
+                "70\r\n" +
+                "1\r\n" +
+                "0\r\n" +
+                "VERTEX\r\n" +
+                "8\r\n" +
+                "0\r\n" +
+                "10\r\n" +
+                "0.000\r\n" +
+                "20\r\n" +
+                "0.000\r\n" +
+                "30\r\n" +
+                "0.000\r\n" +
+                "42\r\n" +
+                "0.00000000\r\n" +
+                "0\r\n" +
+                "VERTEX\r\n" +
+                "8\r\n" +
+                "0\r\n" +
+                "10\r\n" +
+                "0.000\r\n" +
+                "20\r\n" +
+                razmerA + "\r\n" +
+                "30\r\n" +
+                "0.000\r\n" +
+                "42\r\n" +
+                "0.00000000\r\n" +
+                "0\r\n" +
+                "VERTEX\r\n" +
+                "8\r\n" +
+                "0\r\n" +
+                "10\r\n" +
+                razmerB + "\r\n" +
+                "20\r\n" +
+                razmerA + "\r\n" +
+                "30\r\n" +
+                "0.000\r\n" +
+                "42\r\n" +
+                "0.00000000\r\n" +
+                "0\r\n" +
+                "VERTEX\r\n" +
+                "8\r\n" +
+                "0\r\n" +
+                "10\r\n" +
+                razmerB + "\r\n" +
+                "20\r\n" +
+                "0.000\r\n" +
+                "30\r\n" +
+                "0.000\r\n" +
+                "42\r\n" +
+                "0.00000000\r\n" +
+                "0\r\n" +
+                "SEQEND\r\n" +
+                "0\r\n" +
+                "ENDSEC\r\n" +
+                "0\r\n" +
+                "EOF\r\n";
+
+        return str;
+    }
+
+
     private boolean equalsGabariti(String poz, List<String> listPoz) {
 
         for (String str : listPoz) {
@@ -1308,7 +1593,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
             if (str.contains(tmpStr)) {
                 return true;
             }
-            if(tmpStr.equals("nullxnull")){
+            if (tmpStr.equals("nullxnull")) {
                 return false;
             }
 //  str = 12x181x646
@@ -1779,8 +2064,8 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                     String pozzz = null;
 // LP-1103_03186А
 // 1859-x12x110
-                    if( spisokPozUmarki.size() == 1){
-                        pozzz = spisokPozUmarki.get(0).split("-")[0];
+                    if (spisokPozUmarki.size() == 1) {
+                        pozzz = spisokPozUmarki.get(0).split("@")[0];
                     } else {
                         for (String pozSpisok : spisokPozUmarki) {
                             if (!equalsGabariti(pozSpisok, listPoz)) {
@@ -1791,34 +2076,32 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                         }
                     }
 
-                  //  for (String pozzz : spisokPozUmarki) {
-
-
+                    //  for (String pozzz : spisokPozUmarki) {
 
 
 //                        if (!equalsGabariti(pozzz, listPoz)) {
 //                            continue;
 //                        }
-                      //  pozzz = pozzz.split("-")[0];
+                    //  pozzz = pozzz.split("-")[0];
 
 
-                        if (pozzz.equals("")) {
-                            continue;
-                        }
-                        File pathFilePoz = new File(path + "\\" + pozzz + ".dxf");
-                        if (!pathFilePoz.exists()) {
-                            // textArea.append("позиция (" + poz + " -> " + pozzz + " не найдена\n");
-                            continue;
-                        } else {
-
-                            copyFileToDxfFolder(delListOnInv, strInvOrZakaz, pathFilePoz, it, zakOrInv);
-                            // mapParsingPDF.remove(keyMap, sss);
-                           // break;
-                        }
-
-
+                    if (pozzz.equals("")) {
+                        continue;
                     }
-               // }
+                    File pathFilePoz = new File(path + "\\" + pozzz + ".dxf");
+                    if (!pathFilePoz.exists()) {
+                        // textArea.append("позиция (" + poz + " -> " + pozzz + " не найдена\n");
+                        continue;
+                    } else {
+
+                        copyFileToDxfFolder(delListOnInv, strInvOrZakaz, pathFilePoz, it, zakOrInv);
+                        // mapParsingPDF.remove(keyMap, sss);
+                        // break;
+                    }
+
+
+                }
+                // }
 
             }
 
@@ -2008,8 +2291,11 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
         breakMidlePartOnEntityes(masStrok[1]);
 
         gabaritPolyline = new StringBuilder();
+
         double[] gabaritPoz = getGabaritPosition();
+
         checkGabarit(gabaritPoz);
+
 
         double dlinnaPoz = Math.abs(gabaritPoz[1] - gabaritPoz[0]);
 
@@ -2350,7 +2636,7 @@ Y=−1 * (x)
     private void checkGabarit(double[] gabaritPoz) {
         int shirinaCSV;
         int dlinnaСSV;
-
+        gabaritCSV = gabaritCSV.replace("х", "x");
         long count = gabaritCSV.chars().filter(ch -> ch == 'x').count();
         if (count == 1) {
             shirinaCSV = Integer.parseInt(gabaritCSV.split("x")[0]);
@@ -2390,11 +2676,25 @@ Y=−1 * (x)
 
             int max = (int) Math.max(dX, dY);
             // textArea.append( zakaz +"_" + poz + "    (" + deltaY + " ; " + deltaX + " )                        (" + dY + " ; " + dX + " )\n")
+// todo  USADKA
+
+            boolean usadka = false;
+            if (dlinnaСSV > dlinnaPoz && dX > 1 && dlinnaPoz > 1500) {      //  длинна позиции должна быть больше 1500 мм
+                usadka(dX, dlinnaPoz);
+                usadka = true;
+            }
+
 
             if (dY == 0 && dX == 0) {
                 textArea.append(++countNashel + " )         " + zakaz + " _ " + poz);      //+ "\n");
             } else {
-                textArea.append(++countNashel + " )         " + zakaz + " _ " + poz + "      - " + max        /*"     (" + dY + " ; " + dX + " )"*/);     //\n");
+                textArea.append(++countNashel + " )         " + zakaz + " _ " + poz);   // "      - " + max        /*"     (" + dY + " ; " + dX + " )"*/);     //\n");
+            if (usadka){
+                textArea.append("          (MOS="+ (int)dlinnaPoz + ")(ARM="+(int)dlinnaСSV+")   усадка " + (int)dX +" мм.");
+            }else {
+                textArea.append("      - " + max );
+            }
+
             }
 
 
@@ -2416,6 +2716,74 @@ Y=−1 * (x)
             panel.revalidate();
 
         }
+    }
+
+    private void usadka(double dX, double dlinnaPoz) {
+
+        for (int i = 0; i < entityies.size(); i++) {
+
+            if (entityies.get(i).contains("POLYLINE")) {
+                String poly = entityies.get(i);
+                String[] poly2 = poly.split("VERTEX");
+
+                for (int j = 1; j < poly2.length ; j++) {
+                    int indexBeginX = poly2[j].indexOf("\r\n10\r\n") ;
+                   int indexBeginY = poly2[j].indexOf("\r\n20\r\n", indexBeginX);
+                    String strValue = poly2[j].substring(indexBeginX, indexBeginY).replace("\r\n10\r\n","");
+                    System.out.println(strValue);
+double delta = Double.parseDouble(strValue)/dlinnaPoz;
+double newValue = Double.parseDouble(strValue) + dX * delta;
+String stoka1 = poly2[j].substring(0, indexBeginX);
+                    stoka1 = stoka1.concat("\r\n10\r\n");
+String stroka2 = poly2[j].substring( indexBeginY, poly2[j].length() );
+String strokaSum = stoka1 + String.valueOf(newValue) + stroka2;
+                    poly2[j] = strokaSum;
+                }
+
+                String result = String.join("VERTEX", poly2);
+               // entityies.set(i) = result;
+                entityies.set(i, result);
+            }
+
+            //0
+            //CIRCLE
+            //5
+            //CC
+            //8
+            //0
+            //10
+            //519.99
+            //20
+            //110.01
+            //30
+            //0.0
+            //40
+            //7.5
+
+
+
+            if (entityies.get(i).contains("CIRCLE")) {
+                String cir = entityies.get(i);
+
+                int indexBeginX = cir.indexOf("\r\n10\r\n") ;
+                int indexBeginY = cir.indexOf("\r\n20\r\n", indexBeginX);
+                String strValue = cir.substring(indexBeginX, indexBeginY).replace("\r\n10\r\n","");
+                     System.out.print(strValue);
+                double delta = Double.parseDouble(strValue)/dlinnaPoz;
+                double newValue = Double.parseDouble(strValue) + dX * delta;
+                          System.out.print("---->");
+                        System.out.println(newValue);
+                String stoka1 = cir.substring(0, indexBeginX);
+                stoka1 = stoka1.concat("\r\n10\r\n");
+                String stroka2 = cir.substring( indexBeginY, cir.length() );
+                String strokaSum = stoka1 + String.valueOf(newValue) + stroka2;
+               // cir = strokaSum;
+                entityies.set(i, strokaSum );
+            }
+
+        }
+
+
     }
 
     private String viewGabaritPolyline() {
@@ -2938,8 +3306,8 @@ Y=−1 * (x)
                         if (countPolyline != 1) {
                             listPointsPolyline.add((int) y);
                         }
-                        masVertex[i] = masVertex[i].replace(strX, String.valueOf(x));
-                        masVertex[i] = masVertex[i].replace(strY, String.valueOf(y));
+                        masVertex[i] = masVertex[i].replace("\r\n" + strX + "\r\n", "\r\n"+ String.valueOf(x) + "\r\n");
+                        masVertex[i] = masVertex[i].replace("\r\n" + strY + "\r\n", "\r\n"+ String.valueOf(y) + "\r\n");
                     } else if (masVertex[i].contains("\r\n42\r\n")) {
 
                         int beginZ = masVertex[i].indexOf("\r\n42\r\n", beginY);
@@ -2951,8 +3319,8 @@ Y=−1 * (x)
                             listPointsPolyline.add((int) y);
                         }
 
-                        masVertex[i] = masVertex[i].replace(strX, String.valueOf(x));
-                        masVertex[i] = masVertex[i].replace(strY, String.valueOf(y));
+                        masVertex[i] = masVertex[i].replace("\r\n" + strX + "\r\n", "\r\n"+ String.valueOf(x) + "\r\n");
+                        masVertex[i] = masVertex[i].replace("\r\n" + strY +"\r\n", "\r\n" + String.valueOf(y) + "\r\n");
 
                     } else {
                         int beginZ = masVertex[i].indexOf("\r\n0\r\n", beginY);
@@ -2963,8 +3331,8 @@ Y=−1 * (x)
                         if (countPolyline != 1) {
                             listPointsPolyline.add((int) y);
                         }
-                        masVertex[i] = masVertex[i].replace(strX, String.valueOf(x));
-                        masVertex[i] = masVertex[i].replace(strY, String.valueOf(y));
+                        masVertex[i] = masVertex[i].replace("\r\n" + strX + "\r\n", "\r\n" +  String.valueOf(x) + "\r\n");
+                        masVertex[i] = masVertex[i].replace("\r\n" + strY + "\r\n", "\r\n" + String.valueOf(y) + "\r\n");
                     }
                     // pointsKonturList.add(new Point2D(Double.parseDouble(strX), Double.parseDouble(strY)));
                 }

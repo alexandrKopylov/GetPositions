@@ -251,7 +251,7 @@ shirina = getShirina(strokaShir);
                     cod = strokaWithGradeSteeel.substring(0, index);
                 }
             }
-cod = cod+"-"+shirina+"x"+dlinna;
+cod = cod+"@"+shirina+"x"+dlinna;
             System.out.println("COD  ===  " + cod);
             textAreaPDF.append("\nCOD  ===  " + cod);
 

@@ -22,6 +22,8 @@ public class Main {
     static String pathDXF = "c:\\Users\\alexx.STALMOST\\Desktop\\_DXF\\";
     // static Path pathDXF = Path.of("C:\\Users\\user\\Desktop\\dxf\\dxf\\dxf");
 
+   static Path pathFileNotFoundGeom = Paths.get("c:\\Users\\alexx.STALMOST\\Desktop\\Список_файлов_которых_НЕ_нашел.txt");
+
 
     static File fileCSV = new File("c:\\Users\\alexx.STALMOST\\Desktop\\ДеталиБК_все.csv");
     // static File fileCSV = new File("C:\\Users\\user\\Desktop\\dxf\\dxf\\ДеталиБК_все.csv");
@@ -36,7 +38,7 @@ public class Main {
     private static JTextArea textAreaPDF;
     private static JComboBox<String> cbThickness;
     private static JComboBox<String> cbMetalGrade;
-     static JCheckBox checkbox;
+     static JCheckBox checkbox, checkbox2;
 
     static String[] elements = {"  толщина  ", "1", "2", "2.5", "3", "4", "5", "6", "8", "10", "12", "14","15", "16", "18", "20", "22", "25", "28", "30"};
     static String[] elementsMarkGrade = {" марка стали ", "С235", "С245", "С255", "С345", "С355", "С390", "С440", "10Х2", "10Х3", "15Х2", "15Х3", "09Г2С", "Ст3"};
@@ -62,7 +64,7 @@ public class Main {
         checkbox = new JCheckBox("name only poz",true);
         panelTextFields.add(checkbox);
 
-        JLabel flagName2 = new JLabel("                    ");
+        JLabel flagName2 = new JLabel("        ");
         panelTextFields.add(flagName2);
 
 
@@ -108,6 +110,10 @@ public class Main {
 
         JButton buttonPodkroi = new JButton("Start + P");
         panelTextFields.add(buttonPodkroi);
+
+
+        checkbox2 = new JCheckBox("IF NOT",false);
+        panelTextFields.add(checkbox2);
 
 
         panel.add(panelTextFields);
@@ -225,6 +231,9 @@ public class Main {
                         for (String str : lisPozNeNashel) {
                             textArea.append(++count + " ) " + str + "\n");
                         }
+
+                        Files.write(pathFileNotFoundGeom, lisPozNeNashel, StandardCharsets.UTF_8);
+
 
                     } catch (IOException e) {
                         e.printStackTrace();
