@@ -1082,7 +1082,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 
             if (pozPathsList.size() == 0) {
                 List<String> spisokPozUmarki = mapParsingPDF.get(pozStr);
-                if (spisokPozUmarki != null) {
+                if (  spisokPozUmarki.size() !=0  ) {
 
                     String poz = null;
 // LP-1103_03186А
@@ -4218,7 +4218,7 @@ String strokaSum = stoka1 + String.valueOf(newValue) + stroka2;
         if (!tochkaVRamke) {
 
             boolean checkOutMark = checkOutOfBoundMark(new Point2D(XminRamka + (XmaxRamka - XminRamka) / 2, YmaxRamka),
-                    new Point2D(XminRamka + (XmaxRamka - XminRamka) / 2, gabaritPoz[2] - 10));
+                    new Point2D(XminRamka +50 + (XmaxRamka - XminRamka) / 2, gabaritPoz[2] - 10));
 
             if (!checkOutMark) {
                 findPlace = true;
