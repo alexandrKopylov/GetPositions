@@ -1082,7 +1082,7 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 
             if (pozPathsList.size() == 0) {
                 List<String> spisokPozUmarki = mapParsingPDF.get(pozStr);
-                if (  spisokPozUmarki.size() !=0  ) {
+                if (spisokPozUmarki.size() != 0) {
 
                     String poz = null;
 // LP-1103_03186А
@@ -2519,7 +2519,7 @@ Y=−1 * (x)
 
             height = 20;
             flag = true;
-            while (height > 10 && flag) {
+            while (height > 7 && flag) {
                 ramkaMark = defineGabaritRamkiMark(height, TypeMark.HORIZONTAL);
 
                 if (dlinnaPoz > ramkaMark.getDlinna() && shirinaPoz > ramkaMark.getShirina()) {
@@ -2543,7 +2543,7 @@ Y=−1 * (x)
                 height = 20;
                 flag = true;
 
-                while (height > 10 && flag) {
+                while (height > 7 && flag) {
                     ramkaMark = defineGabaritRamkiMark(height, TypeMark.ONLY_POZ);
 
                     if (dlinnaPoz > ramkaMark.getDlinna() && shirinaPoz > ramkaMark.getShirina()) {
@@ -2563,7 +2563,7 @@ Y=−1 * (x)
         if (!markirovkaStay) {
             height = 20;
             flag = true;
-            while (height > 10 && flag) {
+            while (height > 7 && flag) {
                 ramkaMark = defineGabaritRamkiMark(height, TypeMark.HORIZONTAL);
 
                 if (dlinnaPoz > ramkaMark.getDlinna() && shirinaPoz > ramkaMark.getShirina()) {
@@ -2589,7 +2589,7 @@ Y=−1 * (x)
             height = 20;
             flag = true;
 
-            while (height > 10 && flag) {
+            while (height > 7 && flag) {
                 ramkaMark = defineGabaritRamkiMark(height, TypeMark.ONLY_POZ);
 
                 if (dlinnaPoz > ramkaMark.getDlinna() && shirinaPoz > ramkaMark.getShirina()) {
@@ -2634,8 +2634,8 @@ Y=−1 * (x)
 
 
     private void checkGabarit(double[] gabaritPoz) {
-        int shirinaCSV;
-        int dlinnaСSV;
+        int shirinaCSV = 0;
+        int dlinnaСSV = 0;
         gabaritCSV = gabaritCSV.replace("х", "x");
         long count = gabaritCSV.chars().filter(ch -> ch == 'x').count();
         if (count == 1) {
@@ -2643,9 +2643,19 @@ Y=−1 * (x)
             // dlinnaСSV = shirinaCSV;
             textArea.append(++countNashel + " )         " + zakaz + " _ " + poz + "     ( круг D = " + shirinaCSV + " )\n");
         } else {
+           // 300x180/150/180x8x2602
 
-            shirinaCSV = Integer.parseInt(gabaritCSV.split("x")[1]);
-            dlinnaСSV = Integer.parseInt(gabaritCSV.split("x")[2]);
+            long countSlash = gabaritCSV.chars().filter(ch -> ch == '/').count();
+            if(countSlash == 2 ){
+                shirinaCSV = 0;
+                dlinnaСSV = Integer.parseInt(gabaritCSV.split("x")[3]);
+            } else {
+                shirinaCSV = Integer.parseInt(gabaritCSV.split("x")[1]);
+                dlinnaСSV = Integer.parseInt(gabaritCSV.split("x")[2]);
+            }
+
+
+
 
             if (shirinaCSV > dlinnaСSV) {
                 int tmp = shirinaCSV;
@@ -2689,11 +2699,11 @@ Y=−1 * (x)
                 textArea.append(++countNashel + " )         " + zakaz + " _ " + poz);      //+ "\n");
             } else {
                 textArea.append(++countNashel + " )         " + zakaz + " _ " + poz);   // "      - " + max        /*"     (" + dY + " ; " + dX + " )"*/);     //\n");
-            if (usadka){
-                textArea.append("          (MOS="+ (int)dlinnaPoz + ")(ARM="+(int)dlinnaСSV+")   усадка " + (int)dX +" мм.");
-            }else {
-                textArea.append("      - " + max );
-            }
+                if (usadka) {
+                    textArea.append("          (MOS=" + (int) dlinnaPoz + ")(ARM=" + (int) dlinnaСSV + ")   усадка " + (int) dX + " мм.");
+                } else {
+                    textArea.append("      - " + max);
+                }
 
             }
 
@@ -2726,22 +2736,22 @@ Y=−1 * (x)
                 String poly = entityies.get(i);
                 String[] poly2 = poly.split("VERTEX");
 
-                for (int j = 1; j < poly2.length ; j++) {
-                    int indexBeginX = poly2[j].indexOf("\r\n10\r\n") ;
-                   int indexBeginY = poly2[j].indexOf("\r\n20\r\n", indexBeginX);
-                    String strValue = poly2[j].substring(indexBeginX, indexBeginY).replace("\r\n10\r\n","");
+                for (int j = 1; j < poly2.length; j++) {
+                    int indexBeginX = poly2[j].indexOf("\r\n10\r\n");
+                    int indexBeginY = poly2[j].indexOf("\r\n20\r\n", indexBeginX);
+                    String strValue = poly2[j].substring(indexBeginX, indexBeginY).replace("\r\n10\r\n", "");
                     System.out.println(strValue);
-double delta = Double.parseDouble(strValue)/dlinnaPoz;
-double newValue = Double.parseDouble(strValue) + dX * delta;
-String stoka1 = poly2[j].substring(0, indexBeginX);
+                    double delta = Double.parseDouble(strValue) / dlinnaPoz;
+                    double newValue = Double.parseDouble(strValue) + dX * delta;
+                    String stoka1 = poly2[j].substring(0, indexBeginX);
                     stoka1 = stoka1.concat("\r\n10\r\n");
-String stroka2 = poly2[j].substring( indexBeginY, poly2[j].length() );
-String strokaSum = stoka1 + String.valueOf(newValue) + stroka2;
+                    String stroka2 = poly2[j].substring(indexBeginY, poly2[j].length());
+                    String strokaSum = stoka1 + String.valueOf(newValue) + stroka2;
                     poly2[j] = strokaSum;
                 }
 
                 String result = String.join("VERTEX", poly2);
-               // entityies.set(i) = result;
+                // entityies.set(i) = result;
                 entityies.set(i, result);
             }
 
@@ -2761,24 +2771,23 @@ String strokaSum = stoka1 + String.valueOf(newValue) + stroka2;
             //7.5
 
 
-
             if (entityies.get(i).contains("CIRCLE")) {
                 String cir = entityies.get(i);
 
-                int indexBeginX = cir.indexOf("\r\n10\r\n") ;
+                int indexBeginX = cir.indexOf("\r\n10\r\n");
                 int indexBeginY = cir.indexOf("\r\n20\r\n", indexBeginX);
-                String strValue = cir.substring(indexBeginX, indexBeginY).replace("\r\n10\r\n","");
-                     System.out.print(strValue);
-                double delta = Double.parseDouble(strValue)/dlinnaPoz;
+                String strValue = cir.substring(indexBeginX, indexBeginY).replace("\r\n10\r\n", "");
+                System.out.print(strValue);
+                double delta = Double.parseDouble(strValue) / dlinnaPoz;
                 double newValue = Double.parseDouble(strValue) + dX * delta;
-                          System.out.print("---->");
-                        System.out.println(newValue);
+                System.out.print("---->");
+                System.out.println(newValue);
                 String stoka1 = cir.substring(0, indexBeginX);
                 stoka1 = stoka1.concat("\r\n10\r\n");
-                String stroka2 = cir.substring( indexBeginY, cir.length() );
+                String stroka2 = cir.substring(indexBeginY, cir.length());
                 String strokaSum = stoka1 + String.valueOf(newValue) + stroka2;
-               // cir = strokaSum;
-                entityies.set(i, strokaSum );
+                // cir = strokaSum;
+                entityies.set(i, strokaSum);
             }
 
         }
@@ -3306,8 +3315,8 @@ String strokaSum = stoka1 + String.valueOf(newValue) + stroka2;
                         if (countPolyline != 1) {
                             listPointsPolyline.add((int) y);
                         }
-                        masVertex[i] = masVertex[i].replace("\r\n" + strX + "\r\n", "\r\n"+ String.valueOf(x) + "\r\n");
-                        masVertex[i] = masVertex[i].replace("\r\n" + strY + "\r\n", "\r\n"+ String.valueOf(y) + "\r\n");
+                        masVertex[i] = masVertex[i].replace("\r\n" + strX + "\r\n", "\r\n" + String.valueOf(x) + "\r\n");
+                        masVertex[i] = masVertex[i].replace("\r\n" + strY + "\r\n", "\r\n" + String.valueOf(y) + "\r\n");
                     } else if (masVertex[i].contains("\r\n42\r\n")) {
 
                         int beginZ = masVertex[i].indexOf("\r\n42\r\n", beginY);
@@ -3319,8 +3328,8 @@ String strokaSum = stoka1 + String.valueOf(newValue) + stroka2;
                             listPointsPolyline.add((int) y);
                         }
 
-                        masVertex[i] = masVertex[i].replace("\r\n" + strX + "\r\n", "\r\n"+ String.valueOf(x) + "\r\n");
-                        masVertex[i] = masVertex[i].replace("\r\n" + strY +"\r\n", "\r\n" + String.valueOf(y) + "\r\n");
+                        masVertex[i] = masVertex[i].replace("\r\n" + strX + "\r\n", "\r\n" + String.valueOf(x) + "\r\n");
+                        masVertex[i] = masVertex[i].replace("\r\n" + strY + "\r\n", "\r\n" + String.valueOf(y) + "\r\n");
 
                     } else {
                         int beginZ = masVertex[i].indexOf("\r\n0\r\n", beginY);
@@ -3331,7 +3340,7 @@ String strokaSum = stoka1 + String.valueOf(newValue) + stroka2;
                         if (countPolyline != 1) {
                             listPointsPolyline.add((int) y);
                         }
-                        masVertex[i] = masVertex[i].replace("\r\n" + strX + "\r\n", "\r\n" +  String.valueOf(x) + "\r\n");
+                        masVertex[i] = masVertex[i].replace("\r\n" + strX + "\r\n", "\r\n" + String.valueOf(x) + "\r\n");
                         masVertex[i] = masVertex[i].replace("\r\n" + strY + "\r\n", "\r\n" + String.valueOf(y) + "\r\n");
                     }
                     // pointsKonturList.add(new Point2D(Double.parseDouble(strX), Double.parseDouble(strY)));
@@ -3692,58 +3701,141 @@ String strokaSum = stoka1 + String.valueOf(newValue) + stroka2;
 //                    otvZvezdoy = true;
 //                }
 
+                // массив точек вершин полилинии нужен для второго массива
+                Point2D[] tmpMasPoint = new Point2D[masVertex.length];
                 for (int i = 1; i < masVertex.length; i++) {
                     int beginX = masVertex[i].indexOf("\r\n10\r\n");
                     int beginY = masVertex[i].indexOf("\r\n20\r\n", beginX);
                     String strX = masVertex[i].substring(beginX, beginY).replace("\r\n10\r\n", "");
+                    String strY;
+                    Point2D point;
                     if (masVertex[i].contains("\r\n30\r\n")) {
                         int beginZ = masVertex[i].indexOf("\r\n30\r\n", beginY);
-                        String strY = masVertex[i].substring(beginY, beginZ).replace("\r\n20\r\n", "");
-                        point2DList.add(new Point2D(Double.parseDouble(strX), Double.parseDouble(strY)));
+                        strY = masVertex[i].substring(beginY, beginZ).replace("\r\n20\r\n", "");
+                        point = new Point2D(Double.parseDouble(strX), Double.parseDouble(strY));
+                        // point2DList.add(point);
+                        tmpMasPoint[i] = point;
                     } else if (masVertex[i].contains("\r\n42\r\n")) {
                         int beginZ = masVertex[i].indexOf("\r\n42\r\n", beginY);
-                        String strY = masVertex[i].substring(beginY, beginZ).replace("\r\n20\r\n", "");
-                        point2DList.add(new Point2D(Double.parseDouble(strX), Double.parseDouble(strY)));
+                        strY = masVertex[i].substring(beginY, beginZ).replace("\r\n20\r\n", "");
+                        point = new Point2D(Double.parseDouble(strX), Double.parseDouble(strY));
+                        // point2DList.add(point);
+                        tmpMasPoint[i] = point;
                     } else {
                         int beginZ = masVertex[i].indexOf("\r\n0\r\n", beginY);
-                        String strY = masVertex[i].substring(beginY, beginZ).replace("\r\n20\r\n", "");
-                        point2DList.add(new Point2D(Double.parseDouble(strX), Double.parseDouble(strY)));
+                        strY = masVertex[i].substring(beginY, beginZ).replace("\r\n20\r\n", "");
+                        point = new Point2D(Double.parseDouble(strX), Double.parseDouble(strY));
+                        // point2DList.add(point);
+                        tmpMasPoint[i] = point;
                     }
                 }
-                if (countPOLYLINE > 1 && masVertex.length >= 5) {
-                    otvZvezdoy = isOtvZvezdoy(point2DList);
-                }
-                if (countPOLYLINE > 1) {
 
-                    //  if (otvZvezdoy) {
-                    neskolkoPOLYLINE = true;
-                    //  }
+                // определяем направление полилинии {по часовай - false, против часовой - true }
+              // boolean directionPplylineClock = onClock (tmpMasPoint);
 
+
+                for (int i = 1; i < masVertex.length; i++) {
+                    int beginX = masVertex[i].indexOf("\r\n10\r\n");
+                    int beginY = masVertex[i].indexOf("\r\n20\r\n", beginX);
+                    String strX = masVertex[i].substring(beginX, beginY).replace("\r\n10\r\n", "");
+                    String strY;
+                    Point2D point;
+                    if (masVertex[i].contains("\r\n30\r\n")) {
+                        int beginZ = masVertex[i].indexOf("\r\n30\r\n", beginY);
+                        strY = masVertex[i].substring(beginY, beginZ).replace("\r\n20\r\n", "");
+                        point = new Point2D(Double.parseDouble(strX), Double.parseDouble(strY));
+                        point2DList.add(point);
+                    } else if (masVertex[i].contains("\r\n42\r\n")) {
+                        int beginZ = masVertex[i].indexOf("\r\n42\r\n", beginY);
+                        strY = masVertex[i].substring(beginY, beginZ).replace("\r\n20\r\n", "");
+                        point = new Point2D(Double.parseDouble(strX), Double.parseDouble(strY));
+                        point2DList.add(point);
+                    } else {
+                        int beginZ = masVertex[i].indexOf("\r\n0\r\n", beginY);
+                        strY = masVertex[i].substring(beginY, beginZ).replace("\r\n20\r\n", "");
+                        point = new Point2D(Double.parseDouble(strX), Double.parseDouble(strY));
+                        point2DList.add(point);
+                    }
+
+                    if (masVertex[i].contains("\r\n42\r\n")) {
+                        int beginBulge = masVertex[i].indexOf("\r\n42\r\n");
+                        int endBulge = masVertex[i].indexOf("\r\n0\r\n", beginBulge);
+                        String bulgeTxt = masVertex[i].substring(beginBulge, endBulge).replace("\r\n42\r\n", "");
+                        Double bulge = Double.parseDouble(bulgeTxt);
+
+
+                        /// todo найти точки на дуге
+                        // хотел найти точки на дуге
+
+                        if (bulge != 0.0) {
+                         //   List<Point2D> list = getPointsOnArc( point, tmpMasPoint[i+1], bulge, directionPplylineClock);
+                          //  point2DList.addAll(list);
+                        }
+                    }
                 }
-                listKontur.add(point2DList);
+
+
+
+                    if (countPOLYLINE > 1 && masVertex.length >= 5) {
+                        otvZvezdoy = isOtvZvezdoy(point2DList);
+                    }
+                    if (countPOLYLINE > 1) {
+                        neskolkoPOLYLINE = true;
+                    }
+                    listKontur.add(point2DList);
+                }
             }
-        }
 
-        // todo do circle
-        if (listKontur.size() == 0) {
-            getPointsFromCircle();
-            double Xmin = listPointInsidePoz.get(0).getX();
-            double Xmax = listPointInsidePoz.get(0).getX();
-            double Ymin = listPointInsidePoz.get(0).getY();
-            double Ymax = listPointInsidePoz.get(0).getY();
+            // todo do circle
+            if (listKontur.size() == 0) {
+                getPointsFromCircle();
+                double Xmin = listPointInsidePoz.get(0).getX();
+                double Xmax = listPointInsidePoz.get(0).getX();
+                double Ymin = listPointInsidePoz.get(0).getY();
+                double Ymax = listPointInsidePoz.get(0).getY();
 
-            for (Point2D point2D : listPointInsidePoz) {
-                if (point2D.getX() < Xmin) {
-                    Xmin = point2D.getX();
+                for (Point2D point2D : listPointInsidePoz) {
+                    if (point2D.getX() < Xmin) {
+                        Xmin = point2D.getX();
+                    }
+                    if (point2D.getX() > Xmax) {
+                        Xmax = point2D.getX();
+                    }
+                    if (point2D.getY() > Ymax) {
+                        Ymax = point2D.getY();
+                    }
+                    if (point2D.getY() < Ymin) {
+                        Ymin = point2D.getY();
+                    }
                 }
-                if (point2D.getX() > Xmax) {
-                    Xmax = point2D.getX();
-                }
-                if (point2D.getY() > Ymax) {
-                    Ymax = point2D.getY();
-                }
-                if (point2D.getY() < Ymin) {
-                    Ymin = point2D.getY();
+                double[] res = new double[4];
+                res[0] = Xmin;
+                res[1] = Xmax;
+                res[2] = Ymin;
+                res[3] = Ymax;
+                return res;
+            }
+
+
+            double Xmin = listKontur.get(0).get(0).getX();
+            double Xmax = listKontur.get(0).get(0).getX();
+            double Ymin = listKontur.get(0).get(0).getY();
+            double Ymax = listKontur.get(0).get(0).getY();
+
+            for (List<Point2D> pointsKonturList : listKontur) {
+                for (Point2D point2D : pointsKonturList) {
+                    if (point2D.getX() < Xmin) {
+                        Xmin = point2D.getX();
+                    }
+                    if (point2D.getX() > Xmax) {
+                        Xmax = point2D.getX();
+                    }
+                    if (point2D.getY() > Ymax) {
+                        Ymax = point2D.getY();
+                    }
+                    if (point2D.getY() < Ymin) {
+                        Ymin = point2D.getY();
+                    }
                 }
             }
             double[] res = new double[4];
@@ -3751,142 +3843,410 @@ String strokaSum = stoka1 + String.valueOf(newValue) + stroka2;
             res[1] = Xmax;
             res[2] = Ymin;
             res[3] = Ymax;
+
+
+            for (List<Point2D> pointsKonturList : listKontur) {
+                Point2D pointBeginLine = pointsKonturList.get(0);
+                for (int i = 1; i < pointsKonturList.size(); i++) {
+                    Point2D pointEndLine = pointsKonturList.get(i);
+                    if (!isGabaritLine(pointBeginLine, pointEndLine, Xmin, Xmax, Ymin, Ymax)) {
+                        //  System.out.println(pointBeginLine + " and " + pointEndLine + " no gabarit line");
+                        breakNoGabaritLineOnPoints(pointEndLine, pointBeginLine, breakLinesLenght);
+                        //  System.out.println();
+                    } else {
+                        //  System.out.println(pointBeginLine + " and " + pointEndLine + " === gabarit line");
+                        //  System.out.println();
+                        //   boolean isLineGorizontGabarit = (beginLine.getY() == endLine.getY()) && (beginLine.getY() == Ymin || beginLine.getY() == Ymax);
+                        getLenghtDownAndUpLines(Ymin, Ymax, pointBeginLine, pointEndLine);
+                    }
+                    pointBeginLine = pointEndLine;
+                }
+
+                // линия между конечной и нулевой точками в списке point2DList
+                pointBeginLine = pointsKonturList.get(pointsKonturList.size() - 1);
+                Point2D endLine = pointsKonturList.get(0);
+                if (!isGabaritLine(pointBeginLine, endLine, Xmin, Xmax, Ymin, Ymax)) {
+                    // System.out.println(pointBeginLine + " and " + endLine + " no gabarit line");
+                    breakNoGabaritLineOnPoints(endLine, pointBeginLine, breakLinesLenght);
+                    //System.out.println();
+                } else {
+                    // System.out.println(pointBeginLine + " and " + endLine + " === gabarit line");
+                    //System.out.println();
+
+                    getLenghtDownAndUpLines(Ymin, Ymax, pointBeginLine, endLine);
+                }
+            }
+            getPointsFromCircle();
             return res;
         }
 
+    private boolean onClock(Point2D[] tmpMasPoint) {
 
-        double Xmin = listKontur.get(0).get(0).getX();
-        double Xmax = listKontur.get(0).get(0).getX();
-        double Ymin = listKontur.get(0).get(0).getY();
-        double Ymax = listKontur.get(0).get(0).getY();
-
-        for (List<Point2D> pointsKonturList : listKontur) {
-            for (Point2D point2D : pointsKonturList) {
-                if (point2D.getX() < Xmin) {
-                    Xmin = point2D.getX();
-                }
-                if (point2D.getX() > Xmax) {
-                    Xmax = point2D.getX();
-                }
-                if (point2D.getY() > Ymax) {
-                    Ymax = point2D.getY();
-                }
-                if (point2D.getY() < Ymin) {
-                    Ymin = point2D.getY();
-                }
+        /**
+         * Определяет направление обхода замкнутой полилинии.
+         * @param vertices Список точек полилинии (должна быть замкнута или подразумевается замыкание)
+         * @return true, если направление против часовой стрелки (CCW), иначе false (CW)
+         */
+        List<Point2D> vertices = new ArrayList<>();
+        for (int i = 0; i < tmpMasPoint.length ; i++) {
+            if (tmpMasPoint[i] != null){
+                vertices.add(tmpMasPoint[i]);
             }
         }
-        double[] res = new double[4];
-        res[0] = Xmin;
-        res[1] = Xmax;
-        res[2] = Ymin;
-        res[3] = Ymax;
+        System.out.println("tmpMasPoint.lrngth = " + tmpMasPoint.length );
+        for (int i = 0; i <tmpMasPoint.length ; i++) {
+            System.out.println(tmpMasPoint[i]);
+        }
+        System.out.println("vertices.size() = " + vertices.size() );
+        System.out.println(vertices);
+        if (vertices == null || vertices.size() < 3) {
+            throw new IllegalArgumentException("Полилиния должна содержать не менее 3 точек");
+        }
+
+        double area = 0.0;
+        int n = vertices.size();
+
+        for (int i = 0; i < n; i++) {
+            Point2D p1 = vertices.get(i);
+            Point2D p2 = vertices.get((i + 1) % n); // следующая точка (с заворотом на первую)
+            area += (p1.getX() * p2.getY() - p2.getX() * p1.getY());
+        }
+
+        // Площадь не нормализуется — важен только знак
+        return area > 0;
+    }
 
 
-        for (List<Point2D> pointsKonturList : listKontur) {
-            Point2D pointBeginLine = pointsKonturList.get(0);
-            for (int i = 1; i < pointsKonturList.size(); i++) {
-                Point2D pointEndLine = pointsKonturList.get(i);
-                if (!isGabaritLine(pointBeginLine, pointEndLine, Xmin, Xmax, Ymin, Ymax)) {
-                    //  System.out.println(pointBeginLine + " and " + pointEndLine + " no gabarit line");
-                    breakNoGabaritLineOnPoints(pointEndLine, pointBeginLine, breakLinesLenght);
-                    //  System.out.println();
-                } else {
-                    //  System.out.println(pointBeginLine + " and " + pointEndLine + " === gabarit line");
-                    //  System.out.println();
-                    //   boolean isLineGorizontGabarit = (beginLine.getY() == endLine.getY()) && (beginLine.getY() == Ymin || beginLine.getY() == Ymax);
-                    getLenghtDownAndUpLines(Ymin, Ymax, pointBeginLine, pointEndLine);
+    public List<Point2D> getPointsOnArc(Point2D start, Point2D end, double bulge, boolean directionPplylineClock){
+
+
+            // РАСЧИТАЕМ ДЛИННУ ОТРЕЗКА     БУЛГЕ
+            double distanceStartEnd = distanceBetweenPoints(start, end);
+            double lenghtbulge = (distanceStartEnd / 2) * bulge;
+
+            Point2D thirdPointOnArc = pointOnPerpendicular(start, end, lenghtbulge, directionPplylineClock);
+            Point2D centrOkr = centrCir(start, end, thirdPointOnArc);
+
+//        boolean clockwise;
+//        if (lenghtbulge > 0) {
+//
+//          clockwise =false;
+//        } else {
+//            clockwise =true;
+//        }
+//
+//            List<Point2D> list = divideArc(start, end, centrOkr, 10.0, clockwise);
+        double radius =distanceBetweenPoints(start, centrOkr);
+        List<Point2D> circlePoints = getPointsOnCircle(radius, centrOkr, 10);
+
+
+//
+//
+//        // Вычисляем вектор хорды
+//        double dx = end.getX() - start.getX();
+//        double dy = end.getY() - start.getY();
+//        double chordLength = Math.sqrt(dx * dx + dy * dy);
+//
+//        // Если хорда нулевой длины — нет дуги
+//        if (chordLength < 35) {
+//            return points;
+//        }
+//
+//        // Вычисляем центральный угол: bulge = tan(α/4) → α = 4 * arctan(bulge)
+//        double alpha = 4 * Math.atan(Math.abs(bulge));
+//        double radius = chordLength / (2 * Math.sin(alpha / 2));
+//
+//        // Если радиус <= 20 — возвращаем пустой список
+//        if (radius <= 20.0) {
+//            return points;
+//        }
+//
+//        // Длина дуги: L = R * α
+//        double arcLength = radius * alpha;
+//        int numPoints = (int) Math.floor(arcLength / 10.0) - 2;
+//        numPoints = Math.max(0, numPoints);
+//
+//        if (numPoints == 0) {
+//            return points;
+//        }
+//
+//        // Нормализуем вектор хорды
+//        double ux = dx / chordLength;
+//        double uy = dy / chordLength;
+//
+//        // Перпендикулярный вектор: влево (если bulge > 0) или вправо (если bulge < 0)
+//        double nx = -uy;
+//        double ny = ux;
+//        if (bulge < 0) {
+//            nx = uy;
+//            ny = -ux;
+//        }
+//
+//        // Расстояние от середины хорды до центра дуги
+//        double sagitta = radius * (1 - Math.cos(alpha / 2));
+//        double mx = start.getX() + dx / 2;
+//        double my = start.getY() + dy / 2;
+//        double cx = mx + nx * sagitta;
+//        double cy = my + ny * sagitta;
+//
+//        // Вектор от центра к началу дуги
+//        double v1x = start.getX() - cx;
+//        double v1y = start.getY() - cy;
+//
+//        // Угол начала дуги
+//        double startAngle = Math.atan2(v1y, v1x);
+//
+//        // Направление дуги: против часовой стрелки, если bulge > 0
+//        double angleStep = alpha / (numPoints + 1);
+//        double sign = bulge >= 0 ? 1.0 : -1.0;
+//
+//        // Генерируем точки
+//        for (int i = 1; i <= numPoints; i++) {
+//            double angle = startAngle + sign * angleStep * i;
+//            Point2D p = new Point2D(cx + radius * Math.cos(angle) , (cy + radius * Math.sin(angle)));
+//          //  p.setX();
+//           // p.setY);
+//            points.add(p);
+//        }
+
+            return circlePoints;
+        }
+
+    /**
+     * Генерирует точки на окружности, равномерно распределённые по длине дуги.
+     * Шаг по окружности: каждый следующий угол соответствует дуге длиной segmentLength.
+     * Начинает с точки (pc.x + r, pc.y), против часовой стрелки.
+     * Если радиус <= 20 — возвращается пустой список.
+     *
+     * @param r               радиус окружности
+     * @param pc              центр окружности
+     * @param segmentLength   длина дуги между соседними точками (например, 10)
+     * @return                список точек на окружности (без дублирования начальной)
+     */
+    public static List<Point2D> getPointsOnCircle(double r, Point2D pc, double segmentLength) {
+        List<Point2D> points = new ArrayList<>();
+
+        // Проверка: если радиус слишком мал
+        if (r <= 20.0 || segmentLength <= 0) {
+            return points;
+        }
+
+        // Длина всей окружности
+        double circumference = 2 * Math.PI * r;
+
+        // Угол, соответствующий одному сегменту длины segmentLength
+        double angleStep = segmentLength / r;  // θ = L / R (в радианах)
+
+        // Общее количество шагов по окружности
+        int numSteps = (int) Math.floor(circumference / segmentLength);
+
+        // Если окружность слишком мала для хотя бы одного шага — возвращаем пустой список
+        if (numSteps == 0) {
+            return points;
+        }
+
+        // Генерируем точки: начиная с угла 0, далее +angleStep, +2*angleStep, ...
+        // Не делаем полный оборот (2π), чтобы не дублировать начальную точку
+        for (int i = 0; i < numSteps; i++) {
+            double angle = angleStep * i;
+            double x = pc.getX() + r * Math.cos(angle);
+            double y = pc.getY() + r * Math.sin(angle);
+            points.add(new Point2D(x, y));
+        }
+
+        return points;
+    }
+
+        public Point2D midpoint (Point2D p1, Point2D p2){
+            return new Point2D(
+                    (p1.getX() + p2.getX()) / 2.0,
+                    (p1.getY() + p2.getY()) / 2.0
+            );
+        }
+
+        public Point2D pointOnPerpendicular(Point2D p1, Point2D p2, double distance, boolean oncClock){
+            int sign;
+            if (distance > 0) {
+
+                if (oncClock) {
+                    sign = 1;
+                }else{
+                    sign = -1;
                 }
-                pointBeginLine = pointEndLine;
-            }
 
-            // линия между конечной и нулевой точками в списке point2DList
-            pointBeginLine = pointsKonturList.get(pointsKonturList.size() - 1);
-            Point2D endLine = pointsKonturList.get(0);
-            if (!isGabaritLine(pointBeginLine, endLine, Xmin, Xmax, Ymin, Ymax)) {
-                // System.out.println(pointBeginLine + " and " + endLine + " no gabarit line");
-                breakNoGabaritLineOnPoints(endLine, pointBeginLine, breakLinesLenght);
-                //System.out.println();
             } else {
-                // System.out.println(pointBeginLine + " and " + endLine + " === gabarit line");
-                //System.out.println();
+                if (oncClock) {
+                    sign = 1;
+                }else{
+                    sign = -1;
+                }
 
-                getLenghtDownAndUpLines(Ymin, Ymax, pointBeginLine, endLine);
+            }
+
+            double dx = p2.getX() - p1.getX();
+            double dy = p2.getY() - p1.getY();
+            double len = Math.hypot(dx, dy);
+
+            if (len == 0) {
+                throw new IllegalArgumentException("p1 и p2 совпадают — отрезок вырожден");
+            }
+
+            // Единичный перпендикулярный вектор
+            double nx = -dy / len;
+            double ny = dx / len;
+
+            // Середина
+            Point2D mid = midpoint(p1, p2);
+
+            // Точка на перпендикуляре
+            double resultX = mid.getX() + nx * distance * sign;
+            double resultY = mid.getY() + ny * distance * sign;
+
+            return new Point2D(resultX, resultY);
+        }
+
+        public Point2D centrCir (Point2D p1, Point2D p2, Point2D p3){
+            double x1 = p1.getX(), y1 = p1.getY();
+            double x2 = p2.getX(), y2 = p2.getY();
+            double x3 = p3.getX(), y3 = p3.getY();
+
+            double D = 2 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2));
+
+            if (Math.abs(D) < 1e-12) {
+                throw new IllegalArgumentException("Точки лежат на одной прямой — окружность не определена.");
+            }
+
+            double sq1 = x1 * x1 + y1 * y1;
+            double sq2 = x2 * x2 + y2 * y2;
+            double sq3 = x3 * x3 + y3 * y3;
+
+            double cx = (sq1 * (y2 - y3) + sq2 * (y3 - y1) + sq3 * (y1 - y2)) / D;
+            double cy = (sq1 * (x3 - x2) + sq2 * (x1 - x3) + sq3 * (x2 - x1)) / D;
+
+            return new Point2D(cx, cy);
+        }
+
+        public static double distanceBetweenPoints (Point2D start, Point2D end){
+            double dx = end.getX() - start.getX();
+            double dy = end.getY() - start.getY();
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        public List<Point2D> divideArc (Point2D start, Point2D end, Point2D center,double step, boolean clockwise){
+            double radius = distanceBetweenPoints(start, center);
+
+            // Углы start и end относительно центра
+            double angleStart = Math.atan2(start.getY() - center.getY(),
+                    start.getX() - center.getX());
+            double angleEnd = Math.atan2(end.getY() - center.getY(),
+                    end.getX() - center.getX());
+
+            // Вычисляем угол дуги с учётом направления
+            double sweep;
+            if (clockwise) {
+                sweep = angleStart - angleEnd;
+                if (sweep <= 0) sweep += 2 * Math.PI;
+            } else {
+                sweep = angleEnd - angleStart;
+                if (sweep <= 0) sweep += 2 * Math.PI;
+            }
+
+            // Длина дуги
+            double arcLength = radius * sweep;
+
+            // Количество полных шагов
+            int count = (int) Math.floor(arcLength / step);
+
+            List<Point2D> points = new ArrayList<>(count + 2);
+
+            for (int i = 1; i <= count; i++) {
+                double dist = i * step;
+                double angle;
+                if (clockwise) {
+                    angle = angleStart - dist / radius;
+                } else {
+                    angle = angleStart + dist / radius;
+                }
+                double x = center.getX() + radius * Math.cos(angle);
+                double y = center.getY() + radius * Math.sin(angle);
+                points.add(new Point2D(x, y));
+            }
+
+            // Добавляем конечную точку (остаток от последнего шага)
+            points.add(new Point2D(end.getX(), end.getY()));
+
+            return points;
+        }
+
+        private boolean isOtvZvezdoy (List < Point2D > point2DList) {
+            double xMin = point2DList.get(0).getX();
+            double xMax = point2DList.get(0).getX();
+            double yMin = point2DList.get(0).getY();
+            double yMax = point2DList.get(0).getY();
+
+            for (Point2D point : point2DList) {
+                if (xMin > point.getX()) {
+                    xMin = point.getX();
+                }
+                if (xMax < point.getX()) {
+                    xMax = point.getX();
+                }
+                if (yMin > point.getY()) {
+                    yMin = point.getY();
+                }
+                if (yMax < point.getY()) {
+                    yMax = point.getY();
+                }
+            }
+            double dlinnaX = xMax - xMin;
+            double dlinnaY = yMax - yMin;
+
+            if (dlinnaX < dlinnaY) {
+                double tmp = dlinnaX;
+                dlinnaX = dlinnaY;
+                dlinnaY = tmp;
+            }
+
+            gabaritPolyline.append(" [" + (int) dlinnaX + "x" + (int) dlinnaY + "] ");
+
+            if (dlinnaX > 30 || dlinnaY > 30) {
+                return false;
+            }
+            if (dlinnaX / dlinnaY > 1.2) {
+                return false;
+            }
+
+            return true;
+        }
+
+        private int countPolyline (List < String > entityies) {
+            int count = 0;
+            for (String str : entityies) {
+                if (str.contains("POLYLINE")) {
+                    count++;
+                }
+            }
+            return count;
+        }
+
+        private void getLenghtDownAndUpLines ( double ymin, double ymax, Point2D pointBeginLine, Point2D pointEndLine){
+            if ((pointBeginLine.getY() == pointEndLine.getY()) && (pointBeginLine.getY() == ymin)) {
+                lenghtDownLines = lenghtDownLines + (int) Math.sqrt((pointEndLine.getX() - pointBeginLine.getX()) * (pointEndLine.getX() - pointBeginLine.getX()));
+            }
+            if ((pointBeginLine.getY() == pointEndLine.getY()) && (pointBeginLine.getY() == ymax)) {
+                lenghtUpLines = lenghtUpLines + (int) Math.sqrt((pointEndLine.getX() - pointBeginLine.getX()) * (pointEndLine.getX() - pointBeginLine.getX()));
             }
         }
-        getPointsFromCircle();
-        return res;
-    }
 
-    private boolean isOtvZvezdoy(List<Point2D> point2DList) {
-        double xMin = point2DList.get(0).getX();
-        double xMax = point2DList.get(0).getX();
-        double yMin = point2DList.get(0).getY();
-        double yMax = point2DList.get(0).getY();
-
-        for (Point2D point : point2DList) {
-            if (xMin > point.getX()) {
-                xMin = point.getX();
-            }
-            if (xMax < point.getX()) {
-                xMax = point.getX();
-            }
-            if (yMin > point.getY()) {
-                yMin = point.getY();
-            }
-            if (yMax < point.getY()) {
-                yMax = point.getY();
-            }
-        }
-        double dlinnaX = xMax - xMin;
-        double dlinnaY = yMax - yMin;
-
-        if (dlinnaX < dlinnaY) {
-            double tmp = dlinnaX;
-            dlinnaX = dlinnaY;
-            dlinnaY = tmp;
+        private void circleTo5Points ( double centrX, double centrY, double radius){
+            listPointInsidePoz.add(new Point2D(centrX - radius, centrY - radius));
+            listPointInsidePoz.add(new Point2D(centrX + radius, centrY + radius));
+            listPointInsidePoz.add(new Point2D(centrX - radius, centrY + radius));
+            listPointInsidePoz.add(new Point2D(centrX + radius, centrY - radius));
+            listPointInsidePoz.add(new Point2D(centrX, centrY));
         }
 
-        gabaritPolyline.append(" [" + (int) dlinnaX + "x" + (int) dlinnaY + "] ");
-
-        if (dlinnaX > 30 || dlinnaY > 30) {
-            return false;
-        }
-        if (dlinnaX / dlinnaY > 1.2) {
-            return false;
-        }
-
-        return true;
-    }
-
-    private int countPolyline(List<String> entityies) {
-        int count = 0;
-        for (String str : entityies) {
-            if (str.contains("POLYLINE")) {
-                count++;
-            }
-        }
-        return count;
-    }
-
-    private void getLenghtDownAndUpLines(double ymin, double ymax, Point2D pointBeginLine, Point2D pointEndLine) {
-        if ((pointBeginLine.getY() == pointEndLine.getY()) && (pointBeginLine.getY() == ymin)) {
-            lenghtDownLines = lenghtDownLines + (int) Math.sqrt((pointEndLine.getX() - pointBeginLine.getX()) * (pointEndLine.getX() - pointBeginLine.getX()));
-        }
-        if ((pointBeginLine.getY() == pointEndLine.getY()) && (pointBeginLine.getY() == ymax)) {
-            lenghtUpLines = lenghtUpLines + (int) Math.sqrt((pointEndLine.getX() - pointBeginLine.getX()) * (pointEndLine.getX() - pointBeginLine.getX()));
-        }
-    }
-
-    private void circleTo5Points(double centrX, double centrY, double radius) {
-        listPointInsidePoz.add(new Point2D(centrX - radius, centrY - radius));
-        listPointInsidePoz.add(new Point2D(centrX + radius, centrY + radius));
-        listPointInsidePoz.add(new Point2D(centrX - radius, centrY + radius));
-        listPointInsidePoz.add(new Point2D(centrX + radius, centrY - radius));
-        listPointInsidePoz.add(new Point2D(centrX, centrY));
-    }
-
-    private void getPointsFromCircle() {
+        private void getPointsFromCircle () {
 //        if (hasSpaces) {
 //            for (String ent : entityies) {
 //                if (ent.contains("\r\nCIRCLE\r\n")) {
@@ -3902,249 +4262,251 @@ String strokaSum = stoka1 + String.valueOf(newValue) + stroka2;
 //                }
 //            }
 //        } else {
-        for (String ent : entityies) {
-            if (ent.contains("\r\nCIRCLE\r\n")) {
-                int beginX = ent.indexOf("\r\n10\r\n");
-                int beginY = ent.indexOf("\r\n20\r\n", beginX);
-                String strX = ent.substring(beginX, beginY).replace("\r\n10\r\n", "");
-                if (ent.contains("\r\n30\r\n")) {
-                    int beginZ = ent.indexOf("\r\n30\r\n", beginY);
-                    String strY = ent.substring(beginY, beginZ).replace("\r\n20\r\n", "");
-                    int beginRadius = ent.indexOf("\r\n40\r\n", beginZ);
-                    int endRadius = ent.length();
-                    String strRadius = ent.substring(beginRadius, endRadius).replace("\r\n40\r\n", "");
-                    circleTo5Points(Double.parseDouble(strX), Double.parseDouble(strY), Double.parseDouble(strRadius));
-                } else {
-                    int beginZ = ent.indexOf("\r\n40\r\n", beginY);
-                    String strY = ent.substring(beginY, beginZ).replace("\r\n20\r\n", "");
-                    int endRadius = ent.length();
-                    String strRadius = ent.substring(beginZ, endRadius).replace("\r\n40\r\n", "");
-                    circleTo5Points(Double.parseDouble(strX), Double.parseDouble(strY), Double.parseDouble(strRadius));
-                }
-
-            }
-        }
-    }
-
-    // }
-
-    public boolean findPlaceForMark(double[] gabaritPoz, boolean markaStolbom, Rectangle ramkaMark, int height, TypeMark typeMark) {
-
-        double Xmin = gabaritPoz[0];
-        double Xmax = gabaritPoz[1];
-        double Ymin = gabaritPoz[2];
-        double Ymax = gabaritPoz[3];
-
-        int shirinaPoz = (int) Math.abs(Ymax - Ymin);
-        int dlinnaPoz = (int) Math.abs(Xmax - Xmin);
-
-        //  находим центр детали
-        int Xcntr = (int) (Xmin + (Xmax - Xmin) / 2);
-        int Ycntr = (int) (Ymin + (Ymax - Ymin) / 2);
-        System.out.printf(" центр детали (%s,%s)", Xcntr, Ycntr);
-        System.out.println();
-
-
-        //    рамка ширина = 40   рамка длинна = 90                               рамка  40 х 90
-        int XminRamka = (int) (Xcntr - ramkaMark.getDlinna() / 2);
-        int XmaxRamka = (int) (Xcntr + ramkaMark.getDlinna() / 2);
-        int YminRamka = (int) (Ycntr - ramkaMark.getShirina() / 2);
-        int YmaxRamka = (int) (Ycntr + ramkaMark.getShirina() / 2);
-        int XminRamkaCentr = XminRamka;
-        int XmaxRamkaCentr = XmaxRamka;
-        int YminRamkaCentr = YminRamka;
-        int YmaxRamkaCentr = YmaxRamka;
-        int dlinnaRamka = XmaxRamka - XminRamka;
-        int sirinaRamka = YmaxRamka - YminRamka;
-
-        int shiftCoordinateX = dlinnaPoz / 100;                         //10;
-        if (shiftCoordinateX == 0) {
-            shiftCoordinateX = 1;
-        }
-        int shiftCoordinateY = shirinaPoz / 100;                         //10;
-        if (shiftCoordinateY == 0) {
-            shiftCoordinateY = 1;
-        }
-        System.out.printf(" Рамка (%s, %s)  min(%s,%s) max(%s,%s)", sirinaRamka, dlinnaRamka, XminRamka, YminRamka, XmaxRamka, YmaxRamka);
-        System.out.println();
-        // главный цикл
-
-        boolean findPlace = false;
-        boolean flag = true;
-
-        if (typeMark.equals(TypeMark.ONLY_POZ)) {
-            //    flag = true;
-            XminRamka = XminRamkaCentr;
-            XmaxRamka = XmaxRamkaCentr;
-            YminRamka = (int) Ymin;
-            YmaxRamka = YminRamka + (int) ramkaMark.getShirina();
-
-
-            // рамка пошла вверх
-            while (flag) {
-                boolean tochkaVRamke = false;
-                if (YmaxRamka < Ymax) {
-                    for (Point2D pnt : listPointInsidePoz) {
-                        if (pnt.getX() > XminRamka && pnt.getX() < XmaxRamka && pnt.getY() > YminRamka && pnt.getY() < YmaxRamka) {
-                            tochkaVRamke = true;
-                            break;
-                        }
-                    }
-                } else {
-                    break;
-                }
-
-                if (tochkaVRamke) {
-                    YminRamka = YminRamka + shiftCoordinateY;
-                    YmaxRamka = YmaxRamka + shiftCoordinateY;
-                } else {
-                    boolean checkOutMark = checkOutOfBoundMark(new Point2D(XminRamka + (XmaxRamka - XminRamka) / 2, YmaxRamka),
-                            new Point2D(XminRamka + (XmaxRamka - XminRamka) / 2, gabaritPoz[2] - 10));
-                    if (!checkOutMark) {
-                        findPlace = true;
-                        maxBoundRamka(XminRamka, YminRamka, XmaxRamka, YmaxRamka, gabaritPoz, shiftCoordinateY * 3, ramkaMark, height, typeMark);
-                        flag = false;
+            for (String ent : entityies) {
+                if (ent.contains("\r\nCIRCLE\r\n")) {
+                    int beginX = ent.indexOf("\r\n10\r\n");
+                    int beginY = ent.indexOf("\r\n20\r\n", beginX);
+                    String strX = ent.substring(beginX, beginY).replace("\r\n10\r\n", "");
+                    if (ent.contains("\r\n30\r\n")) {
+                        int beginZ = ent.indexOf("\r\n30\r\n", beginY);
+                        String strY = ent.substring(beginY, beginZ).replace("\r\n20\r\n", "");
+                        int beginRadius = ent.indexOf("\r\n40\r\n", beginZ);
+                        int endRadius = ent.length();
+                        String strRadius = ent.substring(beginRadius, endRadius).replace("\r\n40\r\n", "");
+                        circleTo5Points(Double.parseDouble(strX), Double.parseDouble(strY), Double.parseDouble(strRadius));
                     } else {
-                        flag = false;
+                        int beginZ = ent.indexOf("\r\n40\r\n", beginY);
+                        String strY = ent.substring(beginY, beginZ).replace("\r\n20\r\n", "");
+                        int endRadius = ent.length();
+                        String strRadius = ent.substring(beginZ, endRadius).replace("\r\n40\r\n", "");
+                        circleTo5Points(Double.parseDouble(strX), Double.parseDouble(strY), Double.parseDouble(strRadius));
                     }
 
                 }
             }
+        }
 
-        } else {
-            //private int lenghtDownLines = 0;
-            //private int lenghtUpLines = 0;
-            if (lenghtDownLines == lenghtUpLines) {
-                // XminRamka = XminRamkaCentr;
-                //XmaxRamka = XmaxRamkaCentr;
-                //YminRamka = YminRamkaCentr;
-                //YmaxRamka = YmaxRamkaCentr;
-                findPlace = ramkaGoUp(gabaritPoz, ramkaMark, height, typeMark, Ymax, XminRamka, XmaxRamka, YminRamka, YmaxRamka, shiftCoordinateY);
+        // }
+
+        public boolean findPlaceForMark ( double[] gabaritPoz, boolean markaStolbom, Rectangle ramkaMark,
+        int height, TypeMark typeMark){
+
+            double Xmin = gabaritPoz[0];
+            double Xmax = gabaritPoz[1];
+            double Ymin = gabaritPoz[2];
+            double Ymax = gabaritPoz[3];
+
+            int shirinaPoz = (int) Math.abs(Ymax - Ymin);
+            int dlinnaPoz = (int) Math.abs(Xmax - Xmin);
+
+            //  находим центр детали
+            int Xcntr = (int) (Xmin + (Xmax - Xmin) / 2);
+            int Ycntr = (int) (Ymin + (Ymax - Ymin) / 2);
+            System.out.printf(" центр детали (%s,%s)", Xcntr, Ycntr);
+            System.out.println();
 
 
-                if (!findPlace) {
-                    // XminRamka = XminRamkaCentr;
-                    // XmaxRamka = XmaxRamkaCentr;
-                    //YminRamka = YminRamkaCentr;
-                    //YmaxRamka = YmaxRamkaCentr;
-                    findPlace = ramkaGoDown(gabaritPoz, ramkaMark, height, typeMark, Ymin, XminRamka, XmaxRamka, YminRamka, YmaxRamka, shiftCoordinateY);
+            //    рамка ширина = 40   рамка длинна = 90                               рамка  40 х 90
+            int XminRamka = (int) (Xcntr - ramkaMark.getDlinna() / 2);
+            int XmaxRamka = (int) (Xcntr + ramkaMark.getDlinna() / 2);
+            int YminRamka = (int) (Ycntr - ramkaMark.getShirina() / 2);
+            int YmaxRamka = (int) (Ycntr + ramkaMark.getShirina() / 2);
+            int XminRamkaCentr = XminRamka;
+            int XmaxRamkaCentr = XmaxRamka;
+            int YminRamkaCentr = YminRamka;
+            int YmaxRamkaCentr = YmaxRamka;
+            int dlinnaRamka = XmaxRamka - XminRamka;
+            int sirinaRamka = YmaxRamka - YminRamka;
+
+            int shiftCoordinateX = dlinnaPoz / 100;                         //10;
+            if (shiftCoordinateX == 0) {
+                shiftCoordinateX = 1;
+            }
+            int shiftCoordinateY = shirinaPoz / 100;                         //10;
+            if (shiftCoordinateY == 0) {
+                shiftCoordinateY = 1;
+            }
+            System.out.printf(" Рамка (%s, %s)  min(%s,%s) max(%s,%s)", sirinaRamka, dlinnaRamka, XminRamka, YminRamka, XmaxRamka, YmaxRamka);
+            System.out.println();
+            // главный цикл
+
+            boolean findPlace = false;
+            boolean flag = true;
+
+            if (typeMark.equals(TypeMark.ONLY_POZ)) {
+                //    flag = true;
+                XminRamka = XminRamkaCentr;
+                XmaxRamka = XmaxRamkaCentr;
+                YminRamka = (int) Ymin;
+                YmaxRamka = YminRamka + (int) ramkaMark.getShirina();
+
+
+                // рамка пошла вверх
+                while (flag) {
+                    boolean tochkaVRamke = false;
+                    if (YmaxRamka < Ymax) {
+                        for (Point2D pnt : listPointInsidePoz) {
+                            if (pnt.getX() > XminRamka && pnt.getX() < XmaxRamka && pnt.getY() > YminRamka && pnt.getY() < YmaxRamka) {
+                                tochkaVRamke = true;
+                                break;
+                            }
+                        }
+                    } else {
+                        break;
+                    }
+
+                    if (tochkaVRamke) {
+                        YminRamka = YminRamka + shiftCoordinateY;
+                        YmaxRamka = YmaxRamka + shiftCoordinateY;
+                    } else {
+                        boolean checkOutMark = checkOutOfBoundMark(new Point2D(XminRamka + (XmaxRamka - XminRamka) / 2, YmaxRamka),
+                                new Point2D(XminRamka + (XmaxRamka - XminRamka) / 2, gabaritPoz[2] - 10));
+                        if (!checkOutMark) {
+                            findPlace = true;
+                            maxBoundRamka(XminRamka, YminRamka, XmaxRamka, YmaxRamka, gabaritPoz, shiftCoordinateY * 3, ramkaMark, height, typeMark);
+                            flag = false;
+                        } else {
+                            flag = false;
+                        }
+
+                    }
                 }
 
-
-                if (!findPlace) {
-                    // XminRamka = XminRamkaCentr;
-                    // XmaxRamka = XmaxRamkaCentr;
-                    //YminRamka = YminRamkaCentr;
-                    //YmaxRamka = YmaxRamkaCentr;
-                    findPlace = ramkaGoLeft(gabaritPoz, ramkaMark, height, typeMark, Xmin, XminRamka, XmaxRamka, YminRamka, YmaxRamka, shiftCoordinateX);
-                }
-
-                if (!findPlace) {
+            } else {
+                //private int lenghtDownLines = 0;
+                //private int lenghtUpLines = 0;
+                if (lenghtDownLines == lenghtUpLines) {
                     // XminRamka = XminRamkaCentr;
                     //XmaxRamka = XmaxRamkaCentr;
                     //YminRamka = YminRamkaCentr;
                     //YmaxRamka = YmaxRamkaCentr;
-                    findPlace = ramkaGoRight(gabaritPoz, ramkaMark, height, typeMark, Xmax, XminRamka, XmaxRamka, YminRamka, YmaxRamka, shiftCoordinateX);
-                }
-            } else if (lenghtDownLines > lenghtUpLines) {
-
-                XminRamka = (int) (Xcntr - ramkaMark.getDlinna() / 2);
-                XmaxRamka = (int) (Xcntr + ramkaMark.getDlinna() / 2);
-                YminRamka = (int) (Ycntr - ramkaMark.getShirina() / 2);
-                YmaxRamka = (int) (Ycntr + ramkaMark.getShirina() / 2);
-
-
-                findPlace = checkMarkInCentrPozition(gabaritPoz, height, typeMark, XminRamka, XmaxRamka, ramkaMark, YminRamka, YmaxRamka, shiftCoordinateY);
-
-
-                if (!findPlace) {
-                    YminRamka = (int) Ymin;
-                    YmaxRamka = YminRamka + (int) ramkaMark.getShirina();
-
                     findPlace = ramkaGoUp(gabaritPoz, ramkaMark, height, typeMark, Ymax, XminRamka, XmaxRamka, YminRamka, YmaxRamka, shiftCoordinateY);
+
+
+                    if (!findPlace) {
+                        // XminRamka = XminRamkaCentr;
+                        // XmaxRamka = XmaxRamkaCentr;
+                        //YminRamka = YminRamkaCentr;
+                        //YmaxRamka = YmaxRamkaCentr;
+                        findPlace = ramkaGoDown(gabaritPoz, ramkaMark, height, typeMark, Ymin, XminRamka, XmaxRamka, YminRamka, YmaxRamka, shiftCoordinateY);
+                    }
+
+
+                    if (!findPlace) {
+                        // XminRamka = XminRamkaCentr;
+                        // XmaxRamka = XmaxRamkaCentr;
+                        //YminRamka = YminRamkaCentr;
+                        //YmaxRamka = YmaxRamkaCentr;
+                        findPlace = ramkaGoLeft(gabaritPoz, ramkaMark, height, typeMark, Xmin, XminRamka, XmaxRamka, YminRamka, YmaxRamka, shiftCoordinateX);
+                    }
+
+                    if (!findPlace) {
+                        // XminRamka = XminRamkaCentr;
+                        //XmaxRamka = XmaxRamkaCentr;
+                        //YminRamka = YminRamkaCentr;
+                        //YmaxRamka = YmaxRamkaCentr;
+                        findPlace = ramkaGoRight(gabaritPoz, ramkaMark, height, typeMark, Xmax, XminRamka, XmaxRamka, YminRamka, YmaxRamka, shiftCoordinateX);
+                    }
+                } else if (lenghtDownLines > lenghtUpLines) {
+
+                    XminRamka = (int) (Xcntr - ramkaMark.getDlinna() / 2);
+                    XmaxRamka = (int) (Xcntr + ramkaMark.getDlinna() / 2);
+                    YminRamka = (int) (Ycntr - ramkaMark.getShirina() / 2);
+                    YmaxRamka = (int) (Ycntr + ramkaMark.getShirina() / 2);
+
+
+                    findPlace = checkMarkInCentrPozition(gabaritPoz, height, typeMark, XminRamka, XmaxRamka, ramkaMark, YminRamka, YmaxRamka, shiftCoordinateY);
+
+
+                    if (!findPlace) {
+                        YminRamka = (int) Ymin;
+                        YmaxRamka = YminRamka + (int) ramkaMark.getShirina();
+
+                        findPlace = ramkaGoUp(gabaritPoz, ramkaMark, height, typeMark, Ymax, XminRamka, XmaxRamka, YminRamka, YmaxRamka, shiftCoordinateY);
+                    }
+                    if (!findPlace) {
+                        findPlace = ramkaGoLeft(gabaritPoz, ramkaMark, height, typeMark, Xmin, XminRamka, XmaxRamka, YminRamka, YmaxRamka, shiftCoordinateX);
+                    }
+                    if (!findPlace) {
+                        findPlace = ramkaGoRight(gabaritPoz, ramkaMark, height, typeMark, Xmax, XminRamka, XmaxRamka, YminRamka, YmaxRamka, shiftCoordinateX);
+                    }
+
+                } else {
+
+                    XminRamka = (int) (Xcntr - ramkaMark.getDlinna() / 2);
+                    XmaxRamka = (int) (Xcntr + ramkaMark.getDlinna() / 2);
+                    YminRamka = (int) (Ycntr - ramkaMark.getShirina() / 2);
+                    YmaxRamka = (int) (Ycntr + ramkaMark.getShirina() / 2);
+
+
+                    findPlace = checkMarkInCentrPozition(gabaritPoz, height, typeMark, XminRamka, XmaxRamka, ramkaMark, YminRamka, YmaxRamka, shiftCoordinateY);
+
+                    if (!findPlace) {
+                        YmaxRamka = (int) Ymax;
+                        YminRamka = YmaxRamka - (int) ramkaMark.getShirina();
+                        findPlace = ramkaGoDown(gabaritPoz, ramkaMark, height, typeMark, Ymax, XminRamka, XmaxRamka, YminRamka, YmaxRamka, shiftCoordinateY);
+                    }
+                    if (!findPlace) {
+                        findPlace = ramkaGoLeft(gabaritPoz, ramkaMark, height, typeMark, Xmin, XminRamka, XmaxRamka, YminRamka, YmaxRamka, shiftCoordinateX);
+                    }
+                    if (!findPlace) {
+                        findPlace = ramkaGoRight(gabaritPoz, ramkaMark, height, typeMark, Xmax, XminRamka, XmaxRamka, YminRamka, YmaxRamka, shiftCoordinateX);
+                    }
+
                 }
-                if (!findPlace) {
-                    findPlace = ramkaGoLeft(gabaritPoz, ramkaMark, height, typeMark, Xmin, XminRamka, XmaxRamka, YminRamka, YmaxRamka, shiftCoordinateX);
-                }
-                if (!findPlace) {
-                    findPlace = ramkaGoRight(gabaritPoz, ramkaMark, height, typeMark, Xmax, XminRamka, XmaxRamka, YminRamka, YmaxRamka, shiftCoordinateX);
-                }
+            }
+
+            lenghtDownLines = 0;
+            lenghtUpLines = 0;
+            return findPlace;
+        }
+
+
+        public boolean findPlaceForMarkDefoult ( double[] gabaritPoz, boolean markaStolbom, Rectangle ramkaMark,
+        int height, TypeMark typeMark){
+
+            double Xmin = gabaritPoz[0];
+            double Xmax = gabaritPoz[1];
+            double Ymin = gabaritPoz[2];
+            double Ymax = gabaritPoz[3];
+
+            int shirinaPoz = (int) Math.abs(Ymax - Ymin);
+            int dlinnaPoz = (int) Math.abs(Xmax - Xmin);
+
+            //  находим центр детали
+            // int Xcntr = (int) (Xmin + (Xmax - Xmin) / 2);
+            //int Ycntr = (int) (Ymin + (Ymax - Ymin) / 2);
+            //System.out.printf(" центр детали (%s,%s)", Xcntr, Ycntr);
+            //System.out.println();
+            int XminRamka;
+            int XmaxRamka;
+            int YminRamka;
+            int YmaxRamka;
+
+            if (typeMark.equals(TypeMark.HORIZONTAL)) {
+
+                XminRamka = (int) ((tochkaVstavkiDefoultMark.getX() + (getLenghtStr(poz) * height) / 2) - ramkaMark.getDlinna() / 2);
+                XmaxRamka = (int) (XminRamka + ramkaMark.getDlinna());
+                YminRamka = (int) (tochkaVstavkiDefoultMark.getY() - ramkaMark.getShirina() / 2);
+                YmaxRamka = (int) (tochkaVstavkiDefoultMark.getY() + ramkaMark.getShirina() / 2);
+
+
+            } else if (typeMark.equals(TypeMark.VERTICAL)) {
+
+                XminRamka = (int) ((tochkaVstavkiDefoultMark.getX() + (getLenghtStr(poz) * height) / 2) - ramkaMark.getDlinna() / 2);
+                XmaxRamka = (int) (XminRamka + ramkaMark.getDlinna());
+                YminRamka = (int) (tochkaVstavkiDefoultMark.getY() - (10 + 5 + 10 + 5));
+                YmaxRamka = (int) (YminRamka + ramkaMark.getShirina());
 
             } else {
-
-                XminRamka = (int) (Xcntr - ramkaMark.getDlinna() / 2);
-                XmaxRamka = (int) (Xcntr + ramkaMark.getDlinna() / 2);
-                YminRamka = (int) (Ycntr - ramkaMark.getShirina() / 2);
-                YmaxRamka = (int) (Ycntr + ramkaMark.getShirina() / 2);
-
-
-                findPlace = checkMarkInCentrPozition(gabaritPoz, height, typeMark, XminRamka, XmaxRamka, ramkaMark, YminRamka, YmaxRamka, shiftCoordinateY);
-
-                if (!findPlace) {
-                    YmaxRamka = (int) Ymax;
-                    YminRamka = YmaxRamka - (int) ramkaMark.getShirina();
-                    findPlace = ramkaGoDown(gabaritPoz, ramkaMark, height, typeMark, Ymax, XminRamka, XmaxRamka, YminRamka, YmaxRamka, shiftCoordinateY);
-                }
-                if (!findPlace) {
-                    findPlace = ramkaGoLeft(gabaritPoz, ramkaMark, height, typeMark, Xmin, XminRamka, XmaxRamka, YminRamka, YmaxRamka, shiftCoordinateX);
-                }
-                if (!findPlace) {
-                    findPlace = ramkaGoRight(gabaritPoz, ramkaMark, height, typeMark, Xmax, XminRamka, XmaxRamka, YminRamka, YmaxRamka, shiftCoordinateX);
-                }
-
+                //    рамка ширина = 40   рамка длинна = 90                               рамка  40 х 90
+                XminRamka = (int) (tochkaVstavkiDefoultMark.getX() - ramkaMark.getDlinna() / 2);    //  tochku  naado sdvigat  po centru
+                XmaxRamka = (int) (tochkaVstavkiDefoultMark.getX() + ramkaMark.getDlinna() / 2);
+                YminRamka = (int) (tochkaVstavkiDefoultMark.getY() - ramkaMark.getShirina() / 2);
+                YmaxRamka = (int) (tochkaVstavkiDefoultMark.getY() + ramkaMark.getShirina() / 2);
             }
-        }
-
-        lenghtDownLines = 0;
-        lenghtUpLines = 0;
-        return findPlace;
-    }
-
-
-    public boolean findPlaceForMarkDefoult(double[] gabaritPoz, boolean markaStolbom, Rectangle ramkaMark, int height, TypeMark typeMark) {
-
-        double Xmin = gabaritPoz[0];
-        double Xmax = gabaritPoz[1];
-        double Ymin = gabaritPoz[2];
-        double Ymax = gabaritPoz[3];
-
-        int shirinaPoz = (int) Math.abs(Ymax - Ymin);
-        int dlinnaPoz = (int) Math.abs(Xmax - Xmin);
-
-        //  находим центр детали
-        // int Xcntr = (int) (Xmin + (Xmax - Xmin) / 2);
-        //int Ycntr = (int) (Ymin + (Ymax - Ymin) / 2);
-        //System.out.printf(" центр детали (%s,%s)", Xcntr, Ycntr);
-        //System.out.println();
-        int XminRamka;
-        int XmaxRamka;
-        int YminRamka;
-        int YmaxRamka;
-
-        if (typeMark.equals(TypeMark.HORIZONTAL)) {
-
-            XminRamka = (int) ((tochkaVstavkiDefoultMark.getX() + (getLenghtStr(poz) * height) / 2) - ramkaMark.getDlinna() / 2);
-            XmaxRamka = (int) (XminRamka + ramkaMark.getDlinna());
-            YminRamka = (int) (tochkaVstavkiDefoultMark.getY() - ramkaMark.getShirina() / 2);
-            YmaxRamka = (int) (tochkaVstavkiDefoultMark.getY() + ramkaMark.getShirina() / 2);
-
-
-        } else if (typeMark.equals(TypeMark.VERTICAL)) {
-
-            XminRamka = (int) ((tochkaVstavkiDefoultMark.getX() + (getLenghtStr(poz) * height) / 2) - ramkaMark.getDlinna() / 2);
-            XmaxRamka = (int) (XminRamka + ramkaMark.getDlinna());
-            YminRamka = (int) (tochkaVstavkiDefoultMark.getY() - (10 + 5 + 10 + 5));
-            YmaxRamka = (int) (YminRamka + ramkaMark.getShirina());
-
-        } else {
-            //    рамка ширина = 40   рамка длинна = 90                               рамка  40 х 90
-            XminRamka = (int) (tochkaVstavkiDefoultMark.getX() - ramkaMark.getDlinna() / 2);    //  tochku  naado sdvigat  po centru
-            XmaxRamka = (int) (tochkaVstavkiDefoultMark.getX() + ramkaMark.getDlinna() / 2);
-            YminRamka = (int) (tochkaVstavkiDefoultMark.getY() - ramkaMark.getShirina() / 2);
-            YmaxRamka = (int) (tochkaVstavkiDefoultMark.getY() + ramkaMark.getShirina() / 2);
-        }
-        int pointCentrXnewRamki = (int) (XminRamka + ramkaMark.getDlinna() / 2);
-        int pointCentrYnewRamki = (int) (YminRamka + ramkaMark.getShirina() / 2);
+            int pointCentrXnewRamki = (int) (XminRamka + ramkaMark.getDlinna() / 2);
+            int pointCentrYnewRamki = (int) (YminRamka + ramkaMark.getShirina() / 2);
 
 
 //        int XminRamkaCentr = XminRamka;
@@ -4162,1001 +4524,1008 @@ String strokaSum = stoka1 + String.valueOf(newValue) + stroka2;
 //        }
 //        System.out.printf(" Рамка (40х90)  min(%s,%s) max(%s,%s)", XminRamka, YminRamka, XmaxRamka, YmaxRamka);
 //        System.out.println();
-        // главный цикл
+            // главный цикл
 
-        boolean findPlace = false;
-        //    boolean flag = true;
+            boolean findPlace = false;
+            //    boolean flag = true;
 
-        // проверка рамкаМаркировки не вышла за габарит позиции и не попала на примитив (внутри позиции)
+            // проверка рамкаМаркировки не вышла за габарит позиции и не попала на примитив (внутри позиции)
 
-        boolean tochkaVRamke = false;
-        if (YmaxRamka < Ymax && YminRamka > Ymin && XminRamka > Xmin && XmaxRamka < Xmax) {
+            boolean tochkaVRamke = false;
+            if (YmaxRamka < Ymax && YminRamka > Ymin && XminRamka > Xmin && XmaxRamka < Xmax) {
+                for (Point2D pnt : listPointInsidePoz) {
+                    if (pnt.getX() > XminRamka && pnt.getX() < XmaxRamka && pnt.getY() > YminRamka && pnt.getY() < YmaxRamka) {
+                        tochkaVRamke = true;
+                        break;
+                    }
+                }
+            } else {
+                return false;
+            }
+
+            if (tochkaVRamke) {
+                return false;
+            } else {
+
+
+                boolean checkOutMark = checkOutOfBoundMark(new Point2D(XminRamka + (XmaxRamka - XminRamka) / 2, YmaxRamka),
+                        new Point2D(XminRamka + (XmaxRamka - XminRamka) / 2, gabaritPoz[2] - 10));
+
+                if (!checkOutMark) {
+                    if (typeMark.equals(TypeMark.VERTICAL)) {
+                        addThreeTextOnEntyties(pointCentrXnewRamki, pointCentrYnewRamki, height);
+                    } else if (typeMark.equals(TypeMark.HORIZONTAL)) {
+                        addTwoTextOnEntyties(pointCentrXnewRamki, pointCentrYnewRamki, height);
+                    } else if (typeMark.equals(TypeMark.ONLY_POZ)) {
+                        addOneTextOnEntyties(pointCentrXnewRamki, pointCentrYnewRamki, height);
+                    }
+
+                    findPlace = true;
+                }
+            }
+
+            return findPlace;
+        }
+
+
+        private boolean checkMarkInCentrPozition ( double[] gabaritPoz, int height, TypeMark typeMark,int XminRamka,
+        int XmaxRamka, Rectangle ramkaMark,int YminRamka, int YmaxRamka, int shiftCoordinateY){
+            boolean findPlace = false;
+            boolean tochkaVRamke = false;
             for (Point2D pnt : listPointInsidePoz) {
                 if (pnt.getX() > XminRamka && pnt.getX() < XmaxRamka && pnt.getY() > YminRamka && pnt.getY() < YmaxRamka) {
                     tochkaVRamke = true;
                     break;
                 }
             }
-        } else {
-            return false;
-        }
+            if (!tochkaVRamke) {
 
-        if (tochkaVRamke) {
-            return false;
-        } else {
+                boolean checkOutMark = checkOutOfBoundMark(new Point2D(XminRamka + (XmaxRamka - XminRamka) / 2, YmaxRamka),
+                        new Point2D(XminRamka + 50 + (XmaxRamka - XminRamka) / 2, gabaritPoz[2] - 10));
 
-
-            boolean checkOutMark = checkOutOfBoundMark(new Point2D(XminRamka + (XmaxRamka - XminRamka) / 2, YmaxRamka),
-                    new Point2D(XminRamka + (XmaxRamka - XminRamka) / 2, gabaritPoz[2] - 10));
-
-            if (!checkOutMark) {
-                if (typeMark.equals(TypeMark.VERTICAL)) {
-                    addThreeTextOnEntyties(pointCentrXnewRamki, pointCentrYnewRamki, height);
-                } else if (typeMark.equals(TypeMark.HORIZONTAL)) {
-                    addTwoTextOnEntyties(pointCentrXnewRamki, pointCentrYnewRamki, height);
-                } else if (typeMark.equals(TypeMark.ONLY_POZ)) {
-                    addOneTextOnEntyties(pointCentrXnewRamki, pointCentrYnewRamki, height);
-                }
-
-                findPlace = true;
-            }
-        }
-
-        return findPlace;
-    }
-
-
-    private boolean checkMarkInCentrPozition(double[] gabaritPoz, int height, TypeMark typeMark, int XminRamka, int XmaxRamka, Rectangle ramkaMark, int YminRamka, int YmaxRamka, int shiftCoordinateY) {
-        boolean findPlace = false;
-        boolean tochkaVRamke = false;
-        for (Point2D pnt : listPointInsidePoz) {
-            if (pnt.getX() > XminRamka && pnt.getX() < XmaxRamka && pnt.getY() > YminRamka && pnt.getY() < YmaxRamka) {
-                tochkaVRamke = true;
-                break;
-            }
-        }
-        if (!tochkaVRamke) {
-
-            boolean checkOutMark = checkOutOfBoundMark(new Point2D(XminRamka + (XmaxRamka - XminRamka) / 2, YmaxRamka),
-                    new Point2D(XminRamka +50 + (XmaxRamka - XminRamka) / 2, gabaritPoz[2] - 10));
-
-            if (!checkOutMark) {
-                findPlace = true;
-                maxBoundRamka(XminRamka, YminRamka, XmaxRamka, YmaxRamka, gabaritPoz, shiftCoordinateY * 3, ramkaMark, height, typeMark);
-
-            } else {
-                findPlace = false;
-            }
-        }
-        return findPlace;
-    }
-
-    private boolean ramkaGoRight(double[] gabaritPoz, Rectangle ramkaMark, int height, TypeMark typeMark, double xmax, int xminRamka, int xmaxRamka, int yminRamka, int ymaxRamka, int shiftCoordinateX) {
-        // рамка пошла в право
-
-        boolean findPlace = false;
-        boolean flag = true;
-        while (flag) {
-            boolean tochkaVRamke = false;
-            if (xmaxRamka < xmax) {
-                for (Point2D pnt : listPointInsidePoz) {
-                    if (pnt.getX() > xminRamka && pnt.getX() < xmaxRamka && pnt.getY() > yminRamka && pnt.getY() < ymaxRamka) {
-                        tochkaVRamke = true;
-                        break;
-                    }
-                }
-            } else {
-                // flag = false;
-                break;
-            }
-
-            if (tochkaVRamke) {
-                xminRamka = xminRamka + shiftCoordinateX;
-                xmaxRamka = xmaxRamka + shiftCoordinateX;
-            } else {
-
-                boolean checkOutMark = checkOutOfBoundMark(new Point2D(xminRamka + (xmaxRamka - xminRamka) / 2, ymaxRamka),
-                        new Point2D(xminRamka + (xmaxRamka - xminRamka) / 2, gabaritPoz[2] - 10));
-                if (!checkOutMark) {
-
-
-                    findPlace = true;
-                    maxBoundRamka(xminRamka, yminRamka, xmaxRamka, ymaxRamka, gabaritPoz, shiftCoordinateX * 3, ramkaMark, height, typeMark);
-                    flag = false;
-                } else {
-                    flag = false;
-                }
-
-
-            }
-        }
-        return findPlace;
-    }
-
-    private boolean ramkaGoLeft(double[] gabaritPoz, Rectangle ramkaMark, int height, TypeMark typeMark, double xmin, int xminRamka, int xmaxRamka, int yminRamka, int ymaxRamka, int shiftCoordinateX) {
-        boolean findPlace = false;
-        boolean flag = true;
-        while (flag) {
-            boolean tochkaVRamke = false;
-            if (xminRamka > xmin) {
-                for (Point2D pnt : listPointInsidePoz) {
-                    if (pnt.getX() > xminRamka && pnt.getX() < xmaxRamka && pnt.getY() > yminRamka && pnt.getY() < ymaxRamka) {
-                        tochkaVRamke = true;
-                        break;
-                    }
-                }
-            } else {
-                // flag = false;
-                break;
-            }
-
-            if (tochkaVRamke) {
-                xminRamka = xminRamka - shiftCoordinateX;
-                xmaxRamka = xmaxRamka - shiftCoordinateX;
-            } else {
-
-
-                boolean checkOutMark = checkOutOfBoundMark(new Point2D(xminRamka + (xmaxRamka - xminRamka) / 2, ymaxRamka),
-                        new Point2D(xminRamka + (xmaxRamka - xminRamka) / 2, gabaritPoz[2] - 10));
-                if (!checkOutMark) {
-
-                    findPlace = true;
-                    maxBoundRamka(xminRamka, yminRamka, xmaxRamka, ymaxRamka, gabaritPoz, shiftCoordinateX * 3, ramkaMark, height, typeMark);
-                    flag = false;
-                } else {
-                    flag = false;
-                }
-
-
-            }
-        }
-        return findPlace;
-    }
-
-    private boolean ramkaGoDown(double[] gabaritPoz, Rectangle ramkaMark, int height, TypeMark typeMark, double ymin, int xminRamka, int xmaxRamka, int yminRamka, int ymaxRamka, int shiftCoordinateY) {
-        boolean findPlace = false;
-        boolean flag = true;
-        while (flag) {
-            boolean tochkaVRamke = false;
-            if (yminRamka > ymin) {
-                for (Point2D pnt : listPointInsidePoz) {
-                    if (pnt.getX() > xminRamka && pnt.getX() < xmaxRamka && pnt.getY() > yminRamka && pnt.getY() < ymaxRamka) {
-                        tochkaVRamke = true;
-                        break;
-                    }
-                }
-            } else {
-                // flag = false;
-                break;
-            }
-
-            if (tochkaVRamke) {
-                yminRamka = yminRamka - shiftCoordinateY;
-                ymaxRamka = ymaxRamka - shiftCoordinateY;
-            } else {
-
-                boolean checkOutMark = checkOutOfBoundMark(new Point2D(xminRamka + (xmaxRamka - xminRamka) / 2, ymaxRamka),
-                        new Point2D(xminRamka + (xmaxRamka - xminRamka) / 2, gabaritPoz[2] - 10));
                 if (!checkOutMark) {
                     findPlace = true;
-                    maxBoundRamka(xminRamka, yminRamka, xmaxRamka, ymaxRamka, gabaritPoz, shiftCoordinateY * 3, ramkaMark, height, typeMark);
-                    flag = false;
+                    maxBoundRamka(XminRamka, YminRamka, XmaxRamka, YmaxRamka, gabaritPoz, shiftCoordinateY * 3, ramkaMark, height, typeMark);
+
                 } else {
-                    flag = false;
+                    findPlace = false;
                 }
             }
+            return findPlace;
         }
-        return findPlace;
-    }
 
-    private boolean ramkaGoUp(double[] gabaritPoz, Rectangle ramkaMark, int height, TypeMark typeMark, double ymax, int xminRamka, int xmaxRamka, int yminRamka, int ymaxRamka, int shiftCoordinateY) {
-        // рамка пошла вверх
-        boolean findPlace = false;
-        boolean flag = true;
-        while (flag) {
-            boolean tochkaVRamke = false;
-            if (ymaxRamka < ymax) {
-                for (Point2D pnt : listPointInsidePoz) {
-                    if (pnt.getX() > xminRamka && pnt.getX() < xmaxRamka && pnt.getY() > yminRamka && pnt.getY() < ymaxRamka) {
-                        tochkaVRamke = true;
-                        break;
+        private boolean ramkaGoRight ( double[] gabaritPoz, Rectangle ramkaMark,int height, TypeMark typeMark,
+        double xmax, int xminRamka, int xmaxRamka, int yminRamka, int ymaxRamka, int shiftCoordinateX){
+            // рамка пошла в право
+
+            boolean findPlace = false;
+            boolean flag = true;
+            while (flag) {
+                boolean tochkaVRamke = false;
+                if (xmaxRamka < xmax) {
+                    for (Point2D pnt : listPointInsidePoz) {
+                        if (pnt.getX() > xminRamka && pnt.getX() < xmaxRamka && pnt.getY() > yminRamka && pnt.getY() < ymaxRamka) {
+                            tochkaVRamke = true;
+                            break;
+                        }
+                    }
+                } else {
+                    // flag = false;
+                    break;
+                }
+
+                if (tochkaVRamke) {
+                    xminRamka = xminRamka + shiftCoordinateX;
+                    xmaxRamka = xmaxRamka + shiftCoordinateX;
+                } else {
+
+                    boolean checkOutMark = checkOutOfBoundMark(new Point2D(xminRamka + (xmaxRamka - xminRamka) / 2, ymaxRamka),
+                            new Point2D(xminRamka + (xmaxRamka - xminRamka) / 2, gabaritPoz[2] - 10));
+                    if (!checkOutMark) {
+
+
+                        findPlace = true;
+                        maxBoundRamka(xminRamka, yminRamka, xmaxRamka, ymaxRamka, gabaritPoz, shiftCoordinateX * 3, ramkaMark, height, typeMark);
+                        flag = false;
+                    } else {
+                        flag = false;
+                    }
+
+
+                }
+            }
+            return findPlace;
+        }
+
+        private boolean ramkaGoLeft ( double[] gabaritPoz, Rectangle ramkaMark,int height, TypeMark typeMark,
+        double xmin, int xminRamka, int xmaxRamka, int yminRamka, int ymaxRamka, int shiftCoordinateX){
+            boolean findPlace = false;
+            boolean flag = true;
+            while (flag) {
+                boolean tochkaVRamke = false;
+                if (xminRamka > xmin) {
+                    for (Point2D pnt : listPointInsidePoz) {
+                        if (pnt.getX() > xminRamka && pnt.getX() < xmaxRamka && pnt.getY() > yminRamka && pnt.getY() < ymaxRamka) {
+                            tochkaVRamke = true;
+                            break;
+                        }
+                    }
+                } else {
+                    // flag = false;
+                    break;
+                }
+
+                if (tochkaVRamke) {
+                    xminRamka = xminRamka - shiftCoordinateX;
+                    xmaxRamka = xmaxRamka - shiftCoordinateX;
+                } else {
+
+
+                    boolean checkOutMark = checkOutOfBoundMark(new Point2D(xminRamka + (xmaxRamka - xminRamka) / 2, ymaxRamka),
+                            new Point2D(xminRamka + (xmaxRamka - xminRamka) / 2, gabaritPoz[2] - 10));
+                    if (!checkOutMark) {
+
+                        findPlace = true;
+                        maxBoundRamka(xminRamka, yminRamka, xmaxRamka, ymaxRamka, gabaritPoz, shiftCoordinateX * 3, ramkaMark, height, typeMark);
+                        flag = false;
+                    } else {
+                        flag = false;
+                    }
+
+
+                }
+            }
+            return findPlace;
+        }
+
+        private boolean ramkaGoDown ( double[] gabaritPoz, Rectangle ramkaMark,int height, TypeMark typeMark,
+        double ymin, int xminRamka, int xmaxRamka, int yminRamka, int ymaxRamka, int shiftCoordinateY){
+            boolean findPlace = false;
+            boolean flag = true;
+            while (flag) {
+                boolean tochkaVRamke = false;
+                if (yminRamka > ymin) {
+                    for (Point2D pnt : listPointInsidePoz) {
+                        if (pnt.getX() > xminRamka && pnt.getX() < xmaxRamka && pnt.getY() > yminRamka && pnt.getY() < ymaxRamka) {
+                            tochkaVRamke = true;
+                            break;
+                        }
+                    }
+                } else {
+                    // flag = false;
+                    break;
+                }
+
+                if (tochkaVRamke) {
+                    yminRamka = yminRamka - shiftCoordinateY;
+                    ymaxRamka = ymaxRamka - shiftCoordinateY;
+                } else {
+
+                    boolean checkOutMark = checkOutOfBoundMark(new Point2D(xminRamka + (xmaxRamka - xminRamka) / 2, ymaxRamka),
+                            new Point2D(xminRamka + (xmaxRamka - xminRamka) / 2, gabaritPoz[2] - 10));
+                    if (!checkOutMark) {
+                        findPlace = true;
+                        maxBoundRamka(xminRamka, yminRamka, xmaxRamka, ymaxRamka, gabaritPoz, shiftCoordinateY * 3, ramkaMark, height, typeMark);
+                        flag = false;
+                    } else {
+                        flag = false;
                     }
                 }
-            } else {
-                break;
             }
+            return findPlace;
+        }
 
-            if (tochkaVRamke) {
-                yminRamka = yminRamka + shiftCoordinateY;
-                ymaxRamka = ymaxRamka + shiftCoordinateY;
-            } else {
-
-                boolean checkOutMark = checkOutOfBoundMark(new Point2D(xminRamka + (xmaxRamka - xminRamka) / 2, ymaxRamka),
-                        new Point2D(xminRamka + (xmaxRamka - xminRamka) / 2, gabaritPoz[2] - 10));
-                if (!checkOutMark) {
-                    findPlace = true;
-                    maxBoundRamka(xminRamka, yminRamka, xmaxRamka, ymaxRamka, gabaritPoz, shiftCoordinateY * 3, ramkaMark, height, typeMark);
-                    flag = false;
+        private boolean ramkaGoUp ( double[] gabaritPoz, Rectangle ramkaMark,int height, TypeMark typeMark,double ymax,
+        int xminRamka, int xmaxRamka, int yminRamka, int ymaxRamka, int shiftCoordinateY){
+            // рамка пошла вверх
+            boolean findPlace = false;
+            boolean flag = true;
+            while (flag) {
+                boolean tochkaVRamke = false;
+                if (ymaxRamka < ymax) {
+                    for (Point2D pnt : listPointInsidePoz) {
+                        if (pnt.getX() > xminRamka && pnt.getX() < xmaxRamka && pnt.getY() > yminRamka && pnt.getY() < ymaxRamka) {
+                            tochkaVRamke = true;
+                            break;
+                        }
+                    }
                 } else {
-                    flag = false;
+                    break;
                 }
 
+                if (tochkaVRamke) {
+                    yminRamka = yminRamka + shiftCoordinateY;
+                    ymaxRamka = ymaxRamka + shiftCoordinateY;
+                } else {
+
+                    boolean checkOutMark = checkOutOfBoundMark(new Point2D(xminRamka + (xmaxRamka - xminRamka) / 2, ymaxRamka),
+                            new Point2D(xminRamka + (xmaxRamka - xminRamka) / 2, gabaritPoz[2] - 10));
+                    if (!checkOutMark) {
+                        findPlace = true;
+                        maxBoundRamka(xminRamka, yminRamka, xmaxRamka, ymaxRamka, gabaritPoz, shiftCoordinateY * 3, ramkaMark, height, typeMark);
+                        flag = false;
+                    } else {
+                        flag = false;
+                    }
+
+                }
             }
+            return findPlace;
         }
-        return findPlace;
-    }
 
 
-    /**
-     * проверка на то что  маркировка не вышли за границы позиции
-     * из центра маркировки проводим линию до мин габарита детали  -10    double Ymin = gabaritPoz[2];
-     * еcли линия пересекает контур не четное колво раз ->  маркировка внутри котура
-     * если четное ->  выход за граниу
-     *
-     * @param centrMark точка центра маркировки
-     * @param pointDown точка  мин габарита детали
-     * @return bollean  маркировка вышла или нет
-     */
-    private boolean checkOutOfBoundMark(Point2D centrMark, Point2D pointDown) {
-        int countIntersection = 0;
-        for (List<Point2D> pointsKonturList : listKontur) {
-            Point2D pointBeginLine = pointsKonturList.get(0);
-            for (int i = 1; i < pointsKonturList.size(); i++) {
-                Point2D pointEndLine = pointsKonturList.get(i);
+        /**
+         * проверка на то что  маркировка не вышли за границы позиции
+         * из центра маркировки проводим линию до мин габарита детали  -10    double Ymin = gabaritPoz[2];
+         * еcли линия пересекает контур не четное колво раз ->  маркировка внутри котура
+         * если четное ->  выход за граниу
+         *
+         * @param centrMark точка центра маркировки
+         * @param pointDown точка  мин габарита детали
+         * @return bollean  маркировка вышла или нет
+         */
+        private boolean checkOutOfBoundMark (Point2D centrMark, Point2D pointDown){
+            int countIntersection = 0;
+            for (List<Point2D> pointsKonturList : listKontur) {
+                Point2D pointBeginLine = pointsKonturList.get(0);
+                for (int i = 1; i < pointsKonturList.size(); i++) {
+                    Point2D pointEndLine = pointsKonturList.get(i);
+                    if (hasIntesection(pointBeginLine, pointEndLine, centrMark, pointDown)) {
+                        countIntersection++;
+                    }
+                    pointBeginLine = pointEndLine;
+                }
+
+                // линия между конечной и нулевой точками в списке point2DList
+                pointBeginLine = pointsKonturList.get(pointsKonturList.size() - 1);
+                Point2D pointEndLine = pointsKonturList.get(0);
+
+
                 if (hasIntesection(pointBeginLine, pointEndLine, centrMark, pointDown)) {
                     countIntersection++;
                 }
-                pointBeginLine = pointEndLine;
             }
-
-            // линия между конечной и нулевой точками в списке point2DList
-            pointBeginLine = pointsKonturList.get(pointsKonturList.size() - 1);
-            Point2D pointEndLine = pointsKonturList.get(0);
-
-
-            if (hasIntesection(pointBeginLine, pointEndLine, centrMark, pointDown)) {
-                countIntersection++;
+            if (countIntersection % 2 == 0) {
+                return true;
+            } else {
+                return false;
             }
         }
-        if (countIntersection % 2 == 0) {
-            return true;
-        } else {
-            return false;
-        }
-    }
 
-    private boolean hasIntesection(Point2D start, Point2D end, Point2D markUp, Point2D markDown) {
+        private boolean hasIntesection (Point2D start, Point2D end, Point2D markUp, Point2D markDown){
 
-        if ((start.getX() < markUp.getX() && end.getX() < markUp.getX()) ||
-                (start.getX() > markUp.getX() && end.getX() > markUp.getX())) {
-            return false;
-        }
+            if ((start.getX() < markUp.getX() && end.getX() < markUp.getX()) ||
+                    (start.getX() > markUp.getX() && end.getX() > markUp.getX())) {
+                return false;
+            }
 
-        if (start.getY() > markUp.getY() && end.getY() > markUp.getY()) {
-            return false;
-        }
+            if (start.getY() > markUp.getY() && end.getY() > markUp.getY()) {
+                return false;
+            }
 
 
-        //   На самом деле точку пересечения не нужно находить. Достаточно проверить, что каждый отрезок пересекает прямую, проходящую через второй. А для этого нужно проверить, что концы отрезка лежат в разных полуплоскостях относительно прямой, т.е. подставить концы отрезка в уравнение прямой и проверить, чтобы знаки были различные.
-        //
+            //   На самом деле точку пересечения не нужно находить. Достаточно проверить, что каждый отрезок пересекает прямую, проходящую через второй. А для этого нужно проверить, что концы отрезка лежат в разных полуплоскостях относительно прямой, т.е. подставить концы отрезка в уравнение прямой и проверить, чтобы знаки были различные.
+            //
 
 // первый отрезок
-        double x1 = start.getX();
-        double y1 = start.getY();
-        double x2 = end.getX();
-        double y2 = end.getY();
+            double x1 = start.getX();
+            double y1 = start.getY();
+            double x2 = end.getX();
+            double y2 = end.getY();
 
 // второй отрезок
-        double x3 = markUp.getX();
-        double y3 = markUp.getY();
-        double x4 = markDown.getX();
-        double y4 = markDown.getY();
+            double x3 = markUp.getX();
+            double y3 = markUp.getY();
+            double x4 = markDown.getX();
+            double y4 = markDown.getY();
 
-        //  double x1, y1, x2, y2; // первый отрезок
-        //  double x3, y3, x4, y4; // второй отрезок
+            //  double x1, y1, x2, y2; // первый отрезок
+            //  double x3, y3, x4, y4; // второй отрезок
 
-        double A1 = y2 - y1;
-        double B1 = x1 - x2;
-        double C1 = -A1 * x1 - B1 * y1;
+            double A1 = y2 - y1;
+            double B1 = x1 - x2;
+            double C1 = -A1 * x1 - B1 * y1;
 
-        double A2 = y4 - y3;
-        double B2 = x3 - x4;
-        double C2 = -A2 * x3 - B2 * y3;
+            double A2 = y4 - y3;
+            double B2 = x3 - x4;
+            double C2 = -A2 * x3 - B2 * y3;
 
-        double f1 = A1 * x3 + B1 * y3 + C1;
-        double f2 = A1 * x4 + B1 * y4 + C1;
-        double f3 = A2 * x1 + B2 * y1 + C2;
-        double f4 = A2 * x2 + B2 * y2 + C2;
+            double f1 = A1 * x3 + B1 * y3 + C1;
+            double f2 = A1 * x4 + B1 * y4 + C1;
+            double f3 = A2 * x1 + B2 * y1 + C2;
+            double f4 = A2 * x2 + B2 * y2 + C2;
 
 
-        boolean intersect = (f1 * f2 < 0 && f3 * f4 < 0); // строгое пересечение
+            boolean intersect = (f1 * f2 < 0 && f3 * f4 < 0); // строгое пересечение
 
-        if (intersect) {
-            return true;
-        } else {
-            return false;
+            if (intersect) {
+                return true;
+            } else {
+                return false;
+            }
         }
-    }
 
-    private void maxBoundRamka(int XminRamka, int YminRamka, int XmaxRamka, int YmaxRamka, double[] res,
-                               int shiftCoordinate, Rectangle ramkaMark, int height, TypeMark typeMark) {
+        private void maxBoundRamka ( int XminRamka, int YminRamka, int XmaxRamka, int YmaxRamka, double[] res,
+        int shiftCoordinate, Rectangle ramkaMark,int height, TypeMark typeMark){
 
-        height--;
-        double Xmin = res[0];
-        double Xmax = res[1];
-        double Ymin = res[2];
-        double Ymax = res[3];
-        int maxBound = 500;
+            height--;
+            double Xmin = res[0];
+            double Xmax = res[1];
+            double Ymin = res[2];
+            double Ymax = res[3];
+            int maxBound = 500;
 
-        // ищем нижнюю границу
-        System.out.println("   ищем нижнюю границу рамки");
+            // ищем нижнюю границу
+            System.out.println("   ищем нижнюю границу рамки");
 
-        int beginBound = 0;
-        boolean uslovie = true;
-        boolean tochkaVRamke = false;
-        while ((YminRamka > Ymin) && uslovie && (beginBound < maxBound)) {
-            for (Point2D pnt : listPointInsidePoz) {
-                if (pnt.getX() > XminRamka && pnt.getX() < XmaxRamka && pnt.getY() > YminRamka && pnt.getY() < YmaxRamka) {
-                    tochkaVRamke = true;
-                    break;
+            int beginBound = 0;
+            boolean uslovie = true;
+            boolean tochkaVRamke = false;
+            while ((YminRamka > Ymin) && uslovie && (beginBound < maxBound)) {
+                for (Point2D pnt : listPointInsidePoz) {
+                    if (pnt.getX() > XminRamka && pnt.getX() < XmaxRamka && pnt.getY() > YminRamka && pnt.getY() < YmaxRamka) {
+                        tochkaVRamke = true;
+                        break;
+                    }
+                }
+                if (tochkaVRamke) {
+                    uslovie = false;
+                } else {
+                    YminRamka = YminRamka - shiftCoordinate;
+                    beginBound += shiftCoordinate;
+                }
+                System.out.printf(" Рамка (40х90)  min(%s,%s) max(%s,%s)", XminRamka, YminRamka, XmaxRamka, YmaxRamka);
+                System.out.println();
+            }
+            if (YminRamka < Ymin || tochkaVRamke) {
+                YminRamka = YminRamka + shiftCoordinate;
+            }
+
+            // ищем нижнюю границу
+            System.out.println("   ищем верхнею границу рамки");
+            beginBound = 0;
+            uslovie = true;
+            tochkaVRamke = false;
+            while ((YmaxRamka < Ymax) && uslovie && (beginBound < maxBound)) {
+                for (Point2D pnt : listPointInsidePoz) {
+                    if (pnt.getX() > XminRamka && pnt.getX() < XmaxRamka && pnt.getY() > YminRamka && pnt.getY() < YmaxRamka) {
+                        tochkaVRamke = true;
+                        break;
+                    }
+                }
+                if (tochkaVRamke) {
+                    uslovie = false;
+                } else {
+                    YmaxRamka = YmaxRamka + shiftCoordinate;
+                    beginBound += shiftCoordinate;
+                }
+                System.out.printf(" Рамка (40х90)  min(%s,%s) max(%s,%s)", XminRamka, YminRamka, XmaxRamka, YmaxRamka);
+                System.out.println();
+            }
+            if (YmaxRamka > Ymax || tochkaVRamke) {
+                YmaxRamka = YmaxRamka - shiftCoordinate;
+            }
+
+            // ищем левую границу
+            System.out.println("   ищем левую границу рамки");
+            beginBound = 0;
+            uslovie = true;
+            tochkaVRamke = false;
+            while ((XminRamka > Xmin) && uslovie && (beginBound < maxBound)) {
+                for (Point2D pnt : listPointInsidePoz) {
+                    if (pnt.getX() > XminRamka && pnt.getX() < XmaxRamka && pnt.getY() > YminRamka && pnt.getY() < YmaxRamka) {
+                        tochkaVRamke = true;
+                        break;
+                    }
+                }
+                if (tochkaVRamke) {
+                    uslovie = false;
+                } else {
+                    XminRamka = XminRamka - shiftCoordinate;
+                    beginBound += shiftCoordinate;
+                }
+                System.out.printf(" Рамка (40х90)  min(%s,%s) max(%s,%s)", XminRamka, YminRamka, XmaxRamka, YmaxRamka);
+                System.out.println();
+            }
+            if (XminRamka < Xmin || tochkaVRamke) {
+                XminRamka = XminRamka + shiftCoordinate;
+            }
+
+            // ищем левую границу
+            System.out.println("   ищем правую границу рамки");
+            beginBound = 0;
+            uslovie = true;
+            tochkaVRamke = false;
+            while ((XmaxRamka < Xmax) && uslovie && (beginBound < maxBound)) {
+                for (Point2D pnt : listPointInsidePoz) {
+                    if (pnt.getX() > XminRamka && pnt.getX() < XmaxRamka && pnt.getY() > YminRamka && pnt.getY() < YmaxRamka) {
+                        tochkaVRamke = true;
+                        break;
+                    }
+                }
+                if (tochkaVRamke) {
+                    uslovie = false;
+                } else {
+                    XmaxRamka = XmaxRamka + shiftCoordinate;
+                    beginBound += shiftCoordinate;
+                }
+                System.out.printf(" Рамка (40х90)  min(%s,%s) max(%s,%s)", XminRamka, YminRamka, XmaxRamka, YmaxRamka);
+                System.out.println();
+            }
+            if (XmaxRamka > Xmax || tochkaVRamke) {
+                XmaxRamka = XmaxRamka - shiftCoordinate;
+            }
+            System.out.println("----------------------------------------");
+            System.out.printf(" результат  min(%s,%s) max(%s,%s)\n", XminRamka, YminRamka, XmaxRamka, YmaxRamka);
+
+            int pointCentrXnewRamki = XminRamka + (XmaxRamka - XminRamka) / 2;
+            int pointCentrYnewRamki = YminRamka + (YmaxRamka - YminRamka) / 2;
+            System.out.printf("centr (%s,%s)\n", pointCentrXnewRamki, pointCentrYnewRamki);
+
+            //  String markirovka = "164-MD-145";
+            //  String zakaz = "0286645";
+            // String steelGrade = "09г2с";
+            //  (int XminRamka, int YminRamka, int XmaxRamka, int YmaxRamka, double[] res, int shiftCoordinate, Rectangle ramkaMark, int height, TypeMark typeMark)
+            if (typeMark.equals(TypeMark.VERTICAL)) {
+                addThreeTextOnEntyties(pointCentrXnewRamki, pointCentrYnewRamki, height);
+            } else if (typeMark.equals(TypeMark.HORIZONTAL)) {
+                addTwoTextOnEntyties(pointCentrXnewRamki, pointCentrYnewRamki, height);
+            } else if (typeMark.equals(TypeMark.ONLY_POZ)) {
+                addOneTextOnEntyties(pointCentrXnewRamki, pointCentrYnewRamki, height);
+            }
+
+
+        }
+
+        private void addOneTextOnEntyties ( int pointCentrXnewRamki, int pointCentrYnewRamki, int height){
+            // int heightRanki = height/2;
+            double lenghtPoz = getLenghtStr(poz) * height;
+
+
+            double pointBeginTextX = pointCentrXnewRamki - lenghtPoz / 2;
+            double pointBeginTextY = pointCentrYnewRamki - height / 2;
+            String newText = "  0\n" +
+                    "TEXT\n" +
+                    "  5\n" +
+                    "447\n" +
+                    "  8\n" +
+                    "2\n" +
+                    " 62\n" +
+                    "6\n" +
+                    " 10\n" +
+                    pointBeginTextX + "\n" +
+                    " 20\n" +
+                    pointBeginTextY + "\n" +
+                    " 30\n" +
+                    "0.0\n" +
+                    " 40\n" +
+                    height + ".0\n" +
+                    "  1\n" +
+                    poz + "\n" +
+                    " 11\n" +
+                    pointBeginTextX + "\n" +
+                    " 21\n" +
+                    pointBeginTextY + "\n" +
+                    " 31\n" +
+                    "0.0\n";
+            entityies.add(newText);
+
+        }
+
+        private void addTwoTextOnEntyties ( int pointCentrXnewRamki, int pointCentrYnewRamki, int height){
+
+            //  double maxDlinnaMark = getLenghtStr(poz) * height + 10 * (getLenghtStr(" " + zakaz + " " + gradeSteel));
+            double lenghtPoz = getLenghtStr(poz) * height + 10 * (getLenghtStr(" " + zakaz + " " + gradeSteel));
+
+
+            double pointBeginTextX = pointCentrXnewRamki - lenghtPoz / 2;
+            double pointBeginTextY = pointCentrYnewRamki - (double) height / 2;
+            String newText = "  0\n" +
+                    "TEXT\n" +
+                    "  5\n" +
+                    "447\n" +
+                    "  8\n" +
+                    "2\n" +
+                    " 62\n" +
+                    "6\n" +
+                    " 10\n" +
+                    pointBeginTextX + "\n" +
+                    " 20\n" +
+                    pointBeginTextY + "\n" +
+                    " 30\n" +
+                    "0.0\n" +
+                    " 40\n" +
+                    height + ".0\n" +
+                    "  1\n" +
+                    poz + "\n" +
+                    " 11\n" +
+                    pointBeginTextX + "\n" +
+                    " 21\n" +
+                    pointBeginTextY + "\n" +
+                    " 31\n" +
+                    "0.0\n";
+            entityies.add(newText);
+
+            //  lenghtPoz = getLenghtStr(zakaz);
+
+            pointBeginTextX = pointBeginTextX + getLenghtStr(poz) * height;
+            //  pointBeginTextY = pointCentrYnewRamki - 10;
+            String str = " " + zakaz + " " + gradeSteel;
+            String newTextZakaz = "  0\n" +
+                    "TEXT\n" +
+                    "  5\n" +
+                    "448\n" +
+                    "  8\n" +
+                    "2\n" +
+                    " 62\n" +
+                    "6\n" +
+                    " 10\n" +
+                    pointBeginTextX + "\n" +
+                    " 20\n" +
+                    pointBeginTextY + "\n" +
+                    " 30\n" +
+                    "0.0\n" +
+                    " 40\n" +
+                    "10.0\n" +
+                    "  1\n" +
+                    str + "\n" +
+                    " 11\n" +
+                    pointBeginTextX + "\n" +
+                    " 21\n" +
+                    pointBeginTextY + "\n" +
+                    " 31\n" +
+                    "0.0\n";
+            entityies.add(newTextZakaz);
+
+        }
+
+        private void addThreeTextOnEntyties ( int pointCentrXnewRamki, int pointCentrYnewRamki, int height){
+
+            int heightRanki = 10 + 5 + 10 + 5 + height;
+            double lenghtPoz = getLenghtStr(poz) * height;
+
+
+            double pointBeginTextX = pointCentrXnewRamki - lenghtPoz / 2;
+            // double pointBeginTextY = pointCentrYnewRamki + 5;
+            double pointBeginTextY = pointCentrYnewRamki + (heightRanki / 2) - height;
+            String newText = "  0\n" +
+                    "TEXT\n" +
+                    "  5\n" +
+                    "447\n" +
+                    "  8\n" +
+                    "2\n" +
+                    " 62\n" +
+                    "6\n" +
+                    " 10\n" +
+                    pointBeginTextX + "\n" +
+                    " 20\n" +
+                    pointBeginTextY + "\n" +
+                    " 30\n" +
+                    "0.0\n" +
+                    " 40\n" +
+                    height + ".0\n" +
+                    "  1\n" +
+                    poz + "\n" +
+                    " 11\n" +
+                    pointBeginTextX + "\n" +
+                    " 21\n" +
+                    pointBeginTextY + "\n" +
+                    " 31\n" +
+                    "0.0\n";
+            entityies.add(newText);
+
+            lenghtPoz = getLenghtStr(zakaz) * 10;
+            pointBeginTextX = pointCentrXnewRamki - lenghtPoz / 2;
+            pointBeginTextY = pointBeginTextY - 15;
+            String newTextZakaz = "  0\n" +
+                    "TEXT\n" +
+                    "  5\n" +
+                    "448\n" +
+                    "  8\n" +
+                    "2\n" +
+                    " 62\n" +
+                    "6\n" +
+                    " 10\n" +
+                    pointBeginTextX + "\n" +
+                    " 20\n" +
+                    pointBeginTextY + "\n" +
+                    " 30\n" +
+                    "0.0\n" +
+                    " 40\n" +
+                    "10.0\n" +
+                    "  1\n" +
+                    zakaz + "\n" +
+                    " 11\n" +
+                    pointBeginTextX + "\n" +
+                    " 21\n" +
+                    pointBeginTextY + "\n" +
+                    " 31\n" +
+                    "0.0\n";
+            entityies.add(newTextZakaz);
+
+
+            lenghtPoz = getLenghtStr(gradeSteel) * 10;
+
+            pointBeginTextX = pointCentrXnewRamki - lenghtPoz / 2;
+            pointBeginTextY = pointBeginTextY - 15;
+            String newTextSteelGrade = "  0\n" +
+                    "TEXT\n" +
+                    "  5\n" +
+                    "449\n" +
+                    "  8\n" +
+                    "2\n" +
+                    " 62\n" +
+                    "6\n" +
+                    " 10\n" +
+                    pointBeginTextX + "\n" +
+                    " 20\n" +
+                    pointBeginTextY + "\n" +
+                    " 30\n" +
+                    "0.0\n" +
+                    " 40\n" +
+                    "10.0\n" +
+                    "  1\n" +
+                    gradeSteel + "\n" +
+                    " 11\n" +
+                    pointBeginTextX + "\n" +
+                    " 21\n" +
+                    pointBeginTextY + "\n" +
+                    " 31\n" +
+                    "0.0\n";
+            entityies.add(newTextSteelGrade);
+
+
+        }
+
+
+        private boolean isGabaritLine (Point2D beginLine, Point2D endLine,double Xmin, double Xmax, double Ymin,
+        double Ymax){
+            boolean isLineVerticalGabarit = (beginLine.getX() == endLine.getX()) && (beginLine.getX() == Xmin || beginLine.getX() == Xmax);
+            boolean isLineGorizontGabarit = (beginLine.getY() == endLine.getY()) && (beginLine.getY() == Ymin || beginLine.getY() == Ymax);
+            return isLineGorizontGabarit || isLineVerticalGabarit;
+        }
+
+        private void breakNoGabaritLineOnPoints (Point2D endLine, Point2D beginLine,int breakLinesLenght){
+            double lenghtLine = Math.sqrt((endLine.getX() - beginLine.getX()) * (endLine.getX() - beginLine.getX()) + (endLine.getY() - beginLine.getY()) * (endLine.getY() - beginLine.getY()));
+            System.out.println("длинна линии =" + lenghtLine);
+            int countFor = (int) lenghtLine / breakLinesLenght;
+            double deltaX = (endLine.getX() - beginLine.getX()) / countFor;
+            double deltaY = (endLine.getY() - beginLine.getY()) / countFor;
+            double x = beginLine.getX();
+            double y = beginLine.getY();
+
+            for (int j = 0; j < countFor; j++) {
+                x += deltaX;
+                y += deltaY;
+                listPointInsidePoz.add(new Point2D(x, y));
+            }
+        }
+
+        public double getLenghtStr (String stroka){
+
+            int count = stroka.length();
+            double dlinnnna = 0.0;
+            for (int i = 0; i < count; i++) {
+
+                Character simvolACAD = stroka.charAt(i);
+
+                switch (simvolACAD) {
+                    case 'A':
+                    case 'B':
+                    case 'C':
+                    case 'D':
+                    case 'd':
+                    case 'E':
+                    case 'F':
+                    case 'f':
+                    case 'G':
+                    case 'H':
+                        dlinnnna += 1;
+                        break;
+                    case 'I':
+                        dlinnnna += 0.66;
+                        break;
+                    case 'J':
+                    case 'K':
+                    case 'L':
+                    case 'M':
+                    case 'N':
+                    case 'O':
+                    case 'P':
+                    case 'p':
+                    case 'Q':
+                    case 'R':
+                    case 'S':
+                    case 'T':
+                    case 'U':
+                    case 'v':
+                        dlinnnna += 1;
+                        break;
+                    case 'V':
+                    case 'W':
+                        dlinnnna += 1.3333;
+                        break;
+                    case 'X':
+                    case 'Y':
+                    case 'Z':
+                    case 'z':
+
+                        dlinnnna += 1;
+                        break;
+                    case '1':
+                        dlinnnna += 0.6666;
+                        break;
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9':
+                        dlinnnna += 1;
+                        break;
+                    case '0':
+                        dlinnnna += 0.8333;
+                        break;
+                    case '-':
+                        dlinnnna += 1;
+                        break;
+                    // RUS
+                    case 'А':
+                    case 'Б':
+                    case 'б':
+                    case 'В':
+                    case 'в':
+                    case 'Г':
+                    case 'д':
+                        dlinnnna += 1;
+                        break;
+                    case 'Д':
+                        dlinnnna += 1.33;
+                        break;
+                    case 'Е':
+                        dlinnnna += 1;
+                        break;
+                    case 'Ё':
+                        dlinnnna += 1;
+                        break;
+                    case 'Ж':
+                        dlinnnna += 1.33;
+                        break;
+                    case 'З':
+                        dlinnnna += 1;
+                        break;
+                    case 'И':
+                        dlinnnna += 1;
+                        break;
+                    case 'Й':
+                        dlinnnna += 1;
+                        break;
+                    case 'К':
+                        dlinnnna += 1;
+                        break;
+                    case 'Л':
+                        dlinnnna += 1.16;
+                        break;
+                    case 'М':
+                        dlinnnna += 1;
+                        break;
+                    case 'Н':
+                        dlinnnna += 1;
+                        break;
+                    case 'О':
+                        dlinnnna += 1;
+                        break;
+                    case 'П':
+                        dlinnnna += 1;
+                        break;
+                    case 'Р':
+                        dlinnnna += 1;
+                        break;
+                    case 'С':
+                        dlinnnna += 1;
+                        break;
+                    case 'Т':
+                        dlinnnna += 1;
+                        break;
+                    case 'У':
+                        dlinnnna += 1;
+                        break;
+                    case 'Ф':
+                        dlinnnna += 1;
+                        break;
+                    case 'Х':
+                        dlinnnna += 1;
+                        break;
+                    case 'Ц':
+                        dlinnnna += 1.16;
+                        break;
+                    case 'Ч':
+                        dlinnnna += 1;
+                        break;
+                    case 'Ш':
+                        dlinnnna += 1.33;
+                        break;
+                    case 'Щ':
+                        dlinnnna += 1.5;
+                        break;
+                    case 'Ъ':
+                        dlinnnna += 1.16;
+                        break;
+                    case 'Ы':
+                        dlinnnna += 1.16;
+                        break;
+                    case 'Ь':
+                        dlinnnna += 1;
+                        break;
+                    case 'Э':
+                        dlinnnna += 1;
+                        break;
+                    case 'Ю':
+                        dlinnnna += 1;
+                        break;
+                    case 'Я':
+                        dlinnnna += 1;
+                        break;
+
+
+                    // DIGIT
+                    case ':':
+                    case '.':
+                        dlinnnna += 0.3333;
+                        break;
+                    case ',':
+                    case ';':
+                        dlinnnna += 0.5;
+                        break;
+                    case '_':
+
+                    case '=':
+                    case '*':
+                    case ' ':
+                    case '/':
+                    case '+':
+                        dlinnnna += 1;
+                        break;
+                    case '<':
+                    case '>':
+                        dlinnnna += 0.8333;
+                        break;
+                    case '?':
+                        dlinnnna += 0.777;
+                        break;
+                    case '!':
+                        dlinnnna += 0.388;
+                        break;
+                    case '@':
+                        dlinnnna += 1.418;
+                        break;
+                    case '#':
+                        dlinnnna += 0.777;
+                        break;
+                    case '$':
+                        dlinnnna += 0.777;
+                        break;
+                    case '%':
+                        dlinnnna += 0.828;
+                        break;
+                    case '^':
+                        dlinnnna += 0.655;
+                        break;
+                    case '&':
+                        dlinnnna += 0.932;
+                        break;
+                    case '(':
+                        dlinnnna += 0.465;
+                        break;
+                    case ')':
+                        dlinnnna += 0.465;
+                        break;
+
+                    case '\'':
+                        dlinnnna += 0.496;
+                        break;
+                    case '№':
+                        dlinnnna += 1.498;
+                        break;
+                    case '[':
+                        dlinnnna += 0.388;
+                        break;
+                    case ']':
+                        dlinnnna += 0.388;
+                        break;
+                    case '{':
+                        dlinnnna += 0.466;
+                        break;
+                    case '}':
+                        dlinnnna += 0.466;
+                        break;
+                    case '|':
+                        dlinnnna += 0.363;
+                        break;
+                    case '\\':
+                        dlinnnna += 0.388;
+                        break;
+                    default:
+                        dlinnnna += 1;
+                        break;
+
                 }
             }
-            if (tochkaVRamke) {
-                uslovie = false;
-            } else {
-                YminRamka = YminRamka - shiftCoordinate;
-                beginBound += shiftCoordinate;
-            }
-            System.out.printf(" Рамка (40х90)  min(%s,%s) max(%s,%s)", XminRamka, YminRamka, XmaxRamka, YmaxRamka);
-            System.out.println();
-        }
-        if (YminRamka < Ymin || tochkaVRamke) {
-            YminRamka = YminRamka + shiftCoordinate;
+
+            return dlinnnna;
+
         }
 
-        // ищем нижнюю границу
-        System.out.println("   ищем верхнею границу рамки");
-        beginBound = 0;
-        uslovie = true;
-        tochkaVRamke = false;
-        while ((YmaxRamka < Ymax) && uslovie && (beginBound < maxBound)) {
-            for (Point2D pnt : listPointInsidePoz) {
-                if (pnt.getX() > XminRamka && pnt.getX() < XmaxRamka && pnt.getY() > YminRamka && pnt.getY() < YmaxRamka) {
-                    tochkaVRamke = true;
-                    break;
+        public List<String> getListPozFromCSV (File fileCSV) throws IOException {
+            List<String> result = new LinkedList<>();
+            List<String> listPoz = Files.readAllLines(fileCSV.toPath());
+            for (String str : listPoz) {
+                if (str.equals("\t\t\t\t\t")
+                        || str.equals("\t\t\t\t")
+                        || str.equals("\r\n")
+                        || str.equals("\n")
+                        || str.equals("")
+                        || str.equals("Инв.\tОбозначение\tКол.Т\tКол.Н\tГабариты\t")
+                        || str.equals("Инв.\tОбозначение\tКол.Т\tКол.Н\tГабариты")) {
+                    continue;
+                } else {
+                    result.add(str);
                 }
             }
-            if (tochkaVRamke) {
-                uslovie = false;
-            } else {
-                YmaxRamka = YmaxRamka + shiftCoordinate;
-                beginBound += shiftCoordinate;
-            }
-            System.out.printf(" Рамка (40х90)  min(%s,%s) max(%s,%s)", XminRamka, YminRamka, XmaxRamka, YmaxRamka);
-            System.out.println();
-        }
-        if (YmaxRamka > Ymax || tochkaVRamke) {
-            YmaxRamka = YmaxRamka - shiftCoordinate;
+            return result;
         }
 
-        // ищем левую границу
-        System.out.println("   ищем левую границу рамки");
-        beginBound = 0;
-        uslovie = true;
-        tochkaVRamke = false;
-        while ((XminRamka > Xmin) && uslovie && (beginBound < maxBound)) {
-            for (Point2D pnt : listPointInsidePoz) {
-                if (pnt.getX() > XminRamka && pnt.getX() < XmaxRamka && pnt.getY() > YminRamka && pnt.getY() < YmaxRamka) {
-                    tochkaVRamke = true;
-                    break;
+        public void addPozPodkroiToList
+        (MultiValueHashMap < String, String > map, List < String > listPoziciiPlusPodkroi){
+            Set<String> set = map.kSet();
+            for (String key : set) {
+                List<String> listValue = map.get(key);
+                listPoziciiPlusPodkroi.addAll(listValue);
+            }
+
+        }
+
+        public List<String> getListFileName (String pathDXF) throws IOException {
+
+            //   Path path = Path.of(pathDXF+"fileORD.Ord");
+
+            //     Files.deleteIfExists(path);
+
+            List<String> result = new LinkedList<>();
+            File file = new File(pathDXF);
+            File[] massiv = file.listFiles();
+            for (int i = 0; i < massiv.length; i++) {
+                String str = massiv[i].getName().replace(".dxf", "").replace(".Ord", "");
+                if (!str.equals("fileORD")) {
+                    result.add(str);
+                }
+                massiv[i].delete();
+            }
+            return result;
+        }
+
+        public void savePozsPodkroi (MultiValueHashMap < String, String > map) throws IOException {
+
+            FileWriter filePodkroi = new FileWriter("c:\\Users\\alexx.STALMOST\\Desktop\\ДеталиБК_всеPPP.csv", StandardCharsets.UTF_8);
+            //  static File fileCSV = new File("c:\\Users\\alexx.STALMOST\\Desktop\\ДеталиБК_все.csv");
+
+
+            Set<String> set = map.kSet();
+            for (String key : set) {
+                // System.out.println(key);
+                List<String> listValue = map.get(key);
+                for (String value : listValue) {
+                    filePodkroi.write(value + "\n");
                 }
             }
-            if (tochkaVRamke) {
-                uslovie = false;
-            } else {
-                XminRamka = XminRamka - shiftCoordinate;
-                beginBound += shiftCoordinate;
-            }
-            System.out.printf(" Рамка (40х90)  min(%s,%s) max(%s,%s)", XminRamka, YminRamka, XmaxRamka, YmaxRamka);
-            System.out.println();
-        }
-        if (XminRamka < Xmin || tochkaVRamke) {
-            XminRamka = XminRamka + shiftCoordinate;
-        }
-
-        // ищем левую границу
-        System.out.println("   ищем правую границу рамки");
-        beginBound = 0;
-        uslovie = true;
-        tochkaVRamke = false;
-        while ((XmaxRamka < Xmax) && uslovie && (beginBound < maxBound)) {
-            for (Point2D pnt : listPointInsidePoz) {
-                if (pnt.getX() > XminRamka && pnt.getX() < XmaxRamka && pnt.getY() > YminRamka && pnt.getY() < YmaxRamka) {
-                    tochkaVRamke = true;
-                    break;
-                }
-            }
-            if (tochkaVRamke) {
-                uslovie = false;
-            } else {
-                XmaxRamka = XmaxRamka + shiftCoordinate;
-                beginBound += shiftCoordinate;
-            }
-            System.out.printf(" Рамка (40х90)  min(%s,%s) max(%s,%s)", XminRamka, YminRamka, XmaxRamka, YmaxRamka);
-            System.out.println();
-        }
-        if (XmaxRamka > Xmax || tochkaVRamke) {
-            XmaxRamka = XmaxRamka - shiftCoordinate;
-        }
-        System.out.println("----------------------------------------");
-        System.out.printf(" результат  min(%s,%s) max(%s,%s)\n", XminRamka, YminRamka, XmaxRamka, YmaxRamka);
-
-        int pointCentrXnewRamki = XminRamka + (XmaxRamka - XminRamka) / 2;
-        int pointCentrYnewRamki = YminRamka + (YmaxRamka - YminRamka) / 2;
-        System.out.printf("centr (%s,%s)\n", pointCentrXnewRamki, pointCentrYnewRamki);
-
-        //  String markirovka = "164-MD-145";
-        //  String zakaz = "0286645";
-        // String steelGrade = "09г2с";
-        //  (int XminRamka, int YminRamka, int XmaxRamka, int YmaxRamka, double[] res, int shiftCoordinate, Rectangle ramkaMark, int height, TypeMark typeMark)
-        if (typeMark.equals(TypeMark.VERTICAL)) {
-            addThreeTextOnEntyties(pointCentrXnewRamki, pointCentrYnewRamki, height);
-        } else if (typeMark.equals(TypeMark.HORIZONTAL)) {
-            addTwoTextOnEntyties(pointCentrXnewRamki, pointCentrYnewRamki, height);
-        } else if (typeMark.equals(TypeMark.ONLY_POZ)) {
-            addOneTextOnEntyties(pointCentrXnewRamki, pointCentrYnewRamki, height);
-        }
 
 
-    }
-
-    private void addOneTextOnEntyties(int pointCentrXnewRamki, int pointCentrYnewRamki, int height) {
-        // int heightRanki = height/2;
-        double lenghtPoz = getLenghtStr(poz) * height;
+            //  filePodkroi.write("\uFEFF");
+            // filePodkroi.write("@M=0 @T=1.000000" + System.lineSeparator());
+            filePodkroi.close();
 
 
-        double pointBeginTextX = pointCentrXnewRamki - lenghtPoz / 2;
-        double pointBeginTextY = pointCentrYnewRamki - height / 2;
-        String newText = "  0\n" +
-                "TEXT\n" +
-                "  5\n" +
-                "447\n" +
-                "  8\n" +
-                "2\n" +
-                " 62\n" +
-                "6\n" +
-                " 10\n" +
-                pointBeginTextX + "\n" +
-                " 20\n" +
-                pointBeginTextY + "\n" +
-                " 30\n" +
-                "0.0\n" +
-                " 40\n" +
-                height + ".0\n" +
-                "  1\n" +
-                poz + "\n" +
-                " 11\n" +
-                pointBeginTextX + "\n" +
-                " 21\n" +
-                pointBeginTextY + "\n" +
-                " 31\n" +
-                "0.0\n";
-        entityies.add(newText);
-
-    }
-
-    private void addTwoTextOnEntyties(int pointCentrXnewRamki, int pointCentrYnewRamki, int height) {
-
-        //  double maxDlinnaMark = getLenghtStr(poz) * height + 10 * (getLenghtStr(" " + zakaz + " " + gradeSteel));
-        double lenghtPoz = getLenghtStr(poz) * height + 10 * (getLenghtStr(" " + zakaz + " " + gradeSteel));
-
-
-        double pointBeginTextX = pointCentrXnewRamki - lenghtPoz / 2;
-        double pointBeginTextY = pointCentrYnewRamki - (double) height / 2;
-        String newText = "  0\n" +
-                "TEXT\n" +
-                "  5\n" +
-                "447\n" +
-                "  8\n" +
-                "2\n" +
-                " 62\n" +
-                "6\n" +
-                " 10\n" +
-                pointBeginTextX + "\n" +
-                " 20\n" +
-                pointBeginTextY + "\n" +
-                " 30\n" +
-                "0.0\n" +
-                " 40\n" +
-                height + ".0\n" +
-                "  1\n" +
-                poz + "\n" +
-                " 11\n" +
-                pointBeginTextX + "\n" +
-                " 21\n" +
-                pointBeginTextY + "\n" +
-                " 31\n" +
-                "0.0\n";
-        entityies.add(newText);
-
-        //  lenghtPoz = getLenghtStr(zakaz);
-
-        pointBeginTextX = pointBeginTextX + getLenghtStr(poz) * height;
-        //  pointBeginTextY = pointCentrYnewRamki - 10;
-        String str = " " + zakaz + " " + gradeSteel;
-        String newTextZakaz = "  0\n" +
-                "TEXT\n" +
-                "  5\n" +
-                "448\n" +
-                "  8\n" +
-                "2\n" +
-                " 62\n" +
-                "6\n" +
-                " 10\n" +
-                pointBeginTextX + "\n" +
-                " 20\n" +
-                pointBeginTextY + "\n" +
-                " 30\n" +
-                "0.0\n" +
-                " 40\n" +
-                "10.0\n" +
-                "  1\n" +
-                str + "\n" +
-                " 11\n" +
-                pointBeginTextX + "\n" +
-                " 21\n" +
-                pointBeginTextY + "\n" +
-                " 31\n" +
-                "0.0\n";
-        entityies.add(newTextZakaz);
-
-    }
-
-    private void addThreeTextOnEntyties(int pointCentrXnewRamki, int pointCentrYnewRamki, int height) {
-
-        int heightRanki = 10 + 5 + 10 + 5 + height;
-        double lenghtPoz = getLenghtStr(poz) * height;
-
-
-        double pointBeginTextX = pointCentrXnewRamki - lenghtPoz / 2;
-        // double pointBeginTextY = pointCentrYnewRamki + 5;
-        double pointBeginTextY = pointCentrYnewRamki + (heightRanki / 2) - height;
-        String newText = "  0\n" +
-                "TEXT\n" +
-                "  5\n" +
-                "447\n" +
-                "  8\n" +
-                "2\n" +
-                " 62\n" +
-                "6\n" +
-                " 10\n" +
-                pointBeginTextX + "\n" +
-                " 20\n" +
-                pointBeginTextY + "\n" +
-                " 30\n" +
-                "0.0\n" +
-                " 40\n" +
-                height + ".0\n" +
-                "  1\n" +
-                poz + "\n" +
-                " 11\n" +
-                pointBeginTextX + "\n" +
-                " 21\n" +
-                pointBeginTextY + "\n" +
-                " 31\n" +
-                "0.0\n";
-        entityies.add(newText);
-
-        lenghtPoz = getLenghtStr(zakaz) * 10;
-        pointBeginTextX = pointCentrXnewRamki - lenghtPoz / 2;
-        pointBeginTextY = pointBeginTextY - 15;
-        String newTextZakaz = "  0\n" +
-                "TEXT\n" +
-                "  5\n" +
-                "448\n" +
-                "  8\n" +
-                "2\n" +
-                " 62\n" +
-                "6\n" +
-                " 10\n" +
-                pointBeginTextX + "\n" +
-                " 20\n" +
-                pointBeginTextY + "\n" +
-                " 30\n" +
-                "0.0\n" +
-                " 40\n" +
-                "10.0\n" +
-                "  1\n" +
-                zakaz + "\n" +
-                " 11\n" +
-                pointBeginTextX + "\n" +
-                " 21\n" +
-                pointBeginTextY + "\n" +
-                " 31\n" +
-                "0.0\n";
-        entityies.add(newTextZakaz);
-
-
-        lenghtPoz = getLenghtStr(gradeSteel) * 10;
-
-        pointBeginTextX = pointCentrXnewRamki - lenghtPoz / 2;
-        pointBeginTextY = pointBeginTextY - 15;
-        String newTextSteelGrade = "  0\n" +
-                "TEXT\n" +
-                "  5\n" +
-                "449\n" +
-                "  8\n" +
-                "2\n" +
-                " 62\n" +
-                "6\n" +
-                " 10\n" +
-                pointBeginTextX + "\n" +
-                " 20\n" +
-                pointBeginTextY + "\n" +
-                " 30\n" +
-                "0.0\n" +
-                " 40\n" +
-                "10.0\n" +
-                "  1\n" +
-                gradeSteel + "\n" +
-                " 11\n" +
-                pointBeginTextX + "\n" +
-                " 21\n" +
-                pointBeginTextY + "\n" +
-                " 31\n" +
-                "0.0\n";
-        entityies.add(newTextSteelGrade);
-
-
-    }
-
-
-    private boolean isGabaritLine(Point2D beginLine, Point2D endLine, double Xmin, double Xmax, double Ymin, double Ymax) {
-        boolean isLineVerticalGabarit = (beginLine.getX() == endLine.getX()) && (beginLine.getX() == Xmin || beginLine.getX() == Xmax);
-        boolean isLineGorizontGabarit = (beginLine.getY() == endLine.getY()) && (beginLine.getY() == Ymin || beginLine.getY() == Ymax);
-        return isLineGorizontGabarit || isLineVerticalGabarit;
-    }
-
-    private void breakNoGabaritLineOnPoints(Point2D endLine, Point2D beginLine, int breakLinesLenght) {
-        double lenghtLine = Math.sqrt((endLine.getX() - beginLine.getX()) * (endLine.getX() - beginLine.getX()) + (endLine.getY() - beginLine.getY()) * (endLine.getY() - beginLine.getY()));
-        System.out.println("длинна линии =" + lenghtLine);
-        int countFor = (int) lenghtLine / breakLinesLenght;
-        double deltaX = (endLine.getX() - beginLine.getX()) / countFor;
-        double deltaY = (endLine.getY() - beginLine.getY()) / countFor;
-        double x = beginLine.getX();
-        double y = beginLine.getY();
-
-        for (int j = 0; j < countFor; j++) {
-            x += deltaX;
-            y += deltaY;
-            listPointInsidePoz.add(new Point2D(x, y));
         }
     }
-
-    public double getLenghtStr(String stroka) {
-
-        int count = stroka.length();
-        double dlinnnna = 0.0;
-        for (int i = 0; i < count; i++) {
-
-            Character simvolACAD = stroka.charAt(i);
-
-            switch (simvolACAD) {
-                case 'A':
-                case 'B':
-                case 'C':
-                case 'D':
-                case 'd':
-                case 'E':
-                case 'F':
-                case 'f':
-                case 'G':
-                case 'H':
-                    dlinnnna += 1;
-                    break;
-                case 'I':
-                    dlinnnna += 0.66;
-                    break;
-                case 'J':
-                case 'K':
-                case 'L':
-                case 'M':
-                case 'N':
-                case 'O':
-                case 'P':
-                case 'p':
-                case 'Q':
-                case 'R':
-                case 'S':
-                case 'T':
-                case 'U':
-                case 'v':
-                    dlinnnna += 1;
-                    break;
-                case 'V':
-                case 'W':
-                    dlinnnna += 1.3333;
-                    break;
-                case 'X':
-                case 'Y':
-                case 'Z':
-                case 'z':
-
-                    dlinnnna += 1;
-                    break;
-                case '1':
-                    dlinnnna += 0.6666;
-                    break;
-                case '2':
-                case '3':
-                case '4':
-                case '5':
-                case '6':
-                case '7':
-                case '8':
-                case '9':
-                    dlinnnna += 1;
-                    break;
-                case '0':
-                    dlinnnna += 0.8333;
-                    break;
-                case '-':
-                    dlinnnna += 1;
-                    break;
-                // RUS
-                case 'А':
-                case 'Б':
-                case 'б':
-                case 'В':
-                case 'в':
-                case 'Г':
-                case 'д':
-                    dlinnnna += 1;
-                    break;
-                case 'Д':
-                    dlinnnna += 1.33;
-                    break;
-                case 'Е':
-                    dlinnnna += 1;
-                    break;
-                case 'Ё':
-                    dlinnnna += 1;
-                    break;
-                case 'Ж':
-                    dlinnnna += 1.33;
-                    break;
-                case 'З':
-                    dlinnnna += 1;
-                    break;
-                case 'И':
-                    dlinnnna += 1;
-                    break;
-                case 'Й':
-                    dlinnnna += 1;
-                    break;
-                case 'К':
-                    dlinnnna += 1;
-                    break;
-                case 'Л':
-                    dlinnnna += 1.16;
-                    break;
-                case 'М':
-                    dlinnnna += 1;
-                    break;
-                case 'Н':
-                    dlinnnna += 1;
-                    break;
-                case 'О':
-                    dlinnnna += 1;
-                    break;
-                case 'П':
-                    dlinnnna += 1;
-                    break;
-                case 'Р':
-                    dlinnnna += 1;
-                    break;
-                case 'С':
-                    dlinnnna += 1;
-                    break;
-                case 'Т':
-                    dlinnnna += 1;
-                    break;
-                case 'У':
-                    dlinnnna += 1;
-                    break;
-                case 'Ф':
-                    dlinnnna += 1;
-                    break;
-                case 'Х':
-                    dlinnnna += 1;
-                    break;
-                case 'Ц':
-                    dlinnnna += 1.16;
-                    break;
-                case 'Ч':
-                    dlinnnna += 1;
-                    break;
-                case 'Ш':
-                    dlinnnna += 1.33;
-                    break;
-                case 'Щ':
-                    dlinnnna += 1.5;
-                    break;
-                case 'Ъ':
-                    dlinnnna += 1.16;
-                    break;
-                case 'Ы':
-                    dlinnnna += 1.16;
-                    break;
-                case 'Ь':
-                    dlinnnna += 1;
-                    break;
-                case 'Э':
-                    dlinnnna += 1;
-                    break;
-                case 'Ю':
-                    dlinnnna += 1;
-                    break;
-                case 'Я':
-                    dlinnnna += 1;
-                    break;
-
-
-                // DIGIT
-                case ':':
-                case '.':
-                    dlinnnna += 0.3333;
-                    break;
-                case ',':
-                case ';':
-                    dlinnnna += 0.5;
-                    break;
-                case '_':
-
-                case '=':
-                case '*':
-                case ' ':
-                case '/':
-                case '+':
-                    dlinnnna += 1;
-                    break;
-                case '<':
-                case '>':
-                    dlinnnna += 0.8333;
-                    break;
-                case '?':
-                    dlinnnna += 0.777;
-                    break;
-                case '!':
-                    dlinnnna += 0.388;
-                    break;
-                case '@':
-                    dlinnnna += 1.418;
-                    break;
-                case '#':
-                    dlinnnna += 0.777;
-                    break;
-                case '$':
-                    dlinnnna += 0.777;
-                    break;
-                case '%':
-                    dlinnnna += 0.828;
-                    break;
-                case '^':
-                    dlinnnna += 0.655;
-                    break;
-                case '&':
-                    dlinnnna += 0.932;
-                    break;
-                case '(':
-                    dlinnnna += 0.465;
-                    break;
-                case ')':
-                    dlinnnna += 0.465;
-                    break;
-
-                case '\'':
-                    dlinnnna += 0.496;
-                    break;
-                case '№':
-                    dlinnnna += 1.498;
-                    break;
-                case '[':
-                    dlinnnna += 0.388;
-                    break;
-                case ']':
-                    dlinnnna += 0.388;
-                    break;
-                case '{':
-                    dlinnnna += 0.466;
-                    break;
-                case '}':
-                    dlinnnna += 0.466;
-                    break;
-                case '|':
-                    dlinnnna += 0.363;
-                    break;
-                case '\\':
-                    dlinnnna += 0.388;
-                    break;
-                default:
-                    dlinnnna += 1;
-                    break;
-
-            }
-        }
-
-        return dlinnnna;
-
-    }
-
-    public List<String> getListPozFromCSV(File fileCSV) throws IOException {
-        List<String> result = new LinkedList<>();
-        List<String> listPoz = Files.readAllLines(fileCSV.toPath());
-        for (String str : listPoz) {
-            if (str.equals("\t\t\t\t\t")
-                    || str.equals("\t\t\t\t")
-                    || str.equals("\r\n")
-                    || str.equals("\n")
-                    || str.equals("")
-                    || str.equals("Инв.\tОбозначение\tКол.Т\tКол.Н\tГабариты\t")
-                    || str.equals("Инв.\tОбозначение\tКол.Т\tКол.Н\tГабариты")) {
-                continue;
-            } else {
-                result.add(str);
-            }
-        }
-        return result;
-    }
-
-    public void addPozPodkroiToList(MultiValueHashMap<String, String> map, List<String> listPoziciiPlusPodkroi) {
-        Set<String> set = map.kSet();
-        for (String key : set) {
-            List<String> listValue = map.get(key);
-            listPoziciiPlusPodkroi.addAll(listValue);
-        }
-
-    }
-
-    public List<String> getListFileName(String pathDXF) throws IOException {
-
-        //   Path path = Path.of(pathDXF+"fileORD.Ord");
-
-        //     Files.deleteIfExists(path);
-
-        List<String> result = new LinkedList<>();
-        File file = new File(pathDXF);
-        File[] massiv = file.listFiles();
-        for (int i = 0; i < massiv.length; i++) {
-            String str = massiv[i].getName().replace(".dxf", "").replace(".Ord", "");
-            if (!str.equals("fileORD")) {
-                result.add(str);
-            }
-            massiv[i].delete();
-        }
-        return result;
-    }
-
-    public void savePozsPodkroi(MultiValueHashMap<String, String> map) throws IOException {
-
-        FileWriter filePodkroi = new FileWriter("c:\\Users\\alexx.STALMOST\\Desktop\\ДеталиБК_всеPPP.csv", StandardCharsets.UTF_8);
-        //  static File fileCSV = new File("c:\\Users\\alexx.STALMOST\\Desktop\\ДеталиБК_все.csv");
-
-
-        Set<String> set = map.kSet();
-        for (String key : set) {
-            // System.out.println(key);
-            List<String> listValue = map.get(key);
-            for (String value : listValue) {
-                filePodkroi.write(value + "\n");
-            }
-        }
-
-
-        //  filePodkroi.write("\uFEFF");
-        // filePodkroi.write("@M=0 @T=1.000000" + System.lineSeparator());
-        filePodkroi.close();
-
-
-    }
-}
