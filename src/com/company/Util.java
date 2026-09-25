@@ -2648,6 +2648,7 @@ Y=−1 * (x)
             long countSlash = gabaritCSV.chars().filter(ch -> ch == '/').count();
             if(countSlash == 2 ){
                 shirinaCSV = 0;
+
                 dlinnaСSV = Integer.parseInt(gabaritCSV.split("x")[3]);
             } else {
                 shirinaCSV = Integer.parseInt(gabaritCSV.split("x")[1]);
