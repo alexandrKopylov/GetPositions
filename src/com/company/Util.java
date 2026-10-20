@@ -905,7 +905,11 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 
 
     /// todo searchPozFromZakaz
-    private void searchPozFromZakaz(MultiValueHashMap<String, String> fileNotFaundOnZakaz, FileWriter writer, Map<String, String> delListOnInv, String zak) throws IOException {
+    private void searchPozFromZakaz(MultiValueHashMap<String,
+                                     String> fileNotFaundOnZakaz,
+                                    FileWriter writer,
+                                    Map<String,String> delListOnInv,
+                                    String zak) throws IOException {
 
         // int countNashel = 0;
         printFindPoz();
@@ -1185,19 +1189,23 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
                 // todo    fastMethod
 
                 if (flagFolderWithDXF) {
-                    pathFolderPoz = pozPathsList.get(0);
+                    pathFolderPoz =    zakazPathMap.get(strZakaz);            // pozPathsList.get(0);
                 }
                 fastMethod(pathFolderPoz, listPoz, strZakaz, zak);
 
-
+                File[] fileArray;
                 if (listPoz.size() != 0) {
                     METKA:
 
                     // File[] files = pathFolderPoz.toFile().listFiles();
                     //  File fff =  pathFolderPoz.toFile();
 
-                    for (File file : pathFolderPoz.toFile().listFiles()) {
-                        String fileStr = file.toString();
+                   // fileArray = listPathToFileArray(pozPathsList);
+
+                    for (File file :  pathFolderPoz.toFile().listFiles()) {
+
+                   // for(Path file : pozPathsList ){
+                        String fileStr   = file.toString();
                         Iterator<String> it = listPoz.iterator();
                         while (it.hasNext()) {
                             razbiraemNaChasti(zak, it);
@@ -1336,6 +1344,14 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
             }
             // }     // esli papka s zakazom ne sushestvuet
         }      // setZakaz
+    }
+
+    private File[] listPathToFileArray(List<Path> pozPathsList) {
+        File[] result = new File[pozPathsList.size()-1];
+        for (int i = 0; i <pozPathsList.size()-1 ; i++) {
+            result[i] = pozPathsList.get(i).toFile();
+        }
+        return result;
     }
 
     private void createDXF(File fileInFolderDXF, String gabarit) throws IOException {
@@ -1743,11 +1759,16 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
         File fileInFolderDXF;
 
 //
-        if (identicalPozAndInv.add(poz)) {
-            fileInFolderDXF = new File(pathDXF + poz + ".dxf");
-        } else {
-            fileInFolderDXF = new File(pathDXF + poz + "_" + zakaz + ".dxf");
-        }
+//        if (identicalPozAndInv.add(poz)) {
+//            fileInFolderDXF = new File(pathDXF + poz + ".dxf");
+//        } else {
+//            fileInFolderDXF = new File(pathDXF + poz + "_" + zakaz + ".dxf");
+//        }
+
+
+        //  все детали с заказом
+        fileInFolderDXF = new File(pathDXF + poz + "_" + zakaz + ".dxf");
+
 
         if (!fileInFolderDXF.exists()) {
             Files.copy(file.toPath(), fileInFolderDXF.toPath());
@@ -2226,11 +2247,14 @@ L3-41-030-2510.1-031	dp4-245_03110А	22	0	28x194x567
 
             if (checkbox.isSelected()) {
 
-                if (identicalPozAndInv.add(poz)) {
-                    stringAbsolutPathToFileInDXF = pathDXF + poz + ".dxf";
-                } else {
-                    stringAbsolutPathToFileInDXF = pathDXF + poz + "_" + zakaz + ".dxf";
-                }
+//                if (identicalPozAndInv.add(poz)) {
+//                    stringAbsolutPathToFileInDXF = pathDXF + poz + ".dxf";
+//                } else {
+//                    stringAbsolutPathToFileInDXF = pathDXF + poz + "_" + zakaz + ".dxf";
+//                }
+
+                stringAbsolutPathToFileInDXF = pathDXF + poz + "_" + zakaz + ".dxf";
+
             } else {
 
                 if (countCharInString(srokaSearch, '.') == 1) {
